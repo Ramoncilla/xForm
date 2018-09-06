@@ -1,0 +1,79 @@
+
+importar(hola.xform);
+importar(adios.xform);
+CLASE persona publico{
+
+entero edad=25;
+cadena nombre="Alina";
+
+vacion mostrar(){
+
+si(5<10){
+
+}sino si(8>6){
+
+} sino si(9>6){
+
+}
+
+
+si(10>6){
+
+}
+
+si(9<78){
+
+}sino{
+
+}
+
+
+si(5<10){
+
+}sino si(8>6){
+
+} sino si(9>6){
+
+}sino{
+
+}
+
+
+
+
+}
+
+}
+
+
+
+
+CLASE individuo publico {
+entero privado a;
+cadena protegido b = 10;
+cadena c= "pedrito bonito";
+decimal d ;
+
+principal(){
+imprimir(c);
+imprimir("llegue a un principal saludos :d ");
+persona nueva = nuevo persona();
+persona nueva = nuevo persona("hola", var);
+si(890<125){
+imprimir("pase un si");
+}sino {
+imprimir("cuarto");
+}
+
+entero i=0;
+mientras (i<10){
+imprimir(i);
+imprimir("ciclo mientras "+ i);
+i= i+1;
+
+}
+
+
+}
+
+}
