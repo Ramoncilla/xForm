@@ -22,6 +22,18 @@ namespace xForms.Errores
         }
 
 
+        public string htmlError()
+        {
+            string cad = "";
+
+            cad = "<tr>\n" +
+                "<td>"+this.tipo+"</td>\n" +
+                "<td>"+(this.fila+1)+"</td>\n" +
+                "<td>"+(this.columna+1)+"</td>\n" +
+                "<td>" + this.descripcion + "</td>\n" +
+                "</tr>\n";
+            return cad;
+        }
 
 
 

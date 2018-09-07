@@ -151,7 +151,7 @@ namespace xForms.Analizar
                     for (int j = 0; j < principal.cuerpoFuncion.ChildNodes[0].ChildNodes.Count; j++)
                     {
                         sentencia = principal.cuerpoFuncion.ChildNodes[0].ChildNodes[j];
-                        evaluarArbol(sentencia, contexto, temp.nombreClase, Constantes.PRINCIPAL, tabla);
+                        evaluarArbol(sentencia, contexto, temp.nombreClase, Constantes.PRINCIPAL, tabla, new elementoRetorno());
                     }
                     contexto.Ambitos.Pop();
                     tabla.salirAmbiente();
@@ -168,24 +168,24 @@ namespace xForms.Analizar
 
 
         #region evualuar sentencias
-        public void evaluarArbol(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla)
+        public elementoRetorno evaluarArbol(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             switch (nodo.Term.Name)
             {
                 case Constantes.IMPRIMIR:
                     {
                         
-                        this.imprimir(nodo, ambiente, nombreClase, nombreMetodo, tabla);
-                        break;
+                        ret = this.imprimir(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
                     }
 
                 case Constantes.CUERPO_FUNCION:
                     {
                         foreach (ParseTreeNode item in nodo.ChildNodes)
                         {
-                            evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
+                            ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         }
-                        break;
+                        return ret;
                     }
 
 
@@ -193,9 +193,9 @@ namespace xForms.Analizar
                     {
                         foreach (ParseTreeNode item in nodo.ChildNodes)
                         {
-                            evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
+                            ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         }
-                        break;
+                        return ret;
                     }
 
                 case Constantes.SI:
@@ -207,14 +207,14 @@ namespace xForms.Analizar
                         {
                             if (nodo.ChildNodes[1].Term.Name.Equals(Constantes.L_SINO_SI))
                             {//S_SI +L_SINO_SI
-                                bool primero = this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
+                                ret = this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
                                 ParseTreeNode listaSinos = nodo.ChildNodes[1];
                                 ParseTreeNode siTemporal;
                                 int i = 0;
-                                while ((!primero) && i < listaSinos.ChildNodes.Count)
+                                while ((!ret.banderaSi) && i < listaSinos.ChildNodes.Count)
                                 {
                                     siTemporal = listaSinos.ChildNodes[i];
-                                    primero = this.resolverSI(siTemporal, ambiente, nombreClase, nombreMetodo, tabla);
+                                    ret = this.resolverSI(siTemporal, ambiente, nombreClase, nombreMetodo, tabla, ret);
                                     i++;
                                 }
                                
@@ -222,37 +222,37 @@ namespace xForms.Analizar
                             }
                             else
                             {//S_SI +SINO
-                                bool primero = this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
+                                ret = this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
                                 
-                                if (!primero)
+                                if (!ret.banderaSi)
                                 {
                                     //resolver el sino
-                                    this.resolverSino(nodo.ChildNodes[1].ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
+                                    this.resolverSino(nodo.ChildNodes[1].ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
                                 }
 
                             }
                         }
                         else if (cont == 3)
                         {//S_SI +L_SINO_SI+ SINO
-                            bool primero = this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
+                            ret = this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
                             ParseTreeNode listaSinos = nodo.ChildNodes[1];
                             ParseTreeNode siTemporal, exp, cuerpo;
                             int i = 0;
-                            while ((!primero) && i < listaSinos.ChildNodes.Count)
+                            while ((!ret.banderaSi) && i < listaSinos.ChildNodes.Count)
                             {
                                 siTemporal = listaSinos.ChildNodes[i];
-                                primero = this.resolverSI(siTemporal, ambiente, nombreClase, nombreMetodo, tabla);
+                                ret = this.resolverSI(siTemporal, ambiente, nombreClase, nombreMetodo, tabla, ret);
                                 i++;
                             }
-                            if (!primero)
+                            if (!ret.banderaSi)
                             {
                                 //resolver el sino
-                                this.resolverSino(nodo.ChildNodes[2].ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
+                                this.resolverSino(nodo.ChildNodes[2].ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
                             }
                         }
                         else
                         {//S_SI;
-                            this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
+                            this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
                         }
 
 #endregion
@@ -307,39 +307,55 @@ namespace xForms.Analizar
 
                         }
 #endregion
-                        break;
+                        return ret;
                     }
 
                    case Constantes.MIENTRAS:{
 
-                       this.resolverMientras(nodo, ambiente, nombreClase, nombreMetodo, tabla);
-                        break;
+                       ret = this.resolverMientras(nodo, ambiente, nombreClase, nombreMetodo, tabla,ret);
+                       return ret;
                     }
+                   case Constantes.HACER:
+                       {
+                           ret = this.resolverHacerMientras(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                           return ret;
+                       }
+
+
+                   case Constantes.REPETIR_HASTA:
+                       {
+                           ret = this.resolverRepetirHasta(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                           return ret;
+                           
+                       }
+
+                   case Constantes.PARA:
+                       {
+                           break;
+                       }
                    case Constantes.ROMPER:
                        {
-                           elementoRetorno nuevo = new elementoRetorno();
-                           nuevo.parar = true;
-                           break;
+                           ret.parar = true;
+                           return ret;
                           // return nuevo;
                        }
                    case Constantes.CONTINUAR:
                        {
-                           elementoRetorno nuevo = new elementoRetorno();
-                           nuevo.continuar = true;
-                           break;
-                          // return nuevo;
+                           ret.continuar= true;
+                           return ret;
 
                          
                        }
 
                    case Constantes.ASIGNACION:
                        {
-                           this.resolverAsignar(nodo, ambiente, nombreClase, nombreMetodo, tabla);
-                           break;
+                          ret =  this.resolverAsignar(nodo, ambiente, nombreClase, nombreMetodo, tabla,ret);
+                          return ret;
                        }
 
 
             }
+            return ret;
 
         }
 
@@ -348,12 +364,12 @@ namespace xForms.Analizar
         #endregion
 
         #region Asignaciones
-        private void resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             ParseTreeNode acceso = nodo.ChildNodes[0];
             ParseTreeNode expresion = nodo.ChildNodes[1];
             int cont = acceso.ChildNodes.Count;
-            ParseTreeNode temp;
+            ParseTreeNode temp;      
             string nombreElemento;
             for (int i = 0; i < cont; i++)
             {
@@ -361,7 +377,7 @@ namespace xForms.Analizar
                 if (temp.Term.Name.ToLower().Equals(Constantes.ID.ToLower()))
                 {
                     nombreElemento = temp.ChildNodes[0].Token.ValueString;
-                    Simbolo simb = tabla.buscarSimbolo(nombreElemento, ambiente.getAmbito(), nombreClase);
+                    Simbolo simb = tabla.buscarSimbolo(nombreElemento, ambiente);
                     Valor v = resolvExpresiones.resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
                     if (simb != null)
                     {
@@ -369,7 +385,7 @@ namespace xForms.Analizar
                     }
                     else
                     {
-                        Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreElemento + ", en el ambito actual");
+                        Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreElemento + ", en el ambito actual "+ambiente.getAmbito());
                     }
 
                 }
@@ -382,6 +398,7 @@ namespace xForms.Analizar
 
                 }
             }
+            return ret;
         }
 
 
@@ -389,9 +406,142 @@ namespace xForms.Analizar
 
 
         #region Ciclos
+        #region Para
+
+        private elementoRetorno resolverPara(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+
+        }
+
+        #endregion
+
+        #region RepetirHasta
+
+        private elementoRetorno resolverRepetirHasta(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            //ToTerm(Constantes.HACER) + CUERPO_FUNCION + ToTerm(Constantes.MIENTRAS) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
+            ParseTreeNode nodoCuerpo = nodo.ChildNodes[0];
+            ParseTreeNode nodoExpresion = nodo.ChildNodes[1];
+            Valor resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+            if (esBooleano(resExpr))
+            {
+                ambiente.addRepetir();
+                // while (esVerdadero(resExpr))
+
+                do
+                {
+
+                    foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
+                    {
+                        if (ret.continuar)
+                        {
+                            break;
+                        }
+                        else if (ret.parar)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
+                        }
+
+                    }
+                    if (ret.parar)
+                    {
+                        ret.parar = false;
+                        break;
+                    }
+                    if (ret.continuar)
+                    {
+                        //resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+                        ret.continuar = false;
+                        continue;
+
+                    }
+
+                    resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+                } while (!esVerdadero(resExpr));
+                ambiente.salirAmbito();
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion para el ciclo hacer mientras  no es valida");
+            }
+
+            return ret;
+
+
+
+        }
+
+#endregion
+
+
+        #region HacerMientras
+        private elementoRetorno resolverHacerMientras(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            //ToTerm(Constantes.HACER) + CUERPO_FUNCION + ToTerm(Constantes.MIENTRAS) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
+            ParseTreeNode nodoCuerpo = nodo.ChildNodes[0];
+            ParseTreeNode nodoExpresion = nodo.ChildNodes[1];
+            Valor resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+            if (esBooleano(resExpr))
+            {
+                ambiente.addHacerMientras();
+               // while (esVerdadero(resExpr))
+              
+                do
+                {
+                 
+                    foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
+                    {
+                        if (ret.continuar)
+                        {
+                            break;
+                        }
+                        else if (ret.parar)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
+                        }
+
+                    }
+                    if (ret.parar)
+                    {
+                        ret.parar = false;
+                        break;
+                    }
+                    if (ret.continuar)
+                    {
+                        //resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+                        ret.continuar = false;
+                        continue;
+
+                    }
+
+                    resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+                } while (esVerdadero(resExpr) ) ;
+                ambiente.salirAmbito();
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion para el ciclo hacer mientras  no es valida");
+            }
+
+            return ret;
+
+
+        
+        }
+#endregion
 
         #region Mientras
-        private void resolverMientras(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla)
+        private elementoRetorno  resolverMientras(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             //MIENTRAS.Rule = ToTerm(Constantes.MIENTRAS) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + CUERPO_FUNCION;
             ParseTreeNode nodoExpresion = nodo.ChildNodes[0];
@@ -399,21 +549,51 @@ namespace xForms.Analizar
             Valor resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
             if (esBooleano(resExpr))
             {
+                ambiente.addMientras();
                 while (esVerdadero(resExpr))
                 {
-                    foreach (ParseTreeNode item in nodoCuerpo.ChildNodes)
+                    
+                   // resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+                    foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
                     {
-                        evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
+                        if (ret.continuar)
+                        {
+                            break;
+                        }
+                        else if (ret.parar)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
+                        }
+                        
+                    }
+                    if (ret.parar)
+                    {
+                        ret.parar = false;
+                        break;
+                    }
+                    if (ret.continuar)
+                    {
+                       //resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+                        ret.continuar = false;
+                        continue;
+
                     }
 
                     resExpr = resolvExpresiones.resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
                 }
+                ambiente.salirAmbito();
             }
             else
             {
                 Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion para el ciclo mientrass no es valida");
             }
 
+            return ret;
 
         }
 
@@ -423,20 +603,20 @@ namespace xForms.Analizar
 
         #endregion
 
-
-
-        private bool resolverSino(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla)
+        #region Resolver Si
+        private elementoRetorno resolverSino(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             ambiente.addElse();
             foreach (ParseTreeNode item in nodo.ChildNodes)
             {
-                evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
+                ret= evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
             }
             ambiente.Ambitos.Pop();
-            return true;
+            ret.banderaSi = true;
+            return ret;
         }
 
-        private bool resolverSI(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla)
+        private elementoRetorno resolverSI(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             #region S_SI
             ParseTreeNode expresionIf = nodo.ChildNodes[0];
@@ -451,14 +631,16 @@ namespace xForms.Analizar
                         ambiente.addIf();
                         foreach (ParseTreeNode item in sentenciasCuerpo.ChildNodes)
                         {
-                            evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
+                           ret= evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         }
                         ambiente.Ambitos.Pop();
-                        return true;
+                        ret.banderaSi = true;
+                        return ret;
                     }
                     else
                     {
-                        return false;
+                        ret.banderaSi = false;
+                        return ret;
                     }
                 }
                 else
@@ -471,10 +653,15 @@ namespace xForms.Analizar
                 Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion de la sentencia SI, no retorna un valor valido");
             }
             #endregion
-            return false;
+            ret.banderaSi = false;
+            return ret;
         }
 
-        private void imprimir(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla)
+
+        #endregion
+
+        #region Imprimir
+        private elementoRetorno imprimir(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
            
             Valor v = resolvExpresiones.resolverExpresion(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
@@ -502,11 +689,12 @@ namespace xForms.Analizar
                 }
                 
             }
+            return ret;
 
         }
+        #endregion
 
-
-
+        #region extras
 
         private bool esObjecto(String tipo)
         {
@@ -540,6 +728,8 @@ namespace xForms.Analizar
         {
             return v.valor.ToString().ToLower().Equals(Constantes.VERDADERO.ToLower());
         }
+
+        #endregion
 
     }
 }

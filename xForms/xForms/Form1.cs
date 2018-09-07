@@ -123,8 +123,49 @@ namespace xForms
 
         }
 
+
+        private void imprimir()
+        {
+           
+            int d = 0;
+            int e = 0;
+           
+                        while (d < 20)
+                        {
+                            if (d == 1)
+                            {
+                                continue;
+                            }
+                            if (d == 3)
+                            {
+                                break;
+                            }
+                            while (e < 10)
+                            {
+                                if (e == 4)
+                                {
+                                    break;
+                                }
+                                if (e == 2)
+                                {
+                                    continue;
+                                }
+                                Console.WriteLine("Ciclo e " + e);
+                                e++;
+                            }
+                            Console.WriteLine("Ciclo d " + d);
+                            d++;
+                        }
+                
+
+
+
+        }
+
         private void button2_Click(object sender, EventArgs e)
         {
+         //   imprimir();
+         
             Arbol n = new Arbol();
             string line;
             string contenido = "";
@@ -139,8 +180,8 @@ namespace xForms
             //Console.WriteLine(contenido);
 
            n.parse(contenido);
-           Console.WriteLine("hola");
-
+           Constantes.erroresEjecucion.moostrarErrores();
+            
         }
     }
 }

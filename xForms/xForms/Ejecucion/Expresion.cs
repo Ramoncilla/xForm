@@ -238,14 +238,14 @@ namespace xForms.Ejecucion
                 case Constantes.ID:{
                     string nombreVar = nodo.ChildNodes[0].Token.ValueString;
                     string ruta= ambiente.getAmbito();
-                    Simbolo simb = tabla.buscarSimbolo(nombreVar, ruta,nombreClase);
+                    Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
                     if (simb != null)
                     {
                         return simb.valor;
                     }
                     else
                     {
-                        Constantes.erroresEjecucion.errorSemantico(nodo, "La variable " + nombreVar + ", no existe en el ambito actual");
+                        Constantes.erroresEjecucion.errorSemantico(nodo, "La variable " + nombreVar + ", no existe en el ambito actual "+ ambiente.getAmbito());
                         return new Valor(Constantes.NULO, Constantes.NULO);
                     }
                 }

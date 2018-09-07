@@ -347,7 +347,8 @@ namespace xForms.Analizar
                 | ToTerm(Constantes.MAYOR)
                 | ToTerm(Constantes.MENOR_IGUAL)
                 | ToTerm(Constantes.MAYOR_IGUAL)
-                | ToTerm(Constantes.DISTINTO_A);
+                | ToTerm(Constantes.DISTINTO_A)
+                | ToTerm(Constantes.IGUAL_IGUAL);
 
             OP_LOGICO.Rule = ToTerm(Constantes.AND)
                 | ToTerm(Constantes.OR);
@@ -425,7 +426,7 @@ namespace xForms.Analizar
             #endregion
 
             MarkPunctuation("[","]","(",")",",","{","}", Constantes.IMPRIMIR, ";",":", Constantes.SI, Constantes.PADRE, Constantes.CLASE, Constantes.SINO, Constantes.IGUAL,
-                Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS);
+                Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS, Constantes.HACER);
 
 
 

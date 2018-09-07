@@ -50,28 +50,47 @@ si(5<10){
 
 CLASE individuo publico {
 entero privado a;
-cadena protegido b = 10;
-cadena c= "pedrito bonito";
+
+cadena c= "Soy la variable c";
 decimal d ;
 
 principal(){
+
 imprimir(c);
 imprimir("llegue a un principal saludos :d ");
-persona nueva = nuevo persona();
-persona nueva = nuevo persona("hola", var);
+
 si(890<125){
 imprimir("pase un si");
 }sino {
-imprimir("cuarto");
+imprimir("Soy la respueta de un else");
 }
 
-entero i=0;
+entero i=100;
+entero j = 0;
+
+
+
 mientras (i<10){
+i= i+1;
+si(i == 4){
+continuar;
+}
+si(i==7){
+romper;
+}
 imprimir(i);
 imprimir("ciclo mientras "+ i);
-i= i+1;
+
 
 }
+
+entero e =0;
+entero d =0;
+hacer {
+e= e+1;
+imprimir("solo me mostrare una vez");
+
+}mientras (e<3);
 
 
 }

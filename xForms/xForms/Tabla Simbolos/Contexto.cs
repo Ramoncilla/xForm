@@ -105,6 +105,20 @@ namespace xForms.Tabla_Simbolos
 	return contexto;
   }
 
+  public Contexto clonarLista()
+  {
+      Contexto nuevo = new Contexto();
+      string temp;
+      for (int i = (this.Ambitos.Count-1); i>=0; i--)
+      {
+          temp = this.Ambitos.ElementAt(i);
+          nuevo.addAmbito(temp);
+      }
+
+      return nuevo;
+
+  }
+
 
         
     }

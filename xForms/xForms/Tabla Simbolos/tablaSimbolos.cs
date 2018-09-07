@@ -49,15 +49,34 @@ namespace xForms.Tabla_Simbolos
         }
 
 
-        public Simbolo buscarSimbolo(string nombre, string rutaAcceso, string nombreClase)
+        public Simbolo buscarSimbolo(string nombre, Contexto ambiente)
         {
             /*1. Se busca en un ambito local y luego en los atributos*/
+           /* Contexto ambientesC = ambiente.clonarLista();
+            
+            String ambienteTemp;
+            nodoTablaSimbolos actual;
+            Simbolo busc;
+            for (int i = 0; i < ambientesC.Ambitos.Count; i++)
+            {
+                ambienteTemp = ambientesC.getAmbito();
+                actual = this.listaSimbolos.Peek();
+                busc = actual.obtenerSimbolo(nombre, ambienteTemp);
+                if (busc != null)
+                {
+                    return busc;
+                }
+                ambientesC.salirAmbito();
+                
+            }
+            */
 
+         
             int no = this.listaSimbolos.Count;
             if (no > 1)
             {
                 nodoTablaSimbolos actual = this.listaSimbolos.Peek();
-                Simbolo busc = actual.obtenerSimbolo(nombre, rutaAcceso);
+                Simbolo busc = actual.obtenerSimbolo(nombre, ambiente);
                 if (busc != null)
                 {
                     return busc;
@@ -65,14 +84,14 @@ namespace xForms.Tabla_Simbolos
                 else
                 {
                     nodoTablaSimbolos global = this.listaSimbolos.ElementAt((listaSimbolos.Count-1));
-                    busc = global.obtenerSimbolo(nombre, nombreClase);
+                    busc = global.obtenerSimbolo(nombre, ambiente);
                     return busc;
                 }
             }
             else if(no==1)
             {
                 nodoTablaSimbolos actual = this.listaSimbolos.Peek();
-                Simbolo busc = actual.obtenerSimbolo(nombre, rutaAcceso);
+                Simbolo busc = actual.obtenerSimbolo(nombre, ambiente);
                 if (busc != null)
                 {
                     return busc;
