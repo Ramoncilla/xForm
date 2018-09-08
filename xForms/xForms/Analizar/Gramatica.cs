@@ -294,7 +294,7 @@ namespace xForms.Analizar
 
                 REPETIR_HASTA.Rule = ToTerm(Constantes.REPETIR) + CUERPO_FUNCION + ToTerm(Constantes.HASTA) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
 
-                PARA.Rule = ToTerm(Constantes.PARA) + ToTerm(Constantes.ABRE_PAR) + DEC_ASIG + EXPRESION + ToTerm(Constantes.PUNTO_COMA) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + CUERPO_FUNCION;
+                PARA.Rule = ToTerm(Constantes.PARA) + ToTerm(Constantes.ABRE_PAR) + DEC_ASIG + EXPRESION + ToTerm(Constantes.PUNTO_COMA) + ASIGNA_UNARIO + ToTerm(Constantes.CIERRA_PAR) + CUERPO_FUNCION;
 
                 IMPRIMIR.Rule = ToTerm(Constantes.IMPRIMIR) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
 

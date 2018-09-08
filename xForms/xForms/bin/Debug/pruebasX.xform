@@ -37,15 +37,32 @@ entero fibonacci(entero n){
   
 }
 
+vacio mostrarCiclo(entero i){
+entero j =0;
+mientras(j<i){
+j++;
+si(j==2){
+imprimir("Tengo que continuar");
+continuar;
+}
+si(j==5){
+romper;
+}
+imprimir("Vuelta del ciclo "+ j+", con limite de "+i);
+}
+}
+
 principal(){
 
 mostrar(5+10,"Hola mundo");
 imprimir(fact(5));
 imprimir(fibonacci(10));
+$#
 edad++;
 imprimir(edad);
 imprimir(edad++);
-imprimir(edad);
+imprimir(edad);#$
+mostrarCicLO(7);
 
 }
 

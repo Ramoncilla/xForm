@@ -343,7 +343,8 @@ namespace xForms.Analizar
 
                    case Constantes.PARA:
                        {
-                           break;
+                           ret = this.resolverPara(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                           return ret;
                        }
                    case Constantes.ROMPER:
                        {
@@ -679,12 +680,76 @@ namespace xForms.Analizar
         private elementoRetorno resolverPara(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             // PARA.Rule = ToTerm(Constantes.PARA) + ToTerm(Constantes.ABRE_PAR) + DEC_ASIG + EXPRESION + ToTerm(Constantes.PUNTO_COMA) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + CUERPO_FUNCION;
-
-
-            ParseTreeNode nodoDeclaracion = nodo.ChildNodes[0];
+            ParseTreeNode nodoDeclaracion = nodo.ChildNodes[0].ChildNodes[0];
             ParseTreeNode nodoCondicion = nodo.ChildNodes[1];
-            ParseTreeNode nodoAcumulador = nodo.ChildNodes[2];
+            ParseTreeNode asignaUnario = nodo.ChildNodes[2];
             ParseTreeNode nodoCuerpo = nodo.ChildNodes[3];
+
+            ambiente.addPara();
+            ret = evaluarArbol(nodoDeclaracion, ambiente, nombreClase, nombreMetodo, tabla, ret);
+            Valor v = resolverExpresion(nodoCondicion, ambiente, nombreClase, nombreMetodo, tabla).val;
+            if (!esNulo(v))
+            {
+                if (esBool(v))
+                {
+                    while (esVerdadero(v))
+                    {
+                        foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
+                        {
+                            if (ret.continuar)
+                            {
+                                break;
+                            }
+                            else if (ret.parar)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
+                            }
+
+                        }
+                        if (ret.parar)
+                        {
+                            ret.parar = false;
+                            break;
+                        }
+                        if (ret.continuar)
+                        {
+                            //resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+                            ret = evaluarArbol(asignaUnario, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                            v = resolverExpresion(nodoCondicion, ambiente, nombreClase, nombreMetodo, tabla).val;
+                            ret.continuar = false;
+                            continue;
+
+                        }
+                        ret = evaluarArbol(asignaUnario, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        v = resolverExpresion(nodoCondicion, ambiente, nombreClase, nombreMetodo, tabla).val;
+
+                    }
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodoCondicion, "Condicion no validad para un ciclo para, con tipo "+ v.tipo);
+
+                }
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodoCondicion, "Condicion no validad para un ciclo para ");
+            }
+            
+
+
+
+
+            ambiente.salirAmbito();
+
+
+
+
 
             return ret;
         }
@@ -2711,41 +2776,41 @@ namespace xForms.Analizar
 
         private bool esFecha(Valor v)
         {
-            return v.tipo.Equals(Constantes.FECHA);
+            return v.tipo.Equals(Constantes.FECHA,StringComparison.CurrentCultureIgnoreCase);
         }
         private bool esFechaHora(Valor v)
         {
-            return v.tipo.Equals(Constantes.FECHA_HORA);
+            return v.tipo.Equals(Constantes.FECHA_HORA, StringComparison.CurrentCultureIgnoreCase);
         }
 
         private bool esHora(Valor v)
         {
-            return v.tipo.Equals(Constantes.HORA);
+            return v.tipo.Equals(Constantes.HORA, StringComparison.CurrentCultureIgnoreCase);
         }
 
 
         private bool esEntero(Valor v){
-            return v.tipo.Equals(Constantes.ENTERO);
+            return v.tipo.Equals(Constantes.ENTERO, StringComparison.CurrentCultureIgnoreCase);
         }
 
         private bool esBool(Valor v)
         {
-            return v.tipo.Equals(Constantes.BOOLEANO);
+            return v.tipo.Equals(Constantes.BOOLEANO, StringComparison.CurrentCultureIgnoreCase);
         }
 
         private bool esDecimal(Valor v)
         {
-            return v.tipo.Equals(Constantes.DECIMAL);
+            return v.tipo.Equals(Constantes.DECIMAL, StringComparison.CurrentCultureIgnoreCase);
         }
 
         private bool esCadena(Valor v)
         {
-            return v.tipo.Equals(Constantes.CADENA);
+            return v.tipo.Equals(Constantes.CADENA, StringComparison.CurrentCultureIgnoreCase);
         }
 
         private bool esCaracter(Valor v)
         {
-            return v.tipo.ToLower().Equals(Constantes.CARACTER.ToLower());
+            return v.tipo.ToLower().Equals(Constantes.CARACTER.ToLower(), StringComparison.CurrentCultureIgnoreCase);
         }
 
      
@@ -2798,7 +2863,7 @@ namespace xForms.Analizar
         }
         private string getBooleanoLetra(Valor v)
         {
-            if (v.valor.ToString().ToLower().Equals(Constantes.VERDADERO.ToLower()))
+            if (v.valor.ToString().ToLower().Equals(Constantes.VERDADERO.ToLower(), StringComparison.CurrentCultureIgnoreCase))
             {
                 return Constantes.VERDADERO;
             }
@@ -2810,7 +2875,7 @@ namespace xForms.Analizar
 
         private int getBooleanoNumero(Valor v)
         {
-            if (v.valor.ToString().ToLower().Equals(Constantes.VERDADERO.ToLower()))
+            if (v.valor.ToString().ToLower().Equals(Constantes.VERDADERO.ToLower(), StringComparison.CurrentCultureIgnoreCase))
             {
                 return 1;
             }
