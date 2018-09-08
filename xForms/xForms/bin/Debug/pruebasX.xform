@@ -42,6 +42,10 @@ principal(){
 mostrar(5+10,"Hola mundo");
 imprimir(fact(5));
 imprimir(fibonacci(10));
+edad++;
+imprimir(edad);
+imprimir(edad++);
+imprimir(edad);
 
 }
 

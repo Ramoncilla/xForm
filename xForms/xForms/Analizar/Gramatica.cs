@@ -123,6 +123,8 @@ namespace xForms.Analizar
             NonTerminal ARCHIVO = new NonTerminal(Constantes.ARCHIVO);
             NonTerminal LISTA_CLASES = new NonTerminal(Constantes.LISTA_CLASES);
             NonTerminal INSTANCIA_ARREGLO= new NonTerminal(Constantes.INSTANCIA_ARREGLO);
+            NonTerminal ASIGNA_UNARIO = new NonTerminal(Constantes.ASIGNA_UNARIO);
+            NonTerminal UNARIO = new NonTerminal(Constantes.UNARIO);
 
             #endregion
 
@@ -298,6 +300,9 @@ namespace xForms.Analizar
 
                 MENSAJE.Rule = ToTerm(Constantes.MENSAJE) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
 
+                ASIGNA_UNARIO.Rule = identificador + ToTerm(Constantes.MAS_MAS)
+                    | identificador + ToTerm(Constantes.MENOS_MENOS);
+
 
                 DEC_ASIG.Rule = DECLA_VARIABLE
                     | ASIGNACION;
@@ -318,7 +323,8 @@ namespace xForms.Analizar
                     | DECLA_ARREGLO
                     | DECLA_VARIABLE + ToTerm(Constantes.PUNTO_COMA)
                     | SUPER
-                    | ACCESO + ToTerm(Constantes.PUNTO_COMA);
+                    | ACCESO + ToTerm(Constantes.PUNTO_COMA)
+                    | ASIGNA_UNARIO + ToTerm(Constantes.PUNTO_COMA);
 
 
                 SENTENCIAS.Rule = MakePlusRule(SENTENCIAS, SENTENCIA);
@@ -332,7 +338,8 @@ namespace xForms.Analizar
                     | TERMINO
                     | ACCESO
                     | INSTANCIA
-                    | INSTANCIA_ARREGLO;
+                    | INSTANCIA_ARREGLO
+                    | UNARIO;
 
            
 
@@ -403,7 +410,8 @@ namespace xForms.Analizar
                 | POS_ARREGLO;
 
             ACCESO.Rule = MakePlusRule(ACCESO, ToTerm(Constantes.PUNTO), ELEMENTO_ACCESO);
-
+            UNARIO.Rule = identificador + ToTerm(Constantes.MAS_MAS)
+                    | identificador + ToTerm(Constantes.MENOS_MENOS);
 
             #endregion
 

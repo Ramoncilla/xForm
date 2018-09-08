@@ -420,7 +420,7 @@ namespace xForms.Analizar
 
                    case Constantes.RETORNO:
                        {
-
+                           #region retorno
                            ret.banderaRetorno = true;
                            int no = nodo.ChildNodes.Count;
                            if (no == 1)
@@ -432,7 +432,16 @@ namespace xForms.Analizar
                                    simb.asignarValor(var.val, nodo.ChildNodes[0]);
                                }
                            }
+#endregion
                            return ret;
+                       }
+
+                   case Constantes.ASIGNA_UNARIO:
+                       {
+                           ret = asignacionUnario(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
+                           return ret;
+
                        }
             }
             return ret;
@@ -586,6 +595,42 @@ namespace xForms.Analizar
 
 
         #region Asignaciones
+
+       private elementoRetorno asignacionUnario(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+       {
+           string nombreVar = nodo.ChildNodes[0].Token.ValueString;
+           string operador = nodo.ChildNodes[1].Token.ValueString;
+           Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
+          
+           if (simb != null)
+           {
+               if (esEntero(simb.valor) || esDecimal(simb.valor))
+               {
+                   if (operador.Equals(Constantes.MAS_MAS))
+                   {
+                       double d = getDecimal(simb.valor) + 1;
+                       simb.valor.valor = d;
+                   }
+                   else
+                   {
+                       double d = getDecimal(simb.valor) -1;
+                       simb.valor.valor = d;
+
+                   }
+                  
+               }
+               else
+               {
+                   Constantes.erroresEjecucion.errorSemantico(nodo, "Tipo de variable " + simb.tipo + ", es incompatible para un unario");
+               }
+           }
+           else
+           {
+               Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreVar + ", en el ambito actual " + ambiente.getAmbito());
+           }
+           return ret;
+       }
+
         private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             ParseTreeNode acceso = nodo.ChildNodes[0];
@@ -969,6 +1014,7 @@ namespace xForms.Analizar
 
         /*---------------------------------------------------------- Resolviendo Expresiones  ------------------------------------------------------*/
 
+        #region Resolver una expresion 
 
         public elementoRetorno resolverExpresion(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla)
         {
@@ -981,6 +1027,59 @@ namespace xForms.Analizar
                         return resolverExpresion(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
                     }
 
+
+                case Constantes.UNARIO:
+                    {
+                        #region unario
+                        string nombreVar = nodo.ChildNodes[0].Token.ValueString;
+                        string operador = nodo.ChildNodes[1].Token.ValueString;
+                        Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
+                        elementoRetorno e = new elementoRetorno();
+
+                        if (simb != null)
+                        {
+                            if (esEntero(simb.valor))
+                            {
+                                if (operador.Equals(Constantes.MAS_MAS))
+                                {
+                                    int d = getEntero(simb.valor) + 1;
+                                    e.val = new Valor(Constantes.ENTERO, d);
+                                }
+                                else
+                                {
+                                    int d = getEntero(simb.valor) - 1;
+                                    e.val = new Valor(Constantes.ENTERO, d);
+                                }
+                                
+                                
+                            } if (esDecimal(simb.valor))
+                            {
+                                if (operador.Equals(Constantes.MAS_MAS))
+                                {
+                                    double d = getDecimal(simb.valor) + 1;
+                                    e.val = new Valor(Constantes.DECIMAL, d);
+                                }
+                                else
+                                {
+                                    double d = getDecimal(simb.valor) - 1;
+                                    e.val = new Valor(Constantes.DECIMAL, d);
+                                }
+                                
+                               
+                                
+                            }
+                            else
+                            {
+                                Constantes.erroresEjecucion.errorSemantico(nodo, "Tipo de variable " + simb.tipo + ", es incompatible para un unario");
+                            }
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreVar + ", en el ambito actual " + ambiente.getAmbito());
+                        }
+                        return e;
+                        #endregion
+                    }
                 case Constantes.ARITMETICA:
                     {
                         #region resolver expresion aritmetica 
@@ -1236,14 +1335,6 @@ namespace xForms.Analizar
                     {
 
                         elementoRetorno var = this.llamadaFuncion(nodo, ambiente, nombreClase, nombreMetodo, tabla, new elementoRetorno());
-                       /* Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
-                        if (simb != null)
-                        {
-                            elementoRetorno r = new elementoRetorno();
-                            r.val = simb.valor;
-                            return r;
-                        }*/
-
                         return var;
                     }
 
@@ -2736,7 +2827,7 @@ namespace xForms.Analizar
 
 
 
-
+#endregion
 
 
 

@@ -111,7 +111,7 @@ namespace xForms
         public const string ARITMETICA = "ARITMETICA";
         public const string RELACIONAL = "RELACIONAL";
         public const string LOGICA = "LOGICA";
-        public const string UNARIO = "UNARIO";
+       
 
 
         //SIMBOLOS
@@ -150,6 +150,10 @@ namespace xForms
         public const string NEGATIVO = "NEGATIVO";
         public const string NOT2 = "NOT";
         public const string POS_ARREGLO = "POS_ARREGLO";
+        public const string MAS_MAS = "++";
+        public const string MENOS_MENOS = "--";
+        public const string ASIGNA_UNARIO = "ASIGNA_UNARIO";
+        public const string UNARIO = "UNARIO";
 
 
         public const string ERROR_SEMANTICO = "SEMANTICO";
