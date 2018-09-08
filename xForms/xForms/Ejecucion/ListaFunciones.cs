@@ -19,6 +19,24 @@ namespace xForms.Ejecucion
             this.lFunciones = new List<Funcion>();
         }
 
+
+
+        public Funcion obtenerFuncion(string nombreFuncion, string cadenaParametros)
+        {
+            Funcion temp;
+            for (int i = 0; i < this.lFunciones.Count; i++)
+            {
+                temp = this.lFunciones.ElementAt(i);
+                if(temp.nombreFuncion.ToLower().Equals(nombreFuncion.ToLower()) &&
+                    temp.obtenerCadenaParametros().ToLower().Equals(cadenaParametros.ToLower()))
+                {
+                    return temp;
+                }
+            }
+
+            return null;
+        }
+
           public Funcion obtenerConstructor()
         {
               Funcion temp;
@@ -56,13 +74,14 @@ namespace xForms.Ejecucion
             {
                 temp = this.lFunciones.ElementAt(i);
                 if(temp.obtenerTamanioParametros() == fNueva.obtenerTamanioParametros() &&
-                    temp.obtenerCadenaParametros().ToLower().Equals(fNueva.obtenerCadenaParametros().ToLower()))
+                    temp.obtenerCadenaParametros().ToLower().Equals(fNueva.obtenerCadenaParametros().ToLower()) &&
+                    temp.nombreFuncion.ToLower().Equals(fNueva.nombreFuncion.ToLower()))
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
     }

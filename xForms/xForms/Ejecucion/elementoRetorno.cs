@@ -11,12 +11,17 @@ namespace xForms.Ejecucion
         public bool continuar;
         public bool parar;
         public bool banderaSi;
+        public bool banderaRetorno;
+        public Valor val;
 
         public elementoRetorno()
         {
             this.continuar = false;
             this.parar = false;
             this.banderaSi = false;
+            this.banderaRetorno = false;
+            val = new Valor(Constantes.NULO, Constantes.NULO);
+
         }
     }
 }

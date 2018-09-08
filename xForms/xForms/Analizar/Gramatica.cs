@@ -179,10 +179,9 @@ namespace xForms.Analizar
 
             IMPORTACIONES.Rule = MakeStarRule(IMPORTACIONES, IMPORTAR);
             
-            LISTA_EXPRESIONES.Rule = MakePlusRule(LISTA_EXPRESIONES, ToTerm(Constantes.COMA), EXPRESION);
+            LISTA_EXPRESIONES.Rule = MakeStarRule(LISTA_EXPRESIONES, ToTerm(Constantes.COMA), EXPRESION);
 
-            PARAMETROS_LLAMADA.Rule = ToTerm(Constantes.ABRE_PAR)+ Constantes.CIERRA_PAR
-                    | ToTerm(Constantes.ABRE_PAR)+ LISTA_EXPRESIONES + Constantes.CIERRA_PAR;
+            PARAMETROS_LLAMADA.Rule = ToTerm(Constantes.ABRE_PAR)+ LISTA_EXPRESIONES + Constantes.CIERRA_PAR;
 
             SUPER.Rule = ToTerm(Constantes.SUPER) + PARAMETROS_LLAMADA + Constantes.PUNTO_COMA;
 
@@ -212,8 +211,8 @@ namespace xForms.Analizar
                 //| TIPO_DATOS + VISIBILIDAD + identificador + L_CORCHETES_VACIOS + ToTerm(Constantes.IGUAL) + L_LLAVES_EXPRESION + Constantes.PUNTO_COMA;
 
 
-            DECLA_VARIABLE.Rule= TIPO_DATOS + identificador + ToTerm(Constantes.IGUAL) + EXPRESION + ToTerm(Constantes.PUNTO_COMA)
-	            | TIPO_DATOS + identificador + ToTerm(Constantes.PUNTO_COMA);
+            DECLA_VARIABLE.Rule = TIPO_DATOS + identificador + ToTerm(Constantes.IGUAL) + EXPRESION
+                | TIPO_DATOS + identificador;
 	
             ASIGNACION.Rule= ACCESO + ToTerm(Constantes.IGUAL) +  EXPRESION + ToTerm(Constantes.PUNTO_COMA);
 
@@ -226,7 +225,7 @@ namespace xForms.Analizar
             PARAMETROS.Rule= //ToTerm(Constantes.ABRE_PAR)+ ToTerm(Constantes.CIERRA_PAR)
 		            ToTerm(Constantes.ABRE_PAR)+ LISTA_PARAMETROS +ToTerm(Constantes.CIERRA_PAR);
 		
-            LISTA_PARAMETROS.Rule= MakeStarRule(LISTA_PARAMETROS,ToTerm(Constantes.COMA), PARAMETRO );
+            LISTA_PARAMETROS.Rule= MakeStarRule(LISTA_PARAMETROS,ToTerm(Constantes.COMA), DECLA_VARIABLE );
 
 	
             PARAMETRO.Rule= TIPO_DATOS +identificador;
@@ -317,8 +316,10 @@ namespace xForms.Analizar
                     | RETORNO
                     | ASIGNACION
                     | DECLA_ARREGLO
-                    | DECLA_VARIABLE
-                    | SUPER;
+                    | DECLA_VARIABLE + ToTerm(Constantes.PUNTO_COMA)
+                    | SUPER
+                    | ACCESO + ToTerm(Constantes.PUNTO_COMA);
+
 
                 SENTENCIAS.Rule = MakePlusRule(SENTENCIAS, SENTENCIA);
 
@@ -426,7 +427,7 @@ namespace xForms.Analizar
             #endregion
 
             MarkPunctuation("[","]","(",")",",","{","}", Constantes.IMPRIMIR, ";",":", Constantes.SI, Constantes.PADRE, Constantes.CLASE, Constantes.SINO, Constantes.IGUAL,
-                Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS, Constantes.HACER);
+                Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS, Constantes.HACER, Constantes.PARA, Constantes.RETORNO);
 
 
 

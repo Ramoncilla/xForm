@@ -6,48 +6,50 @@ CLASE persona publico{
 entero edad=25;
 cadena nombre="Alina";
 
-vacion mostrar(){
+vacio mostrar(){
+ imprimir("hola mundo");
+}
 
-si(5<10){
+vacio mostrar(entero num, cadena cad){
+imprimir(cad+" "+ num);
+entero c= num+35;
+imprimir(c+ "no de veces"+edad);
+retorno;
+imprimir("No debo de aparecer");
+}
 
-}sino si(8>6){
+entero fact(entero num){
+  si(num==1){
+    retorno 1;
+  }sino{
+  retorno num * fact(num-1);
+  }
+}
 
-} sino si(9>6){
+entero fibonacci(entero n){
+  si (n==0){
+     retorno 0;
+  }sino si(n==1){
+     retorno 1;
+  }sino{
+  retorno fibonacci(n-1)+fibonacci(n-2);
+  }
+  
+}
+
+principal(){
+
+mostrar(5+10,"Hola mundo");
+imprimir(fact(5));
+imprimir(fibonacci(10));
+
+}
 
 }
 
 
-si(10>6){
 
-}
-
-si(9<78){
-
-}sino{
-
-}
-
-
-si(5<10){
-
-}sino si(8>6){
-
-} sino si(9>6){
-
-}sino{
-
-}
-
-
-
-
-}
-
-}
-
-
-
-
+$#
 CLASE individuo publico {
 entero privado a;
 
@@ -55,6 +57,9 @@ cadena c= "Soy la variable c";
 decimal d ;
 
 principal(){
+
+hola  b = nuevo hola();
+hola g = nuevo hola(5,"popo");
 
 imprimir(c);
 imprimir("llegue a un principal saludos :d ");
@@ -95,4 +100,4 @@ imprimir("solo me mostrare una vez");
 
 }
 
-}
+}#$

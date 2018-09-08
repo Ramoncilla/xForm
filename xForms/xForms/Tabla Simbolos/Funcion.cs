@@ -144,5 +144,11 @@ namespace xForms.Tabla_Simbolos
            
         }
 
+
+        public ParseTreeNode obtenerNodoParametros()
+        {
+            return this.parametrosFuncion.nodoParametros;
+        }
+
     }
 }

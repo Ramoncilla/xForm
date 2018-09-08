@@ -12,7 +12,7 @@ namespace xForms.Ejecucion
     class listaParametros
     {
         public List<parametro> lParametros;
-        ParseTreeNode nodoParametros;
+        public ParseTreeNode nodoParametros;
 
         public listaParametros(ParseTreeNode parametros)
         {
