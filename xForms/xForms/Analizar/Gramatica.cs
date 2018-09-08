@@ -272,13 +272,12 @@ namespace xForms.Analizar
 
                 CASO.Rule= ToTerm(Constantes.CASO) + ToTerm(Constantes.ABRE_PAR)+ EXPRESION +ToTerm(Constantes.CIERRA_PAR) +ToTerm(Constantes.DE) + CUERPO_CASO;
 
-                CUERPO_CASO.Rule= ToTerm(Constantes.ABRE_LLAVE) +  Constantes.CIERRA_LLAVE
-	                | ToTerm(Constantes.ABRE_LLAVE)+LISTA_CASO +  Constantes.CIERRA_LLAVE;
+                CUERPO_CASO.Rule= ToTerm(Constantes.ABRE_LLAVE)+LISTA_CASO +  Constantes.CIERRA_LLAVE;
 	
                 OPCION_VALOR.Rule= VALOR
 	                |DEFECTO;
 	
-                LISTA_CASO.Rule= MakePlusRule(LISTA_CASO, OPCION_VALOR);
+                LISTA_CASO.Rule= MakeStarRule(LISTA_CASO, OPCION_VALOR);
 	
                 VALOR.Rule= EXPRESION +ToTerm(Constantes.DOS_PUNTOS)+ CUERPO_FUNCION;
 
@@ -435,11 +434,12 @@ namespace xForms.Analizar
             #endregion
 
             MarkPunctuation("[","]","(",")",",","{","}", Constantes.IMPRIMIR, ";",":", Constantes.SI, Constantes.PADRE, Constantes.CLASE, Constantes.SINO, Constantes.IGUAL,
-                Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS, Constantes.HACER, Constantes.PARA, Constantes.RETORNO);
+                Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS, Constantes.HACER, Constantes.PARA, Constantes.RETORNO, Constantes.CASO, Constantes.DE,
+                Constantes.DOS_PUNTOS, Constantes.DEFECTO);
 
 
 
-            MarkTransient(TERMINO, OP_ARITMETICO,OP_LOGICO,OP_RELACIONAL, ELEMENTO_ACCESO, EXPRESION, SENTENCIA, ELEMENTO_CLASE, PARAMETROS);
+            MarkTransient(TERMINO, OP_ARITMETICO,OP_LOGICO,OP_RELACIONAL, ELEMENTO_ACCESO, EXPRESION, SENTENCIA, ELEMENTO_CLASE, PARAMETROS, OPCION_VALOR);
 
 
         }

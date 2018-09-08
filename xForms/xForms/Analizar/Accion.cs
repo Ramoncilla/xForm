@@ -175,7 +175,7 @@ namespace xForms.Analizar
             {
                 case Constantes.IMPRIMIR:
                     {
-                        
+
                         ret = this.imprimir(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         return ret;
                     }
@@ -198,14 +198,14 @@ namespace xForms.Analizar
                             {
                                 ret.banderaRetorno = false;
                                 break;
-                               
+
                             }
                             else
                             {
                                 ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
 
                             }
-                            
+
                         }
                         return ret;
                     }
@@ -213,7 +213,7 @@ namespace xForms.Analizar
                 case Constantes.SI:
                     {
 
-                       #region resolver un if 
+                        #region resolver un if
                         int cont = nodo.ChildNodes.Count;
                         if (cont == 2)
                         {
@@ -229,13 +229,13 @@ namespace xForms.Analizar
                                     ret = this.resolverSI(siTemporal, ambiente, nombreClase, nombreMetodo, tabla, ret);
                                     i++;
                                 }
-                               
+
 
                             }
                             else
                             {//S_SI +SINO
                                 ret = this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
-                                
+
                                 if (!ret.banderaSi)
                                 {
                                     //resolver el sino
@@ -267,15 +267,15 @@ namespace xForms.Analizar
                             this.resolverSI(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
                         }
 
-#endregion
-                       break;
+                        #endregion
+                        break;
                     }
 
                 case Constantes.DECLA_VARIABLE:
                     {
                         /* DECLA_VARIABLE.Rule = TIPO_DATOS + identificador + ToTerm(Constantes.IGUAL) + EXPRESION + ToTerm(Constantes.PUNTO_COMA)
                 | TIPO_DATOS + identificador + ToTerm(Constantes.PUNTO_COMA);*/
-                        #region declaracion de vairables 
+                        #region declaracion de vairables
                         string rutaAcceso = ambiente.getAmbito();
                         string tipo = nodo.ChildNodes[0].ChildNodes[0].Token.ValueString;
                         string nombre = nodo.ChildNodes[1].Token.ValueString;
@@ -285,7 +285,8 @@ namespace xForms.Analizar
                         if (no == 3)
                         {
 
-                            if(!esObj){
+                            if (!esObj)
+                            {
                                 v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
                                 Variable varNueva = new Variable(nombre, tipo, rutaAcceso);
                                 varNueva.asignarValor(v.val, nodo);
@@ -295,11 +296,11 @@ namespace xForms.Analizar
                             else
                             {
 
-                               
+
 
                             }
 
-                            
+
 
                         }
                         else
@@ -318,132 +319,154 @@ namespace xForms.Analizar
 
 
                         }
-#endregion
+                        #endregion
                         return ret;
                     }
 
-                   case Constantes.MIENTRAS:{
+                case Constantes.MIENTRAS:
+                    {
 
-                       ret = this.resolverMientras(nodo, ambiente, nombreClase, nombreMetodo, tabla,ret);
-                       return ret;
+                        ret = this.resolverMientras(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
                     }
-                   case Constantes.HACER:
-                       {
-                           ret = this.resolverHacerMientras(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
-                           return ret;
-                       }
+                case Constantes.HACER:
+                    {
+                        ret = this.resolverHacerMientras(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
+                    }
 
 
-                   case Constantes.REPETIR_HASTA:
-                       {
-                           ret = this.resolverRepetirHasta(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
-                           return ret;
-                           
-                       }
+                case Constantes.REPETIR_HASTA:
+                    {
+                        ret = this.resolverRepetirHasta(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
 
-                   case Constantes.PARA:
-                       {
-                           ret = this.resolverPara(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
-                           return ret;
-                       }
-                   case Constantes.ROMPER:
-                       {
-                           ret.parar = true;
-                           return ret;
-                          // return nuevo;
-                       }
-                   case Constantes.CONTINUAR:
-                       {
-                           ret.continuar= true;
-                           return ret;
+                    }
 
-                         
-                       }
+                case Constantes.PARA:
+                    {
+                        ret = this.resolverPara(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
+                    }
+                case Constantes.ROMPER:
+                    {
+                        ret.parar = true;
+                        return ret;
+                        // return nuevo;
+                    }
+                case Constantes.CONTINUAR:
+                    {
+                        ret.continuar = true;
+                        return ret;
 
-                   case Constantes.ASIGNACION:
-                       {
-                          ret =  this.resolverAsignar(nodo, ambiente, nombreClase, nombreMetodo, tabla,ret);
-                          return ret;
-                       }
 
-                #region Acceso 
+                    }
 
-                   case Constantes.ACCESO:
-                       {
-                           #region resolver un acceso
-                           int no = nodo.ChildNodes.Count;
-                           if (no == 1)
-                           {
-                               ret = evaluarArbol(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
-                               return ret;
-                           }
+                case Constantes.ASIGNACION:
+                    {
+                        ret = this.resolverAsignar(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
+                    }
 
-                           /*foreach (ParseTreeNode item in nodo.ChildNodes)
-                           {
-                               evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
-                           }
-                           break;*/
+                #region Acceso
 
-                           break;
-                           #endregion
-                       }
+                case Constantes.ACCESO:
+                    {
+                        #region resolver un acceso
+                        int no = nodo.ChildNodes.Count;
+                        if (no == 1)
+                        {
+                            ret = evaluarArbol(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
+                            return ret;
+                        }
 
-                   case Constantes.ID:
-                       {
-                           /*
-                           string nombreVar = nodo.ChildNodes[0].Token.ValueString;
-                           string ruta = ambiente.getAmbito();
-                           Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
-                           if (simb != null)
-                           {
-                               return simb.valor;
-                           }
-                           else
-                           {
-                               Constantes.erroresEjecucion.errorSemantico(nodo, "La variable " + nombreVar + ", no existe en el ambito actual " + ambiente.getAmbito());
-                               return new Valor(Constantes.NULO, Constantes.NULO);
-                           }*/
-                           break;
-                       }
+                        /*foreach (ParseTreeNode item in nodo.ChildNodes)
+                        {
+                            evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
+                        }
+                        break;*/
 
-                   case Constantes.LLAMADA:
-                       {
-                           ret = this.llamadaFuncion(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
-                           return ret;
-                           //break;
-                       }
+                        break;
+                        #endregion
+                    }
 
-                   case Constantes.POS_ARREGLO:
-                       {
-                           break;
-                       }
+                case Constantes.ID:
+                    {
+                        /*
+                        string nombreVar = nodo.ChildNodes[0].Token.ValueString;
+                        string ruta = ambiente.getAmbito();
+                        Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
+                        if (simb != null)
+                        {
+                            return simb.valor;
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo, "La variable " + nombreVar + ", no existe en el ambito actual " + ambiente.getAmbito());
+                            return new Valor(Constantes.NULO, Constantes.NULO);
+                        }*/
+                        break;
+                    }
+
+                case Constantes.LLAMADA:
+                    {
+                        ret = this.llamadaFuncion(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
+                        //break;
+                    }
+
+                case Constantes.POS_ARREGLO:
+                    {
+                        break;
+                    }
                 #endregion
 
-                   case Constantes.RETORNO:
-                       {
-                           #region retorno
-                           ret.banderaRetorno = true;
-                           int no = nodo.ChildNodes.Count;
-                           if (no == 1)
-                           {
-                               elementoRetorno var = resolverExpresion(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
-                               Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
-                               if (simb != null)
-                               {
-                                   simb.asignarValor(var.val, nodo.ChildNodes[0]);
-                               }
-                           }
-#endregion
-                           return ret;
-                       }
+                case Constantes.RETORNO:
+                    {
+                        #region retorno
+                        ret.banderaRetorno = true;
+                        int no = nodo.ChildNodes.Count;
+                        if (no == 1)
+                        {
+                            elementoRetorno var = resolverExpresion(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
+                            Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
+                            if (simb != null)
+                            {
+                                simb.asignarValor(var.val, nodo.ChildNodes[0]);
+                            }
+                        }
+                        #endregion
+                        return ret;
+                    }
 
-                   case Constantes.ASIGNA_UNARIO:
-                       {
-                           ret = asignacionUnario(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                case Constantes.ASIGNA_UNARIO:
+                    {
+                        ret = asignacionUnario(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
 
-                           return ret;
+                        return ret;
 
-                       }
+                    }
+                case Constantes.CASO:
+                    {
+                        /*
+                            
+             CUERPO_CASO.Rule= ToTerm(Constantes.ABRE_LLAVE) +  Constantes.CIERRA_LLAVE
+                 | ToTerm(Constantes.ABRE_LLAVE)+LISTA_CASO +  Constantes.CIERRA_LLAVE;
+	
+             OPCION_VALOR.Rule= VALOR
+                 |DEFECTO;
+	
+             LISTA_CASO.Rule= MakePlusRule(LISTA_CASO, OPCION_VALOR);
+	
+               
+
+             DEFECTO.Rule= ToTerm(Constantes.DEFECTO)  +ToTerm(Constantes.DOS_PUNTOS)+ CUERPO_FUNCION;
+                         */
+
+                        ret = resolverCaso(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
+
+                    }
             }
             return ret;
 
@@ -451,6 +474,84 @@ namespace xForms.Analizar
 
        
         #endregion
+
+        #region caso (Switch)
+
+        private elementoRetorno resolverCaso(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            //CASO.Rule= ToTerm(Constantes.CASO) + ToTerm(Constantes.ABRE_PAR)+ EXPRESION +ToTerm(Constantes.CIERRA_PAR) +ToTerm(Constantes.DE) + CUERPO_CASO;
+            ParseTreeNode expresionPivote = nodo.ChildNodes[0];
+            ParseTreeNode cuerpoCaso = nodo.ChildNodes[1];
+            Valor resPivote = resolverExpresion(expresionPivote, ambiente, nombreClase, nombreMetodo, tabla).val;
+            if (!esNulo(resPivote))
+            {
+                // VALOR.Rule= EXPRESION +ToTerm(Constantes.DOS_PUNTOS)+ CUERPO_FUNCION;
+                bool banderaEntroCaso = false;
+                ParseTreeNode temp, expresionTemp, cuerpoTemp;
+
+                string tipoCaso = "";
+                Valor resCasoTemp;
+                for (int i = 0; i < cuerpoCaso.ChildNodes.Count; i++)
+                {
+                    temp = cuerpoCaso.ChildNodes[i];
+                    expresionTemp= temp.ChildNodes[0];
+                    cuerpoTemp = temp.ChildNodes[1];
+                    tipoCaso = temp.Term.Name.ToString();
+                    if ((banderaEntroCaso == false) || (banderaEntroCaso == true && ret.banderaRetorno == false))
+                    {
+                        if (tipoCaso.Equals(Constantes.VALOR, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            resCasoTemp = resolverExpresion(expresionTemp, ambiente, nombreClase, nombreMetodo, tabla).val;
+                            Valor v = igualIgual(resPivote, resCasoTemp);
+                            if (esNulo(v))
+                            {
+                                Constantes.erroresEjecucion.errorSemantico(temp, "La expresion pivote de la sentencia caso es de tipo, "+ resPivote.tipo+", no se puede operar con una operacion con Nulo");
+                            }
+                            banderaEntroCaso = true;
+                                foreach (ParseTreeNode item in cuerpoCaso.ChildNodes[0].ChildNodes)
+                                {
+                                    if (ret.parar)
+                                    {
+                                        ret.parar = true;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
+                                    }
+                                }
+                               
+                        }
+                        else
+                        {
+                            //es defecto 
+                        }
+
+                    }
+                    else
+                    {
+                        if (ret.parar)
+                        {
+                            ret.parar = false;
+                        }
+                        break;
+                    }
+                    
+                }
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(expresionPivote, "Expresion no valida para la sentencia Caso");
+            }
+
+
+
+
+            return ret;
+        }
+
+#endregion
 
         #region llamadaFuncion
 
