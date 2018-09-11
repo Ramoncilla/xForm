@@ -331,11 +331,13 @@ namespace xForms.Analizar
                     {
                         #region resolver un acceso
                         int no = nodo.ChildNodes.Count;
-                        if (no == 1)
+                        ret = resolverAccesoVar(nodo, ambiente, nombreClase, nombreMetodo,tabla,ret);
+                        return ret;
+                        /*if (no == 1)
                         {
                             ret = evaluarArbol(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
                             return ret;
-                        }
+                        }*/
 
                         /*foreach (ParseTreeNode item in nodo.ChildNodes)
                         {
@@ -526,6 +528,14 @@ namespace xForms.Analizar
             return ret;
         }
 
+
+        private elementoRetorno resolverAcceso2(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+
+            return ret;
+        }
+
+
         private elementoRetorno resolverAccesoVar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
 
@@ -536,6 +546,7 @@ namespace xForms.Analizar
                 bool banderaAtributo = false;
                 ParseTreeNode elementoTemporal;
                 int i = 0;
+                string rutaElemento="";
                 Valor valorAcceso;
                 int contAmbitos = 0;
                 do
@@ -1237,11 +1248,7 @@ namespace xForms.Analizar
         #endregion
         /*--------------------------------- Fin de llamada --------------------------------------------------------*/
 
-       
-
-
-       
-      
+             
 
         #region Imprimir
         private elementoRetorno imprimir(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
@@ -1918,7 +1925,6 @@ namespace xForms.Analizar
 
             return ret;
         }
-
 
         private string obtenerCadenaParametros(List<Valor> valoresParametros )
         {

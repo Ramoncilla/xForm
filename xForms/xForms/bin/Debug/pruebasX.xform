@@ -1,8 +1,8 @@
 
 CLASE persona publico{
 
-entero edad=26;
-cadena nombre="Alina";
+entero edad;
+cadena nombre;
 
 coordenada coorAtributo ;
 
@@ -52,12 +52,31 @@ imprimir("Vuelta del ciclo "+ j+", con limite de "+i);
 }
 }
 
-principal(){
-coorAtributo = nuevo CoordeNada(2,3);
-imprimir("hola mundo");
+persona(Cadena nom, entero ed){
+
+  nombre = nom;
+  edad= ed;
+  coorAtributo = nuevo coordenada(1,2);
 
 
 }
+principal(){
+ $#
+coorAtributo = nuevo CoordeNada(2,3);
+imprimir("hola mundo");#$
+persona pepe = nuevo persona("Alina Urbina", 26);
+
+pepe.mostrar();
+
+
+
+}
+
+vacio mostrar(){
+
+  imprimir(coorAtributo.v.popo);
+}
+
 
 }
 
@@ -97,6 +116,9 @@ clase valor publico{
  valor(entero a){
    elem = a;
    entero b;
+   
  }
+
+
  
 }
