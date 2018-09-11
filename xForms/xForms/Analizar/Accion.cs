@@ -440,7 +440,6 @@ namespace xForms.Analizar
                 {
                     this.esAtriAsigna = false;
                     v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
-                    //Console.WriteLine("Se esta declarando la variable " + nombre + ", de tipo " + tipo + " con ruta de acceso  " + rutaAcceso);
                     Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
                     varNueva.asignarValor(v.val, nodo);
                     varNueva.usada = true;
@@ -450,18 +449,7 @@ namespace xForms.Analizar
                 {
                     #region declaracion con asignacion  y es un objeto
                     this.esAtriAsigna = false;
-                    /*Ingresando objeto y atributos del objeto a la tabla de simbolos  */
                     Objeto nuevoObj = new Objeto(nombre, tipo, rutaAcceso, false);
-                    ambiente.addAmbito(nombre);
-                    ListaAtributos nueva = new ListaAtributos();
-                    nueva = claseArchivo.instanciaLocal(tipo, nueva, ambiente);
-                    Simbolo temp;
-                    for (int i = 0; i < nueva.lAtributos.Count; i++)
-                    {
-                        temp = nueva.lAtributos.ElementAt(i);
-                        tabla.insertarSimbolo(temp, nodo);
-                    }
-                    ambiente.salirAmbito();
                     if (nodo.ChildNodes[2].Term.Name.Equals(Constantes.INSTANCIA, StringComparison.CurrentCultureIgnoreCase))
                     {
                         ambiente.addAmbito(nombre);
@@ -472,11 +460,9 @@ namespace xForms.Analizar
                     {
                         v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
                     }
-                    this.esAtriAsigna = false;
                     nuevoObj.asignarValor(v.val, nodo.ChildNodes[2]);
                     nuevoObj.usada = false;
                     tabla.insertarSimbolo(nuevoObj, nodo);
-                  // Console.WriteLine("Se esta declarando la variable " + nombre + ", de tipo " + tipo + " con ruta de acceso  " + rutaAcceso);
                     #endregion
                 }
             }
@@ -487,58 +473,17 @@ namespace xForms.Analizar
                 if (!esObj)
                 {
                     Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
-                  // Console.WriteLine("Se esta declarando la variable " + nombre + ", de tipo " + tipo + " con ruta de acceso  " + rutaAcceso);
                     tabla.insertarSimbolo(varNueva, nodo);
                 }
                 else
                 {
-                    #region creando un objeto con todo y atributos dentro del ambito local
                     Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso, false);
                     tabla.insertarSimbolo(nuevo, nodo);
-                   // Console.WriteLine("Se esta declarando la variable " + nombre + ", de tipo " + tipo + " con ruta de acceso  " + rutaAcceso);
-                    ambiente.addAmbito(nombre);
-                    ListaAtributos nueva = new ListaAtributos();
-                    Clase tempC;
-                    for (int i  = 0; i  <claseArchivo.size(); i ++)
-                    {
-                        tempC = claseArchivo.get(i);
-                        if (tempC.nombreClase.Equals(tipo, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            nueva.lAtributos = tempC.atributosClase.clonarLista();
-                        }
-                    }
-                    //nueva = claseArchivo.instanciaLocal(tipo, nueva, ambiente);
-                    //cambiamos de ambiente a las variables
-                    Simbolo temp;
-                    for (int i = 0; i < nueva.lAtributos.Count; i++)
-                    {
-                        temp = nueva.lAtributos.ElementAt(i);
-                        temp.rutaAcceso = ambiente.getAmbito();
-                        temp.esAtributo = false;
-                    }
-                    
-                    //  Resolvemos los parametros que traigan no nula la expresion
-                    Valor respuesta;
-
-                    for (int i = 0; i < nueva.lAtributos.Count; i++)
-                    {
-                        temp = nueva.lAtributos.ElementAt(i);
-                        if (temp.nodoExpresionValor != null)
-                        {
-                            respuesta = resolverExpresion(temp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla).val;
-                            temp.asignarValor(respuesta, temp.nodoExpresionValor); 
-                        }
-                        tabla.insertarSimbolo(temp);
-                    }
-                    
-                    ambiente.salirAmbito();
-                    #endregion
                 }
                 #endregion
             }
             #endregion
             this.esAtriAsigna = false;
-
             return ret;
         }
 
@@ -1807,6 +1752,101 @@ namespace xForms.Analizar
             ParseTreeNode nodoParametros = nodo.ChildNodes[1];
             List<Valor> valoresParametros = resolviendoParametros(nodoParametros, ambiente, nombreClase, nombreMetodo, tabla);
             string cadParametros = obtenerCadenaParametros(valoresParametros);
+
+            Clase claseTemporal;
+            for (int i = 0; i < claseArchivo.size(); i++)
+            {
+                claseTemporal = claseArchivo.get(i);
+                if (claseTemporal.nombreClase.Equals(tipoInstancia, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Funcion funBuscada = this.claseArchivo.obtenerFuncion(tipoInstancia, tipoInstancia, cadParametros);
+                    if (funBuscada != null)
+                    {
+                        Simbolo atriTemp;
+                        ListaAtributos lTemporal= new ListaAtributos();
+                        lTemporal.lAtributos= claseTemporal.atributosClase.clonarLista();
+                        for (int j = 0; j < lTemporal.lAtributos.Count; j++)
+                        {
+                            atriTemp = lTemporal.lAtributos.ElementAt(j);
+                            atriTemp.rutaAcceso = ambiente.getAmbito();
+                            if (atriTemp.nodoExpresionValor != null)
+                            {
+                                elementoRetorno r = new elementoRetorno();
+                                r = resolverExpresion(atriTemp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla);
+                                atriTemp.asignarValor(r.val, atriTemp.nodoExpresionValor);
+                            }
+                            tabla.insertarSimbolo(atriTemp);
+                        }
+
+                        ambiente.addAmbito(tipoInstancia);
+                        tabla.crearNuevoAmbito(tipoInstancia);
+
+                        /*insertar parametros*/
+                        elementoRetorno ret2;
+                        ParseTreeNode paramTemp;
+                        ParseTreeNode nodoParametrosDecla = funBuscada.obtenerNodoParametros();
+
+                        // ingresando a la tabla de simbolos las variables de los parametros y obtener nombres de parametros 
+                        List<string> nombresParametros = new List<string>();
+                        for (int h = 0; h < nodoParametrosDecla.ChildNodes.Count; h++)
+                        {
+                            paramTemp = nodoParametrosDecla.ChildNodes[h];
+                            ret = this.evaluarArbol(paramTemp, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                            nombresParametros.Add(paramTemp.ChildNodes[1].Token.ValueString);
+                        }
+
+
+                        //Asignamos los parametros 
+                        if (nombresParametros.Count == valoresParametros.Count)
+                        {
+                            string nomParTemp = "";
+                            Valor temporalVal;
+                            Simbolo simbTemp;
+                            for (int k = 0; k < nombresParametros.Count; k++)
+                            {
+                                nomParTemp = nombresParametros.ElementAt(k);
+                                temporalVal = valoresParametros.ElementAt(k);
+                                simbTemp = tabla.buscarSimbolo(nomParTemp, ambiente);
+                                if (simbTemp != null)
+                                {
+                                    simbTemp.asignarValor(temporalVal, nodoParametros.ChildNodes[0].ChildNodes[k]);
+                                }
+                                else
+                                {
+                                    Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la vriable parametro " + nomParTemp + ", en la funcion " + funBuscada.nombreFuncion);
+                                    tabla.mostrarSimbolos();
+                                    //
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo, "No se puede realizar la llamada, no encajan los numero de parametros ");
+                        }
+
+                        ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, tipoInstancia, tipoInstancia, tabla, ret);
+                        Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
+                        if (simb != null)
+                        {
+                            ret.val = simb.valor;
+
+                        }
+
+
+
+                        tabla.salirAmbiente();
+                        ambiente.salirAmbito();
+                        /*insertamos el ambito del constructor*/
+
+                    }
+
+                }
+            }
+            
+
+            /*
+
             // busco la funcion 
             Funcion funBuscada = this.claseArchivo.obtenerFuncion(tipoInstancia, tipoInstancia, cadParametros);
             if (funBuscada != null)
@@ -1818,7 +1858,7 @@ namespace xForms.Analizar
                     if (temp.nombreClase.Equals(tipoInstancia, StringComparison.CurrentCultureIgnoreCase))
                     {
                         
-                        /*Creamos el nuevo ambiente para la isntancia*/
+                        
                         ambiente.addAmbito(tipoInstancia);
                         tabla.crearNuevoAmbito(tipoInstancia);
                         //agrego los parametros 
@@ -1874,7 +1914,7 @@ namespace xForms.Analizar
             {
                 ret.val = new Valor(Constantes.NULO, Constantes.NULO);
                 return ret;
-            }
+            }*/
 
             return ret;
         }

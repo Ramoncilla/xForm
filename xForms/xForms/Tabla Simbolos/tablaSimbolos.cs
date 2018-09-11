@@ -57,7 +57,16 @@ namespace xForms.Tabla_Simbolos
         public bool insertarSimbolo(Simbolo simb)
         {
             nodoTablaSimbolos temp = this.listaSimbolos.Peek();
-            return temp.insertarSimbolo(simb);
+            bool a=  temp.insertarSimbolo(simb);
+            if (!a)
+            {
+                Constantes.erroresEjecucion.errorSemantico("La variable, ya existe en el ambito actual");
+            }
+            else
+            {
+                Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y ruta " + simb.rutaAcceso);
+            }
+            return a;
             
         }
 
