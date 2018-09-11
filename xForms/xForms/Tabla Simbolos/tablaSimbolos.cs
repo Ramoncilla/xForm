@@ -11,7 +11,7 @@ namespace xForms.Tabla_Simbolos
 {
     class tablaSimbolos
     {
-        private Stack<nodoTablaSimbolos> listaSimbolos;
+        public Stack<nodoTablaSimbolos> listaSimbolos;
 
 
         public tablaSimbolos()
@@ -19,6 +19,20 @@ namespace xForms.Tabla_Simbolos
             this.listaSimbolos = new Stack<nodoTablaSimbolos>();
         }
 
+
+        public void mostrarSimbolos()
+        {
+            /*
+            nodoTablaSimbolos temp;
+            for (int i = 0; i < listaSimbolos.Count; i++)
+            {
+                temp = listaSimbolos.ElementAt(i);
+                Console.WriteLine("***************** Nodo tabla dde simbolos **********************");
+                temp.imprimirNodoTabla();
+                Console.WriteLine("***************** Fin Nodo tabla dde simbolos **********************");
+
+            }*/
+        }
 
         public void crearNuevoAmbito(String nombreFuncion)
         {
@@ -34,6 +48,10 @@ namespace xForms.Tabla_Simbolos
             {
                 Constantes.erroresEjecucion.errorSemantico(nodo,"La variable, ya existe en el ambito actual");
             }
+            else
+            {
+                Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y ruta " + simb.rutaAcceso);
+            }
         }
 
         public bool insertarSimbolo(Simbolo simb)
@@ -43,35 +61,76 @@ namespace xForms.Tabla_Simbolos
             
         }
 
+        public bool insertarSimboloAmbienteGlobal(Simbolo simb)
+        {
+            nodoTablaSimbolos temp = this.listaSimbolos.ElementAt(listaSimbolos.Count - 1);
+            return temp.insertarSimbolo(simb);
+
+        }
+
         public void salirAmbiente()
         {
-            this.listaSimbolos.Pop();
+           // this.listaSimbolos.Pop();
+        }
+
+
+
+        public int esAtributoSimbolo(string nombre, Contexto ambiente)
+        { 
+
+            //1 es atributo
+            //2 es local
+            //0 no existe el simbolo 
+
+            int no = this.listaSimbolos.Count;
+            if (no > 1)
+            {
+                nodoTablaSimbolos actual = this.listaSimbolos.Peek();
+                Simbolo busc = actual.obtenerSimbolo(nombre, ambiente);
+                if (busc != null)
+                {
+                    return 2;
+                }
+                else
+                {
+                    nodoTablaSimbolos global = this.listaSimbolos.ElementAt((listaSimbolos.Count - 1));
+                    busc = global.obtenerSimbolo(nombre, ambiente);
+                    return 1;
+                }
+            }
+            else if (no == 1)
+            {
+                nodoTablaSimbolos actual = this.listaSimbolos.Peek();
+                Simbolo busc = actual.obtenerSimbolo(nombre, ambiente);
+                if (busc != null)
+                {
+                    return 1;
+                }
+
+            }
+            return 0;
+
         }
 
 
         public Simbolo buscarSimbolo(string nombre, Contexto ambiente)
         {
-            /*1. Se busca en un ambito local y luego en los atributos*/
-           /* Contexto ambientesC = ambiente.clonarLista();
-            
-            String ambienteTemp;
-            nodoTablaSimbolos actual;
-            Simbolo busc;
-            for (int i = 0; i < ambientesC.Ambitos.Count; i++)
+
+            nodoTablaSimbolos temp;
+            Simbolo simb;
+            for (int i = 0; i < this.listaSimbolos.Count; i++)
             {
-                ambienteTemp = ambientesC.getAmbito();
-                actual = this.listaSimbolos.Peek();
-                busc = actual.obtenerSimbolo(nombre, ambienteTemp);
-                if (busc != null)
+                temp = listaSimbolos.ElementAt(i);
+                simb = temp.obtenerSimbolo(nombre, ambiente);
+                if (simb != null)
                 {
-                    return busc;
+                    return simb;
                 }
-                ambientesC.salirAmbito();
                 
             }
-            */
+            return null;
 
-         
+            /*
             int no = this.listaSimbolos.Count;
             if (no > 1)
             {
@@ -98,7 +157,7 @@ namespace xForms.Tabla_Simbolos
                 }
 
             }
-            return null;
+            return null;*/
         }
 
 

@@ -110,7 +110,7 @@ namespace xForms.Ejecucion
                             // | TIPO_DATOS + identificador + ToTerm(Constantes.PUNTO_COMA)
                             if (!esObj)
                             {
-                                Variable nueva = new Variable(nombre, tipo, nombreClase);
+                                Variable nueva = new Variable(nombre, tipo, nombreClase, true);
                                 nueva.visibilidad = Constantes.PUBLICO;
                                 nueva.nodoExpresionValor = null;
                                 this.atributosClase.insertarAtributo(nueva, nodo);
@@ -134,7 +134,7 @@ namespace xForms.Ejecucion
                                 nombre = nodo.ChildNodes[2].Token.ValueString;
                                 if (!esObj)
                                 {
-                                    Variable nueva = new Variable(nombre, tipo, nombreClase);
+                                    Variable nueva = new Variable(nombre, tipo, nombreClase, true);
                                     nueva.nodoExpresionValor = null;
                                     nueva.visibilidad= visibilidad;
                                     this.atributosClase.insertarAtributo(nueva, nodo);
@@ -164,7 +164,7 @@ namespace xForms.Ejecucion
                                 nombre = nodo.ChildNodes[1].Token.ValueString;
                                 if (!esObj)
                                 {
-                                    Variable nuevo = new Variable(nombre, tipo, nombreClase);
+                                    Variable nuevo = new Variable(nombre, tipo, nombreClase, true);
                                     nuevo.nodoExpresionValor = expr;
                                     nuevo.visibilidad = Constantes.PUBLICO;
                                     this.atributosClase.insertarAtributo(nuevo,nodo);
@@ -203,7 +203,7 @@ namespace xForms.Ejecucion
                                     ParseTreeNode nodoExp = nodo.ChildNodes[3];
                                     if (!esObj)
                                     {
-                                        Variable nuevo = new Variable(nombre, tipo, nombreClase);
+                                        Variable nuevo = new Variable(nombre, tipo, nombreClase,true);
                                         nuevo.visibilidad = visibilidad;
                                         nuevo.nodoExpresionValor = nodoExp;
                                         this.atributosClase.insertarAtributo(nuevo, nodo);

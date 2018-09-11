@@ -25,7 +25,8 @@ namespace xForms.Ejecucion
         {
             for (int i = 0; i < this.lAtributos.Count; i++)
             {
-                if (lAtributos.ElementAt(i).nombre.ToLower().Equals(at.nombre.ToLower()))
+                if (lAtributos.ElementAt(i).nombre.ToLower().Equals(at.nombre.ToLower()) &&
+                    lAtributos.ElementAt(i).rutaAcceso.ToLower().Equals(at.rutaAcceso.ToLower()))
                 {
                     return true;
                 }
@@ -42,6 +43,18 @@ namespace xForms.Ejecucion
             else
             {
                 Constantes.erroresEjecucion.errorSemantico(nodo, "El atributo " + val.nombre + ", ya existe en el ambito actual ");
+            }
+
+        }
+        public void insertarAtributo(Simbolo val)
+        {
+            if (!existe(val))
+            {
+                this.lAtributos.Add(val);
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico( "El atributo " + val.nombre + ", ya existe en el ambito actual ");
             }
 
         }

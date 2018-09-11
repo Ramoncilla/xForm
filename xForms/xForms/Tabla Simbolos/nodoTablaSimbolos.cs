@@ -70,6 +70,23 @@ namespace xForms.Tabla_Simbolos
         }
 
 
+
+        public void imprimirNodoTabla()
+        {
+            Console.WriteLine(this.nombreFuncion);
+            Simbolo simb;
+            
+            for (int i = 0; i < this.variablesAmbito.Count; i++)
+            {
+                simb = variablesAmbito.ElementAt(i);
+                Console.WriteLine("--------------Simbolo  "+i+"------------------------------");
+                Console.WriteLine("Nombre var:  " + simb.nombre);
+                Console.WriteLine("ruta acceso:  " + simb.rutaAcceso);
+                Console.WriteLine("--------------------------------------------");
+            }
+        }
+
+
         public Simbolo obtenerSimbolo(String nombre, Contexto ruta)
         {
             Simbolo temp;
@@ -81,8 +98,8 @@ namespace xForms.Tabla_Simbolos
                 for (int j = 0; j < this.variablesAmbito.Count; j++)
                 {
                     temp = this.variablesAmbito.ElementAt(j);
-                    if (temp.nombre.ToLower().Equals(nombre.ToLower()) &&
-                    temp.rutaAcceso.ToLower().Equals(rutaTemporal.ToLower()))
+                    if (temp.nombre.Equals(nombre,StringComparison.CurrentCultureIgnoreCase) &&
+                    temp.rutaAcceso.Equals(rutaTemporal,StringComparison.CurrentCultureIgnoreCase))
                     {
                         return temp;
                     }

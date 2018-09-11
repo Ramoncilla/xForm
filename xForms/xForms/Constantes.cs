@@ -159,6 +159,7 @@ namespace xForms
         public const string ERROR_SEMANTICO = "SEMANTICO";
         public const string ERROR_SINTACTICO = "SINTACTICO";
         public const string ERROR_LEXICO = "LEXICO";
+        public const string ESTE = "ESTE";
 
 
 

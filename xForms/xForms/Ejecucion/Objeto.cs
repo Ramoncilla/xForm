@@ -22,16 +22,40 @@ namespace xForms.Ejecucion
             this.nodoExpresionValor = nodoExprsion;
         }
 
-        public Objeto(string nombre, string tipo, string rutaAcceso)
+        public Objeto(string nombre, string tipo, string rutaAcceso, bool atri)
         {
             this.nombre = nombre;
             this.tipo = tipo;
             this.rutaAcceso = rutaAcceso;
+            this.esAtributo = atri;
         }
 
-        public Simbolo clonar()
+        public override void asignarValor(Valor v, ParseTreeNode nodo)
         {
-            return new Simbolo();
+            if ((v.tipo.ToLower().Equals(this.tipo.ToLower())) || v.tipo.Equals(Constantes.NULO))
+            {
+                this.valor = v;
+                this.usada = true;
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "No es posible asignar la variable " + this.nombre + ", con el tipo " + v.tipo);
+            }
+
+        }
+
+
+
+        public override Simbolo clonar()
+        {
+
+            Objeto nueva = new Objeto(this.nombre, this.tipo, this.rutaAcceso, this.esAtributo);
+            nueva.valor = this.valor;
+            nueva.usada = this.usada;
+            nueva.visibilidad = this.visibilidad;
+            nueva.nodoExpresionValor = this.nodoExpresionValor;
+
+            return nueva;
         }
     }
 }

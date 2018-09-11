@@ -14,12 +14,13 @@ namespace xForms.Tabla_Simbolos
     {
         
 
-        public Variable(string nom,  string tipo, string rutaAcceso)
+        public Variable(string nom,  string tipo, string rutaAcceso, bool atri)
         {
             this.usada = false;
             this.nombre = nom;
             this.tipo = tipo;
             this.rutaAcceso = rutaAcceso;
+            this.esAtributo = atri;
         }
 
 
@@ -39,7 +40,7 @@ namespace xForms.Tabla_Simbolos
 
         public override Simbolo clonar()
         {
-            Variable nueva = new Variable(this.nombre, this.tipo, this.rutaAcceso);
+            Variable nueva = new Variable(this.nombre, this.tipo, this.rutaAcceso, this.esAtributo);
             nueva.valor = this.valor;
             nueva.usada = this.usada;
             nueva.visibilidad = this.visibilidad;

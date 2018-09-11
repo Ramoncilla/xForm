@@ -1,10 +1,10 @@
 
-importar(hola.xform);
-importar(adios.xform);
 CLASE persona publico{
 
-entero edad=25;
+entero edad=26;
 cadena nombre="Alina";
+
+coordenada coorAtributo ;
 
 vacio mostrar(){
  imprimir("hola mundo");
@@ -53,38 +53,8 @@ imprimir("Vuelta del ciclo "+ j+", con limite de "+i);
 }
 
 principal(){
-$#
-mostrar(5+10,"Hola mundo");
-imprimir(fact(5));
-imprimir(fibonacci(10));
-
-edad++;
-imprimir(edad);
-imprimir(edad++);
-imprimir(edad);
-mostrarCicLO(7);
-#$
-cadena a = "hola";
-caso(a) de{
-
-
-}
-
-caso (a) de {
-
-"popo":{
-  romper;
-}
-
-"hola":{
- imprimir("caso del pipi loco");
- romper;
-}
-
-defecto:{
- imprimir("caso por defecto");
-}
-}
+coorAtributo = nuevo CoordeNada(2,3);
+imprimir("hola mundo");
 
 
 }
@@ -93,55 +63,40 @@ defecto:{
 
 
 
-$#
-CLASE individuo publico {
-entero privado a;
+clase coordenada publico {
 
-cadena c= "Soy la variable c";
-decimal d ;
+entero x;
+entero y;
+valor v;
 
-principal(){
+coordenada(){
 
-hola  b = nuevo hola();
-hola g = nuevo hola(5,"popo");
-
-imprimir(c);
-imprimir("llegue a un principal saludos :d ");
-
-si(890<125){
-imprimir("pase un si");
-}sino {
-imprimir("Soy la respueta de un else");
 }
 
-entero i=100;
-entero j = 0;
+coordenada(entero xx, entero yy){
+  x= xx;
+  y =yy;
+  v= nuevo valor(11);
+  nada();
 
-
-
-mientras (i<10){
-i= i+1;
-si(i == 4){
-continuar;
 }
-si(i==7){
-romper;
+
+vacio nada(){
+
+  entero a;
 }
-imprimir(i);
-imprimir("ciclo mientras "+ i);
 
 
 }
 
-entero e =0;
-entero d =0;
-hacer {
-e= e+1;
-imprimir("solo me mostrare una vez");
 
-}mientras (e<3);
-
-
+clase valor publico{
+ entero elem;
+ cadena popo;
+ 
+ valor(entero a){
+   elem = a;
+   entero b;
+ }
+ 
 }
-
-}#$

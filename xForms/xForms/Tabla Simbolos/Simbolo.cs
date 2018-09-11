@@ -18,6 +18,7 @@ namespace xForms.Tabla_Simbolos
         public Boolean usada=false;
         public string rutaAcceso;
         public string visibilidad = "noTiene";
+        public bool esAtributo = false;
 
         public ParseTreeNode nodoExpresionValor;
 

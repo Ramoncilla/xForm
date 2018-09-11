@@ -18,6 +18,9 @@ namespace xForms.Analizar
        
         public ListaClases claseArchivo;
         public List<Importar> importaciones;
+        string variableInstancia = "";
+        private bool esAtriAsigna = false;
+        private bool esAtriRes = false;
 
         public Accion()
         {
@@ -25,6 +28,10 @@ namespace xForms.Analizar
             this.importaciones = new List<Importar>();
         }
         //faltan las importaciones 
+
+        public void instanciarAtributosClase(){
+            this.claseArchivo.instanciarAtributosClase();
+        }
 
 
         #region generacion de un lisado de clases e importaciones
@@ -113,7 +120,7 @@ namespace xForms.Analizar
                 if (atrTemp.nodoExpresionValor != null)
                 {
                     elementoRetorno v;
-                     v = resolverExpresion(atrTemp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, actual);
+                    v = resolverExpresion(atrTemp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, actual);
                     atrTemp.asignarValor(v.val, atrTemp.nodoExpresionValor);
                 }
 
@@ -166,20 +173,19 @@ namespace xForms.Analizar
 
 
 
-
-
         #region evualuar sentencias
         public elementoRetorno evaluarArbol(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             switch (nodo.Term.Name)
             {
+                #region imprimir
                 case Constantes.IMPRIMIR:
                     {
-
                         ret = this.imprimir(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         return ret;
                     }
-
+#endregion
+                #region Evaluar Cuerpo
                 case Constantes.CUERPO_FUNCION:
                     {
                         foreach (ParseTreeNode item in nodo.ChildNodes)
@@ -188,7 +194,6 @@ namespace xForms.Analizar
                         }
                         return ret;
                     }
-
 
                 case Constantes.SENTENCIAS:
                     {
@@ -205,14 +210,14 @@ namespace xForms.Analizar
                                 ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
 
                             }
-
                         }
                         return ret;
                     }
 
+                #endregion
+                #region Si
                 case Constantes.SI:
                     {
-
                         #region resolver un if
                         int cont = nodo.ChildNodes.Count;
                         if (cont == 2)
@@ -270,62 +275,17 @@ namespace xForms.Analizar
                         #endregion
                         break;
                     }
-
+                #endregion
+                #region Declaracion
                 case Constantes.DECLA_VARIABLE:
                     {
-                        /* DECLA_VARIABLE.Rule = TIPO_DATOS + identificador + ToTerm(Constantes.IGUAL) + EXPRESION + ToTerm(Constantes.PUNTO_COMA)
-                | TIPO_DATOS + identificador + ToTerm(Constantes.PUNTO_COMA);*/
-                        #region declaracion de vairables
-                        string rutaAcceso = ambiente.getAmbito();
-                        string tipo = nodo.ChildNodes[0].ChildNodes[0].Token.ValueString;
-                        string nombre = nodo.ChildNodes[1].Token.ValueString;
-                        bool esObj = this.esObjecto(tipo);
-                        int no = nodo.ChildNodes.Count;
-                        elementoRetorno v;
-                        if (no == 3)
-                        {
-
-                            if (!esObj)
-                            {
-                                v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
-                                Variable varNueva = new Variable(nombre, tipo, rutaAcceso);
-                                varNueva.asignarValor(v.val, nodo);
-                                varNueva.usada = true;
-                                tabla.insertarSimbolo(varNueva, nodo);
-                            }
-                            else
-                            {
-
-
-
-                            }
-
-
-
-                        }
-                        else
-                        { //no ==2
-
-                            if (!esObj)
-                            {
-                                Variable varNueva = new Variable(nombre, tipo, rutaAcceso);
-                                tabla.insertarSimbolo(varNueva, nodo);
-                            }
-                            else
-                            {
-                                Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso);
-                                tabla.insertarSimbolo(nuevo, nodo);
-                            }
-
-
-                        }
-                        #endregion
+                        ret = this.resolverDeclaracion(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         return ret;
                     }
-
+                #endregion
+                #region Ciclos
                 case Constantes.MIENTRAS:
                     {
-
                         ret = this.resolverMientras(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         return ret;
                     }
@@ -335,12 +295,10 @@ namespace xForms.Analizar
                         return ret;
                     }
 
-
                 case Constantes.REPETIR_HASTA:
                     {
                         ret = this.resolverRepetirHasta(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         return ret;
-
                     }
 
                 case Constantes.PARA:
@@ -352,22 +310,21 @@ namespace xForms.Analizar
                     {
                         ret.parar = true;
                         return ret;
-                        // return nuevo;
                     }
                 case Constantes.CONTINUAR:
                     {
                         ret.continuar = true;
                         return ret;
-
-
                     }
-
+#endregion
+                #region asignacion
                 case Constantes.ASIGNACION:
                     {
                         ret = this.resolverAsignar(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         return ret;
                     }
 
+                #endregion
                 #region Acceso
 
                 case Constantes.ACCESO:
@@ -420,10 +377,10 @@ namespace xForms.Analizar
                         break;
                     }
                 #endregion
-
+                #region retorno
                 case Constantes.RETORNO:
                     {
-                        #region retorno
+                        
                         ret.banderaRetorno = true;
                         int no = nodo.ChildNodes.Count;
                         if (no == 1)
@@ -435,10 +392,11 @@ namespace xForms.Analizar
                                 simb.asignarValor(var.val, nodo.ChildNodes[0]);
                             }
                         }
-                        #endregion
+                        
                         return ret;
                     }
-
+                #endregion
+                #region asignaUnario
                 case Constantes.ASIGNA_UNARIO:
                     {
                         ret = asignacionUnario(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
@@ -446,27 +404,14 @@ namespace xForms.Analizar
                         return ret;
 
                     }
+                #endregion
+                #region Caso
                 case Constantes.CASO:
                     {
-                        /*
-                            
-             CUERPO_CASO.Rule= ToTerm(Constantes.ABRE_LLAVE) +  Constantes.CIERRA_LLAVE
-                 | ToTerm(Constantes.ABRE_LLAVE)+LISTA_CASO +  Constantes.CIERRA_LLAVE;
-	
-             OPCION_VALOR.Rule= VALOR
-                 |DEFECTO;
-	
-             LISTA_CASO.Rule= MakePlusRule(LISTA_CASO, OPCION_VALOR);
-	
-               
-
-             DEFECTO.Rule= ToTerm(Constantes.DEFECTO)  +ToTerm(Constantes.DOS_PUNTOS)+ CUERPO_FUNCION;
-                         */
-
                         ret = resolverCaso(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         return ret;
-
                     }
+                #endregion
             }
             return ret;
 
@@ -474,6 +419,325 @@ namespace xForms.Analizar
 
        
         #endregion
+
+
+        /*--------------------- DEclaraciones locales y ASignaciones ----------------------------------------------*/
+
+        #region Declaraciones Locales
+
+        private elementoRetorno resolverDeclaracion(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            #region declaraion de vairables
+            string rutaAcceso = ambiente.getAmbito();
+            string tipo = nodo.ChildNodes[0].ChildNodes[0].Token.ValueString;
+            string nombre = nodo.ChildNodes[1].Token.ValueString;
+            bool esObj = this.esObjecto(tipo);
+            int no = nodo.ChildNodes.Count;
+            elementoRetorno v;
+            if (no == 3)
+            {
+                if (!esObj)
+                {
+                    this.esAtriAsigna = false;
+                    v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                    //Console.WriteLine("Se esta declarando la variable " + nombre + ", de tipo " + tipo + " con ruta de acceso  " + rutaAcceso);
+                    Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
+                    varNueva.asignarValor(v.val, nodo);
+                    varNueva.usada = true;
+                    tabla.insertarSimbolo(varNueva, nodo);
+                }
+                else
+                {
+                    #region declaracion con asignacion  y es un objeto
+                    this.esAtriAsigna = false;
+                    /*Ingresando objeto y atributos del objeto a la tabla de simbolos  */
+                    Objeto nuevoObj = new Objeto(nombre, tipo, rutaAcceso, false);
+                    ambiente.addAmbito(nombre);
+                    ListaAtributos nueva = new ListaAtributos();
+                    nueva = claseArchivo.instanciaLocal(tipo, nueva, ambiente);
+                    Simbolo temp;
+                    for (int i = 0; i < nueva.lAtributos.Count; i++)
+                    {
+                        temp = nueva.lAtributos.ElementAt(i);
+                        tabla.insertarSimbolo(temp, nodo);
+                    }
+                    ambiente.salirAmbito();
+                    if (nodo.ChildNodes[2].Term.Name.Equals(Constantes.INSTANCIA, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ambiente.addAmbito(nombre);
+                        v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                        ambiente.salirAmbito();
+                    }
+                    else
+                    {
+                        v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                    }
+                    this.esAtriAsigna = false;
+                    nuevoObj.asignarValor(v.val, nodo.ChildNodes[2]);
+                    nuevoObj.usada = false;
+                    tabla.insertarSimbolo(nuevoObj, nodo);
+                  // Console.WriteLine("Se esta declarando la variable " + nombre + ", de tipo " + tipo + " con ruta de acceso  " + rutaAcceso);
+                    #endregion
+                }
+            }
+            else
+            { //no ==2
+                #region declaracion sin asignacion
+                this.esAtriAsigna = false;
+                if (!esObj)
+                {
+                    Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
+                  // Console.WriteLine("Se esta declarando la variable " + nombre + ", de tipo " + tipo + " con ruta de acceso  " + rutaAcceso);
+                    tabla.insertarSimbolo(varNueva, nodo);
+                }
+                else
+                {
+                    #region creando un objeto con todo y atributos dentro del ambito local
+                    Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso, false);
+                    tabla.insertarSimbolo(nuevo, nodo);
+                   // Console.WriteLine("Se esta declarando la variable " + nombre + ", de tipo " + tipo + " con ruta de acceso  " + rutaAcceso);
+                    ambiente.addAmbito(nombre);
+                    ListaAtributos nueva = new ListaAtributos();
+                    Clase tempC;
+                    for (int i  = 0; i  <claseArchivo.size(); i ++)
+                    {
+                        tempC = claseArchivo.get(i);
+                        if (tempC.nombreClase.Equals(tipo, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            nueva.lAtributos = tempC.atributosClase.clonarLista();
+                        }
+                    }
+                    //nueva = claseArchivo.instanciaLocal(tipo, nueva, ambiente);
+                    //cambiamos de ambiente a las variables
+                    Simbolo temp;
+                    for (int i = 0; i < nueva.lAtributos.Count; i++)
+                    {
+                        temp = nueva.lAtributos.ElementAt(i);
+                        temp.rutaAcceso = ambiente.getAmbito();
+                        temp.esAtributo = false;
+                    }
+                    
+                    //  Resolvemos los parametros que traigan no nula la expresion
+                    Valor respuesta;
+
+                    for (int i = 0; i < nueva.lAtributos.Count; i++)
+                    {
+                        temp = nueva.lAtributos.ElementAt(i);
+                        if (temp.nodoExpresionValor != null)
+                        {
+                            respuesta = resolverExpresion(temp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla).val;
+                            temp.asignarValor(respuesta, temp.nodoExpresionValor); 
+                        }
+                        tabla.insertarSimbolo(temp);
+                    }
+                    
+                    ambiente.salirAmbito();
+                    #endregion
+                }
+                #endregion
+            }
+            #endregion
+            this.esAtriAsigna = false;
+
+            return ret;
+        }
+
+        #endregion
+
+        #region Asignaciones
+
+        private elementoRetorno asignacionUnario(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            string nombreVar = nodo.ChildNodes[0].Token.ValueString;
+            string operador = nodo.ChildNodes[1].Token.ValueString;
+            Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
+            if (simb != null)
+            {
+                if (esEntero(simb.valor) || esDecimal(simb.valor))
+                {
+                    if (operador.Equals(Constantes.MAS_MAS))
+                    {
+                        double d = getDecimal(simb.valor) + 1;
+                        simb.valor.valor = d;
+                    }
+                    else
+                    {
+                        double d = getDecimal(simb.valor) - 1;
+                        simb.valor.valor = d;
+
+                    }
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodo, "Tipo de variable " + simb.tipo + ", es incompatible para un unario");
+                }
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreVar + ", en el ambito actual " + ambiente.getAmbito());
+                tabla.mostrarSimbolos();
+                //
+            }
+            return ret;
+        }
+
+        private elementoRetorno resolverAccesoVar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+
+            int numeroValores = nodo.ChildNodes.Count;
+            if (numeroValores > 1)
+            {
+                bool banderaObjeto = false;
+                bool banderaAtributo = false;
+                ParseTreeNode elementoTemporal;
+                int i = 0;
+                Valor valorAcceso;
+                int contAmbitos = 0;
+                do
+                {
+                    elementoTemporal = nodo.ChildNodes[i];
+                    if (elementoTemporal.Term.Name.Equals(Constantes.ID, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        string nombreVar = elementoTemporal.ChildNodes[0].Token.ValueString;
+                        if (nombreVar.Equals(Constantes.ESTE, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            banderaAtributo = true;
+                        }
+                        else
+                        {
+                            Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
+                            if (simb != null)
+                            {
+                                string tipo = simb.tipo;
+                                if (esObjecto(tipo))
+                                {
+                                    banderaObjeto = true;
+                                }
+
+                            }
+                            else
+                            {
+                                Constantes.erroresEjecucion.errorSemantico(nodo, "La variable " + nombreVar + ", no existe en el ambito actual. Imposible resolver acceso");
+                                tabla.mostrarSimbolos();
+                                //
+                            }
+                        }
+
+                    }
+                    #region llamada
+                    else if (elementoTemporal.Term.Name.Equals(Constantes.LLAMADA, StringComparison.CurrentCultureIgnoreCase))
+                    {
+
+                    }
+                    #endregion
+                    #region posArreglo
+                    else
+                    {
+                        // es una posicion arreglo
+                    }
+                    #endregion
+
+
+                    i++;
+                } while (i < numeroValores && banderaObjeto);
+
+            }
+            else
+            {// solo trae un elemento id, llamada o pos arreglo
+
+            }
+
+            return ret;
+        }
+
+        private elementoRetorno resolverAccesoRes(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            elementoRetorno ret = new elementoRetorno();
+
+            return ret;
+        }
+
+        private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            ParseTreeNode acceso = nodo.ChildNodes[0];
+            ParseTreeNode expresion = nodo.ChildNodes[1];
+            int cont = acceso.ChildNodes.Count;
+            ParseTreeNode temp;
+            string nombreElemento;
+            for (int i = 0; i < acceso.ChildNodes.Count; i++)
+            {
+                temp = acceso.ChildNodes[i];
+                if (temp.Term.Name.ToLower().Equals(Constantes.ID.ToLower()))
+                {
+                    nombreElemento = temp.ChildNodes[0].Token.ValueString;
+                    if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        ambiente.addAmbito(nombreElemento);
+                    }
+                    Simbolo simb = tabla.buscarSimbolo(nombreElemento, ambiente);
+                    elementoRetorno r = new elementoRetorno();
+                    if (simb != null)
+                    {
+                       
+                        if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            //ambiente.addAmbito(simb.nombre);
+                            r = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
+                            ambiente.salirAmbito();
+                        }
+                        else
+                        {
+                            r = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
+                        }
+
+                    }
+                    else
+                    {
+                        if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            ambiente.salirAmbito();
+                        }
+                        Constantes.erroresEjecucion.errorSemantico(expresion, "no existe la vairable " + nombreElemento + "en el ambiente " + ambiente.getAmbito() + "  aquii");
+                        tabla.mostrarSimbolos();
+                        //
+
+                    }
+                   
+                    
+                    Valor v = r.val;
+                    if (simb != null)
+                    {
+                        simb.asignarValor(v, expresion);
+                    }
+                    else
+                    {
+                        Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreElemento + ", en el ambito actual " + ambiente.getAmbito());
+                        tabla.mostrarSimbolos();
+                        //
+                    }
+
+                }
+                else if (temp.Term.Name.ToLower().Equals(Constantes.LLAMADA.ToLower()))
+                {
+
+                }
+                else if (temp.Term.Name.ToLower().Equals(Constantes.POS_ARREGLO.ToLower()))
+                {
+
+                }
+            }
+            return ret;
+        }
+
+
+        #endregion
+
+
+
+        /*-------------------------------- Fin declaraciones y Asignaciones ---------------------------------------*/
+
+
+        /*----------------------------------- Estructuras de Control -----------------------------------------*/
 
         #region caso (Switch)
 
@@ -553,231 +817,71 @@ namespace xForms.Analizar
 
 #endregion
 
-        #region llamadaFuncion
-
-        private elementoRetorno AccesoLlamadaFuncion(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        #region Resolver Si
+        private elementoRetorno resolverSino(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
-            ParseTreeNode nodoId = nodo.ChildNodes[0];
-            ParseTreeNode nodoParametros = nodo.ChildNodes[1];
-            string nombreFuncion = nodoId.Token.ValueString.ToLower();
-            int noParametros = nodoParametros.ChildNodes[0].ChildNodes.Count;
-
-            //verificando a las fucniones nativas
-            if (nombreFuncion.Equals(Constantes.SUPER.ToLower()))
+            ambiente.addElse();
+            foreach (ParseTreeNode item in nodo.ChildNodes)
             {
-
+                ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
             }
-            else if (nombreFuncion.Equals(Constantes.MENSAJE.ToLower()))
-            {
-
-            }else if(nombreFuncion.Equals(Constantes.CADENA,StringComparison.InvariantCultureIgnoreCase)){
-
-            }
-
-
+            ambiente.Ambitos.Pop();
+            ret.banderaSi = true;
             return ret;
         }
 
-
-       private elementoRetorno llamadaFuncion(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
-       {
-           ParseTreeNode nodoId = nodo.ChildNodes[0];
-           ParseTreeNode nodoParametros = nodo.ChildNodes[1];
-           string nombreFuncion = nodoId.Token.ValueString;
-           int noParametros = nodoParametros.ChildNodes[0].ChildNodes.Count;
-           
-           /*-------- Paso 1:    Resolver parametros  e ir obteniendo la cadena de tipos de parametros  ---------------*/
-           ParseTreeNode temp;
-           List<Valor> valoresParametros = new List<Valor>();
-           elementoRetorno temp2;
-
-           // Resuelvo las expresiones que viene para los parametros 
-           for (int i = 0; i < nodoParametros.ChildNodes[0].ChildNodes.Count; i++)
-           {
-               temp = nodoParametros.ChildNodes[0].ChildNodes[i];
-               temp2 = resolverExpresion(temp, ambiente, nombreClase, nombreMetodo, tabla);
-               valoresParametros.Add(temp2.val);
-           }
-           //genero la cadena de tipo parametros para buscar la funcion
-           string cadParametros = "";
-           Valor x;
-           for (int i = 0; i < valoresParametros.Count; i++)
-           {
-               x= valoresParametros.ElementAt(i);
-               cadParametros += x.tipo;
-           }
-           // busco la funcion 
-           Funcion funBuscada = this.claseArchivo.obtenerFuncion(nombreClase,nombreFuncion, cadParametros);
-           if (funBuscada != null)
-           {
-               tabla.crearNuevoAmbito(nombreFuncion);
-               ambiente.addAmbito(nombreFuncion);
-               //agrego los parametros y el return a la tabla de simbolos
-               elementoRetorno ret2;
-               ParseTreeNode paramTemp;
-               ParseTreeNode nodoParametrosDecla = funBuscada.obtenerNodoParametros();
-
-               // ingresando a la tabla de simbolos las variables de los parametros y obtener nombres de parametros 
-               List<string> nombresParametros = new List<string>();
-               for (int i = 0; i < nodoParametrosDecla.ChildNodes.Count; i++)
-               {
-                   paramTemp = nodoParametrosDecla.ChildNodes[i];
-                   ret = this.evaluarArbol(paramTemp, ambiente, nombreClase, nombreMetodo, tabla, ret);
-                   nombresParametros.Add(paramTemp.ChildNodes[1].Token.ValueString);
-               }
-
-               
-               //ingresando el return
-               if (esObjecto(funBuscada.tipo))
-               {
-                   Objeto nuevoObj = new Objeto("retorno" , funBuscada.tipo, ambiente.getAmbito());
-                   tabla.insertarSimbolo(nuevoObj);
-               }
-               else
-               {
-                   Variable nuevaVar = new Variable("retorno" , funBuscada.tipo, ambiente.getAmbito());
-                   tabla.insertarSimbolo(nuevaVar); 
-
-               }
-
-               //Asignar parametros
-               if(nombresParametros.Count == valoresParametros.Count){
-                    string nomParTemp = "";
-               Valor temporalVal;
-                   Simbolo simbTemp;
-               for (int i = 0; i <nombresParametros.Count ; i++)
-               {
-                   nomParTemp= nombresParametros.ElementAt(i);
-                   temporalVal = valoresParametros.ElementAt(i);
-                   simbTemp= tabla.buscarSimbolo(nomParTemp, ambiente);
-                   if(simbTemp!= null){
-                       simbTemp.asignarValor(temporalVal,nodoParametros.ChildNodes[0].ChildNodes[i]);
-                   }else{
-                       Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la vriable parametro "+ nomParTemp+", en la funcion "+ funBuscada.nombreFuncion);
-                   }
-               }
-
-               }else{
-                   Constantes.erroresEjecucion.errorSemantico(nodo, "No se puede realizar la llamada, no encajan los numero de parametros ");
-               }
-               // Ejecutar sentencias
-
-               ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, nombreClase, nombreMetodo, tabla, ret);
-               Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
-               if (simb != null)
-               {
-                   ret.val = simb.valor;
-                   
-               
-               }
-
-               ambiente.salirAmbito();
-               tabla.salirAmbiente();
-
-           }
-           else
-           {
-               Constantes.erroresEjecucion.errorSemantico(nodo, "La funcion " + nombreFuncion + ", no existe en la clase actual "+ nombreClase);
-           }
-
-
-           switch (nombreFuncion.ToLower())
-           {
-
-
-           }
-
-
-
-           return ret;
-       }
-
-
-        #endregion
-
-
-        #region Asignaciones
-
-       private elementoRetorno asignacionUnario(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
-       {
-           string nombreVar = nodo.ChildNodes[0].Token.ValueString;
-           string operador = nodo.ChildNodes[1].Token.ValueString;
-           Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
-          
-           if (simb != null)
-           {
-               if (esEntero(simb.valor) || esDecimal(simb.valor))
-               {
-                   if (operador.Equals(Constantes.MAS_MAS))
-                   {
-                       double d = getDecimal(simb.valor) + 1;
-                       simb.valor.valor = d;
-                   }
-                   else
-                   {
-                       double d = getDecimal(simb.valor) -1;
-                       simb.valor.valor = d;
-
-                   }
-                  
-               }
-               else
-               {
-                   Constantes.erroresEjecucion.errorSemantico(nodo, "Tipo de variable " + simb.tipo + ", es incompatible para un unario");
-               }
-           }
-           else
-           {
-               Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreVar + ", en el ambito actual " + ambiente.getAmbito());
-           }
-           return ret;
-       }
-
-        private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        private elementoRetorno resolverSI(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
-            ParseTreeNode acceso = nodo.ChildNodes[0];
-            ParseTreeNode expresion = nodo.ChildNodes[1];
-            int cont = acceso.ChildNodes.Count;
-            ParseTreeNode temp;      
-            string nombreElemento;
-            for (int i = 0; i < cont; i++)
+            #region S_SI
+            ParseTreeNode expresionIf = nodo.ChildNodes[0];
+            ParseTreeNode sentenciasCuerpo = nodo.ChildNodes[1];
+            elementoRetorno g = resolverExpresion(expresionIf, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor v = g.val;
+            if (!esNulo(v))
             {
-                temp = acceso.ChildNodes[i];
-                if (temp.Term.Name.ToLower().Equals(Constantes.ID.ToLower()))
+                if (esBooleano(v))
                 {
-                    nombreElemento = temp.ChildNodes[0].Token.ValueString;
-                    Simbolo simb = tabla.buscarSimbolo(nombreElemento, ambiente);
-                    elementoRetorno r = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
-                    Valor v = r.val;
-                    if (simb != null)
+                    if (esVerdadero(v))
                     {
-                        simb.asignarValor(v, expresion);
+                        ambiente.addIf();
+                        foreach (ParseTreeNode item in sentenciasCuerpo.ChildNodes)
+                        {
+                            ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        }
+                        ambiente.Ambitos.Pop();
+                        ret.banderaSi = true;
+                        return ret;
                     }
                     else
                     {
-                        Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreElemento + ", en el ambito actual "+ambiente.getAmbito());
+                        ret.banderaSi = false;
+                        return ret;
                     }
-
                 }
-                else if (temp.Term.Name.ToLower().Equals(Constantes.LLAMADA.ToLower()))
+                else
                 {
-
-                }
-                else if (temp.Term.Name.ToLower().Equals(Constantes.POS_ARREGLO.ToLower()))
-                {
-
+                    Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion de la sentencia SI, no retorna un valor valido");
                 }
             }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion de la sentencia SI, no retorna un valor valido");
+            }
+            #endregion
+            ret.banderaSi = false;
             return ret;
         }
 
 
         #endregion
 
+        /*----------------------------------- Fin Estructuras de Control -----------------------------------------*/
 
-        #region Ciclos
+
+        /*----------------------------------------- Ciclos -----------------------------------------------------*/
+
+       
         #region Para
-
         private elementoRetorno resolverPara(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             // PARA.Rule = ToTerm(Constantes.PARA) + ToTerm(Constantes.ABRE_PAR) + DEC_ASIG + EXPRESION + ToTerm(Constantes.PUNTO_COMA) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + CUERPO_FUNCION;
@@ -833,7 +937,7 @@ namespace xForms.Analizar
                 }
                 else
                 {
-                    Constantes.erroresEjecucion.errorSemantico(nodoCondicion, "Condicion no validad para un ciclo para, con tipo "+ v.tipo);
+                    Constantes.erroresEjecucion.errorSemantico(nodoCondicion, "Condicion no validad para un ciclo para, con tipo " + v.tipo);
 
                 }
             }
@@ -841,7 +945,7 @@ namespace xForms.Analizar
             {
                 Constantes.erroresEjecucion.errorSemantico(nodoCondicion, "Condicion no validad para un ciclo para ");
             }
-            
+
 
 
 
@@ -919,8 +1023,7 @@ namespace xForms.Analizar
 
         }
 
-#endregion
-
+        #endregion
 
         #region HacerMientras
         private elementoRetorno resolverHacerMientras(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
@@ -932,11 +1035,11 @@ namespace xForms.Analizar
             if (esBooleano(resExpr))
             {
                 ambiente.addHacerMientras();
-               // while (esVerdadero(resExpr))
-              
+                // while (esVerdadero(resExpr))
+
                 do
                 {
-                 
+
                     foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
                     {
                         if (ret.continuar)
@@ -968,7 +1071,7 @@ namespace xForms.Analizar
                     }
 
                     resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla).val;
-                } while (esVerdadero(resExpr) ) ;
+                } while (esVerdadero(resExpr));
                 ambiente.salirAmbito();
             }
             else
@@ -979,12 +1082,12 @@ namespace xForms.Analizar
             return ret;
 
 
-        
+
         }
-#endregion
+        #endregion
 
         #region Mientras
-        private elementoRetorno  resolverMientras(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        private elementoRetorno resolverMientras(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             //MIENTRAS.Rule = ToTerm(Constantes.MIENTRAS) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + CUERPO_FUNCION;
             ParseTreeNode nodoExpresion = nodo.ChildNodes[0];
@@ -995,8 +1098,8 @@ namespace xForms.Analizar
                 ambiente.addMientras();
                 while (esVerdadero(resExpr))
                 {
-                    
-                   // resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+
+                    // resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
                     foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
                     {
                         if (ret.continuar)
@@ -1012,7 +1115,7 @@ namespace xForms.Analizar
                             ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
 
                         }
-                        
+
                     }
                     if (ret.parar)
                     {
@@ -1021,7 +1124,7 @@ namespace xForms.Analizar
                     }
                     if (ret.continuar)
                     {
-                       //resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
+                        //resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
                         ret.continuar = false;
                         continue;
 
@@ -1043,66 +1146,157 @@ namespace xForms.Analizar
 
         #endregion
 
+        /*----------------------------------------- Fin Ciclos ------------------------------------------------------*/
 
-        #endregion
 
-        #region Resolver Si
-        private elementoRetorno resolverSino(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+
+
+        /*-------------------------------------- Llamada a Funciones -----------------------------------------------*/
+        #region llamadaFuncion
+
+        private elementoRetorno AccesoLlamadaFuncion(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
-            ambiente.addElse();
-            foreach (ParseTreeNode item in nodo.ChildNodes)
+            ParseTreeNode nodoId = nodo.ChildNodes[0];
+            ParseTreeNode nodoParametros = nodo.ChildNodes[1];
+            string nombreFuncion = nodoId.Token.ValueString.ToLower();
+            int noParametros = nodoParametros.ChildNodes[0].ChildNodes.Count;
+
+            //verificando a las fucniones nativas
+            if (nombreFuncion.Equals(Constantes.SUPER.ToLower()))
             {
-                ret= evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
             }
-            ambiente.Ambitos.Pop();
-            ret.banderaSi = true;
+            else if (nombreFuncion.Equals(Constantes.MENSAJE.ToLower()))
+            {
+
+            }else if(nombreFuncion.Equals(Constantes.CADENA,StringComparison.InvariantCultureIgnoreCase)){
+
+            }
+
+
             return ret;
         }
 
-        private elementoRetorno resolverSI(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+
+        private elementoRetorno llamadaFuncion(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
-            #region S_SI
-            ParseTreeNode expresionIf = nodo.ChildNodes[0];
-            ParseTreeNode sentenciasCuerpo = nodo.ChildNodes[1];
-            elementoRetorno g = resolverExpresion(expresionIf, ambiente, nombreClase, nombreMetodo, tabla);
-            Valor v = g.val;
-            if (!esNulo(v))
+            ParseTreeNode nodoId = nodo.ChildNodes[0];
+            ParseTreeNode nodoParametros = nodo.ChildNodes[1];
+            string nombreFuncion = nodoId.Token.ValueString;
+            int noParametros = nodoParametros.ChildNodes[0].ChildNodes.Count;
+
+            /*-------- Paso 1:    Resolver parametros  e ir obteniendo la cadena de tipos de parametros  ---------------*/
+            ParseTreeNode temp;
+            List<Valor> valoresParametros = new List<Valor>();
+            elementoRetorno temp2;
+
+            // Resuelvo las expresiones que viene para los parametros 
+            for (int i = 0; i < nodoParametros.ChildNodes[0].ChildNodes.Count; i++)
             {
-                if (esBooleano(v))
+                temp = nodoParametros.ChildNodes[0].ChildNodes[i];
+                temp2 = resolverExpresion(temp, ambiente, nombreClase, nombreMetodo, tabla);
+                valoresParametros.Add(temp2.val);
+            }
+            //genero la cadena de tipo parametros para buscar la funcion
+            string cadParametros = "";
+            Valor x;
+            for (int i = 0; i < valoresParametros.Count; i++)
+            {
+                x = valoresParametros.ElementAt(i);
+                cadParametros += x.tipo;
+            }
+            // busco la funcion 
+            Funcion funBuscada = this.claseArchivo.obtenerFuncion(nombreClase, nombreFuncion, cadParametros);
+            if (funBuscada != null)
+            {
+                tabla.crearNuevoAmbito(nombreFuncion);
+                ambiente.addAmbito(nombreFuncion);
+                //agrego los parametros y el return a la tabla de simbolos
+                elementoRetorno ret2;
+                ParseTreeNode paramTemp;
+                ParseTreeNode nodoParametrosDecla = funBuscada.obtenerNodoParametros();
+
+                // ingresando a la tabla de simbolos las variables de los parametros y obtener nombres de parametros 
+                List<string> nombresParametros = new List<string>();
+                for (int i = 0; i < nodoParametrosDecla.ChildNodes.Count; i++)
                 {
-                    if (esVerdadero(v))
-                    {
-                        ambiente.addIf();
-                        foreach (ParseTreeNode item in sentenciasCuerpo.ChildNodes)
-                        {
-                           ret= evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
-                        }
-                        ambiente.Ambitos.Pop();
-                        ret.banderaSi = true;
-                        return ret;
-                    }
-                    else
-                    {
-                        ret.banderaSi = false;
-                        return ret;
-                    }
+                    paramTemp = nodoParametrosDecla.ChildNodes[i];
+                    ret = this.evaluarArbol(paramTemp, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                    nombresParametros.Add(paramTemp.ChildNodes[1].Token.ValueString);
+                }
+
+                //ingresando el return
+                if (esObjecto(funBuscada.tipo))
+                {
+                    Objeto nuevoObj = new Objeto("retorno", funBuscada.tipo, ambiente.getAmbito(), false);
+                    tabla.insertarSimbolo(nuevoObj);
                 }
                 else
                 {
-                    Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion de la sentencia SI, no retorna un valor valido");
+                    Variable nuevaVar = new Variable("retorno", funBuscada.tipo, ambiente.getAmbito(), false);
+                    tabla.insertarSimbolo(nuevaVar);
+
                 }
+
+                //Asignar parametros
+                if (nombresParametros.Count == valoresParametros.Count)
+                {
+                    string nomParTemp = "";
+                    Valor temporalVal;
+                    Simbolo simbTemp;
+                    for (int i = 0; i < nombresParametros.Count; i++)
+                    {
+                        nomParTemp = nombresParametros.ElementAt(i);
+                        temporalVal = valoresParametros.ElementAt(i);
+                        simbTemp = tabla.buscarSimbolo(nomParTemp, ambiente);
+                        if (simbTemp != null)
+                        {
+                            simbTemp.asignarValor(temporalVal, nodoParametros.ChildNodes[0].ChildNodes[i]);
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la vriable parametro " + nomParTemp + ", en la funcion " + funBuscada.nombreFuncion);
+                            tabla.mostrarSimbolos();
+                            //
+                        }
+                    }
+
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodo, "No se puede realizar la llamada, no encajan los numero de parametros ");
+                }
+                // Ejecutar sentencias
+
+                ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
+                if (simb != null)
+                {
+                    ret.val = simb.valor;
+
+                }
+                ambiente.salirAmbito();
+                tabla.salirAmbiente();
+
             }
             else
             {
-                Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion de la sentencia SI, no retorna un valor valido");
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La funcion " + nombreFuncion + ", no existe en la clase actual " + nombreClase);
+                tabla.mostrarSimbolos();
+                //
             }
-            #endregion
-            ret.banderaSi = false;
             return ret;
         }
 
 
         #endregion
+        /*--------------------------------- Fin de llamada --------------------------------------------------------*/
+
+       
+
+
+       
+      
 
         #region Imprimir
         private elementoRetorno imprimir(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
@@ -1182,6 +1376,7 @@ namespace xForms.Analizar
 
         #region Resolver una expresion 
 
+        #region resolverExpresion
         public elementoRetorno resolverExpresion(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla)
         {
             string nombreNodo = nodo.Term.Name;
@@ -1242,6 +1437,8 @@ namespace xForms.Analizar
                         else
                         {
                             Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreVar + ", en el ambito actual " + ambiente.getAmbito());
+                            tabla.mostrarSimbolos();
+                            //
                         }
                         return e;
                         #endregion
@@ -1480,6 +1677,14 @@ namespace xForms.Analizar
                         #endregion
                     }
 
+                case Constantes.INSTANCIA:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret = this.resolverInstancia(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return  ret;
+                    }
+
+                #region resolver Acceso
                 case Constantes.ID:{
                     string nombreVar = nodo.ChildNodes[0].Token.ValueString;
                     string ruta= ambiente.getAmbito();
@@ -1493,6 +1698,8 @@ namespace xForms.Analizar
                     else
                     {
                         Constantes.erroresEjecucion.errorSemantico(nodo, "La variable " + nombreVar + ", no existe en el ambito actual "+ ambiente.getAmbito());
+                        tabla.mostrarSimbolos();
+                        //
                         return new elementoRetorno();
                     }
                 }
@@ -1508,6 +1715,7 @@ namespace xForms.Analizar
                     {
                         break;
                     }
+                #endregion
                 #region valoresNativos
                 case Constantes.FECHA_HORA:
                     {
@@ -1585,11 +1793,121 @@ namespace xForms.Analizar
 
             }
 
-
             return new elementoRetorno();
         }
 
-      
+        #endregion
+
+        private elementoRetorno resolverInstancia(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla)
+        {
+            //INSTANCIA.Rule= ToTerm(Constantes.NUEVO)+ TIPO_DATOS+ PARAMETROS_LLAMADA;
+            elementoRetorno ret = new elementoRetorno();
+            ret.val = new Valor(Constantes.NULO, Constantes.NULO);
+            string tipoInstancia = nodo.ChildNodes[0].ChildNodes[0].Token.ValueString;
+            ParseTreeNode nodoParametros = nodo.ChildNodes[1];
+            List<Valor> valoresParametros = resolviendoParametros(nodoParametros, ambiente, nombreClase, nombreMetodo, tabla);
+            string cadParametros = obtenerCadenaParametros(valoresParametros);
+            // busco la funcion 
+            Funcion funBuscada = this.claseArchivo.obtenerFuncion(tipoInstancia, tipoInstancia, cadParametros);
+            if (funBuscada != null)
+            {
+                Clase temp;
+                for (int i = 0; i < claseArchivo.size(); i++)
+                {
+                    temp = claseArchivo.get(i);
+                    if (temp.nombreClase.Equals(tipoInstancia, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        
+                        /*Creamos el nuevo ambiente para la isntancia*/
+                        ambiente.addAmbito(tipoInstancia);
+                        tabla.crearNuevoAmbito(tipoInstancia);
+                        //agrego los parametros 
+                        ParseTreeNode paramTemp;
+                        ParseTreeNode nodoParametrosDecla = funBuscada.obtenerNodoParametros();
+
+                        // ingresando a la tabla de simbolos las variables de los parametros y obtener nombres de parametros 
+                        List<string> nombresParametros = new List<string>();
+                        for (int h = 0; h < nodoParametrosDecla.ChildNodes.Count; h++)
+                        {
+                            paramTemp = nodoParametrosDecla.ChildNodes[h];
+                            ret = this.evaluarArbol(paramTemp, ambiente, temp.nombreClase, tipoInstancia, tabla, ret);
+                            nombresParametros.Add(paramTemp.ChildNodes[1].Token.ValueString);
+                        }
+
+                        if (nombresParametros.Count == valoresParametros.Count)
+                        {
+                            string nomParTemp = "";
+                            Valor temporalVal;
+                            Simbolo simbTemp;
+                            for (int h = 0; h < nombresParametros.Count; h++)
+                            {
+                                nomParTemp = nombresParametros.ElementAt(h);
+                                temporalVal = valoresParametros.ElementAt(h);
+                                simbTemp = tabla.buscarSimbolo(nomParTemp, ambiente);
+                                if (simbTemp != null)
+                                {
+                                    simbTemp.asignarValor(temporalVal, nodoParametros.ChildNodes[0].ChildNodes[h]);
+                                }
+                                else
+                                {
+                                    Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la vriable parametro " + nomParTemp + ", en la funcion " + funBuscada.nombreFuncion);
+                                    tabla.mostrarSimbolos();
+                                    //
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo, "No se puede realizar la llamada, no encajan los numero de parametros ");
+                        }
+                        //
+                        ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, temp.nombreClase, tipoInstancia, tabla, ret);
+                        ambiente.Ambitos.Pop();
+                        tabla.salirAmbiente();
+                        ret.val = new Valor(tipoInstancia, tabla.listaSimbolos.Peek());
+                        return ret;
+                    }
+                }
+            }
+            else
+            {
+                ret.val = new Valor(Constantes.NULO, Constantes.NULO);
+                return ret;
+            }
+
+            return ret;
+        }
+
+
+        private string obtenerCadenaParametros(List<Valor> valoresParametros )
+        {
+            string cadParametros = "";
+            Valor x;
+            for (int i = 0; i < valoresParametros.Count; i++)
+            {
+                x = valoresParametros.ElementAt(i);
+                cadParametros += x.tipo;
+            }
+            return cadParametros;
+
+        }
+
+        public List<Valor> resolviendoParametros(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla)
+        {
+            List<Valor> expresionesPArametros = new List<Valor>();
+            ParseTreeNode temp;
+            Valor temp2;
+            for (int i = 0; i < nodo.ChildNodes[0].ChildNodes.Count; i++)
+            {
+                temp = nodo.ChildNodes[0].ChildNodes[i];
+                temp2 = resolverExpresion(temp, ambiente, nombreClase, nombreMetodo, tabla).val;
+                expresionesPArametros.Add(temp2);
+            }
+
+            return expresionesPArametros;
+        }
+
 
         #region Operaciones Logicas
         #region Or
