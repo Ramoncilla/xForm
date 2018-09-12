@@ -58,7 +58,8 @@ namespace xForms.Ejecucion
                 ambitos = new Contexto();
                 temp = this.lClases.ElementAt(i);
                 ambitos.addAmbito(temp.nombreClase);
-                for (int j = 0; j < temp.atributosClase.lAtributos.Count; j++)
+                int h = temp.atributosClase.lAtributos.Count;
+                for (int j = 0; j < h; j++)
                 {
                     atriTemp = temp.atributosClase.lAtributos.ElementAt(j);
                     if (esObjecto(atriTemp.tipo))
@@ -171,6 +172,21 @@ namespace xForms.Ejecucion
             return true;
         }
 
+
+
+        public Clase obtenerClase(String nombreClase)
+        {
+            Clase temp;
+            for (int i = 0; i < this.lClases.Count; i++)
+            {
+                temp = this.lClases.ElementAt(i);
+                if (temp.nombreClase.Equals(nombreClase, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return temp;
+                }
+            }
+            return null;
+        }
 
 
     }

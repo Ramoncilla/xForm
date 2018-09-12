@@ -6,67 +6,22 @@ cadena nombre;
 
 coordenada coorAtributo ;
 
-vacio mostrar(){
- imprimir("hola mundo");
-}
 
-vacio mostrar(entero num, cadena cad){
-imprimir(cad+" "+ num);
-entero c= num+35;
-imprimir(c+ "no de veces"+edad);
-retorno;
-imprimir("No debo de aparecer");
-}
 
-entero fact(entero num){
-  si(num==1){
-    retorno 1;
-  }sino{
-  retorno num * fact(num-1);
-  }
-}
+persona(){
 
-entero fibonacci(entero n){
-  si (n==0){
-     retorno 0;
-  }sino si(n==1){
-     retorno 1;
-  }sino{
-  retorno fibonacci(n-1)+fibonacci(n-2);
-  }
-  
-}
-
-vacio mostrarCiclo(entero i){
-entero j =0;
-mientras(j<i){
-j++;
-si(j==2){
-imprimir("Tengo que continuar");
-continuar;
-}
-si(j==5){
-romper;
-}
-imprimir("Vuelta del ciclo "+ j+", con limite de "+i);
-}
-}
-
-persona(Cadena nom, entero ed){
-
-  nombre = nom;
-  edad= ed;
-  coorAtributo = nuevo coordenada(1,2);
+  nombre = "Rafa";
+  edad= 26;
+  coorAtributo = nuevo coordenada();
 
 
 }
 principal(){
- $#
-coorAtributo = nuevo CoordeNada(2,3);
-imprimir("hola mundo");#$
-persona pepe = nuevo persona("Alina Urbina", 26);
 
-pepe.mostrar();
+persona pepe;
+pepe = nuevo persona();
+
+
 
 
 
@@ -88,14 +43,12 @@ entero x;
 entero y;
 valor v;
 
+
+
 coordenada(){
-
-}
-
-coordenada(entero xx, entero yy){
-  x= xx;
-  y =yy;
-  v= nuevo valor(11);
+  x= 5;
+  y =6;
+  v= nuevo valor();
   nada();
 
 }
@@ -113,8 +66,9 @@ clase valor publico{
  entero elem;
  cadena popo;
  
- valor(entero a){
-   elem = a;
+ valor(){
+   elem = 25;
+   popo= "popo";
    entero b;
    
  }

@@ -47,7 +47,7 @@ namespace xForms.Analizar
                 Console.WriteLine("========ACCIONES AL EVVALUAR EL ARBOL=============");
                  //accion.evaluarArbol(s_tree.Root,null,"","",null);//EVALUO EL ARBOL
                 accion.generarClases(s_tree.Root);
-              //  accion.instanciarAtributosClase();
+                accion.instanciarAtributosClase();
                 accion.ejecutarArchivo();
                 Console.WriteLine("==================================================");
                  //dispTree(s_tree.Root, 0);//IMPRIMO EL ARBOL

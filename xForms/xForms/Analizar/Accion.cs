@@ -148,9 +148,9 @@ namespace xForms.Analizar
                 {
                     ParseTreeNode sentencia;
                     //1. Agregamos el ambito de la clase y los atributos
-                    contexto.addAmbito(temp.nombreClase);
-                    tabla.crearNuevoAmbito(temp.nombreClase);
-                    tabla = agregarAtributosClase(temp, contexto, temp.nombreClase, "", tabla);
+                    //contexto.addAmbito(temp.nombreClase);
+                    //tabla.crearNuevoAmbito(temp.nombreClase);
+                    //tabla = agregarAtributosClase(temp, contexto, temp.nombreClase, "", tabla);
                     
                     //2. Agregamos el ambito del metodo principal
                     contexto.addAmbito(Constantes.PRINCIPAL);
@@ -163,8 +163,8 @@ namespace xForms.Analizar
                     }
                     contexto.Ambitos.Pop();
                     tabla.salirAmbiente();
-                    contexto.Ambitos.Pop();
-                    tabla.salirAmbiente();
+                    //contexto.Ambitos.Pop();
+                    //tabla.salirAmbiente();
                     break;
 
                 }  
@@ -449,23 +449,72 @@ namespace xForms.Analizar
                 }
                 else
                 {
-                    #region declaracion con asignacion  y es un objeto
                     this.esAtriAsigna = false;
-                    Objeto nuevoObj = new Objeto(nombre, tipo, rutaAcceso, false);
-                    if (nodo.ChildNodes[2].Term.Name.Equals(Constantes.INSTANCIA, StringComparison.CurrentCultureIgnoreCase))
+                    Clase claseBuscada = this.claseArchivo.obtenerClase(tipo);
+                    if (claseBuscada != null)
                     {
-                        ambiente.addAmbito(nombre);
-                        v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
-                        ambiente.salirAmbito();
+                        Objeto nuevoObj = new Objeto(nombre, tipo, rutaAcceso, false);
+                       // tabla.insertarSimbolo(nuevo, nodo);
+                        Simbolo atriTemp;
+                        ListaAtributos lTemporal = new ListaAtributos();
+
+                        //cambiando de valor la ruta de acceso de los atribtos de la declaracion
+                        string[] valoresRuta;
+                       
+                        lTemporal.lAtributos = claseBuscada.atributosClase.clonarLista();
+                        for (int j = 0; j < lTemporal.lAtributos.Count; j++)
+                        {
+                            string rutaTemp = "";
+                            atriTemp = lTemporal.lAtributos.ElementAt(j);
+                            valoresRuta = atriTemp.rutaAcceso.Split('/');
+                            valoresRuta[0] = ambiente.getAmbito() + "/" + nombre;
+                            for (int i = 0; i < valoresRuta.Length; i++)
+                            {
+                                if (i == (valoresRuta.Length - 1))
+                                {
+                                    rutaTemp += valoresRuta[i];
+                                }
+                                else
+                                {
+                                    rutaTemp += valoresRuta[i] + "/";
+                                }
+                            }
+
+                            atriTemp.rutaAcceso = rutaTemp;
+                            if (atriTemp.nodoExpresionValor != null)
+                            {
+                                elementoRetorno r = new elementoRetorno();
+                                r = resolverExpresion(atriTemp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla);
+                                atriTemp.asignarValor(r.val, atriTemp.nodoExpresionValor);
+                            }
+                            tabla.insertarSimbolo(atriTemp);
+                        }
+                        if (nodo.ChildNodes[2].Term.Name.Equals(Constantes.INSTANCIA, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            ambiente.addAmbito(nombre);
+                            v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                            ambiente.salirAmbito();
+                        }
+                        else
+                        {
+                            v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                        }
+                        nuevoObj.asignarValor(v.val, nodo.ChildNodes[2]);
+                        nuevoObj.usada = false;
+                        tabla.insertarSimbolo(nuevoObj, nodo);
+
+
+
                     }
                     else
                     {
-                        v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                        Constantes.erroresEjecucion.errorSemantico("No se pudo declarar la variable de nombre " + nombre + ", de tipo " + tipo + ", no existe esa clase");
                     }
-                    nuevoObj.asignarValor(v.val, nodo.ChildNodes[2]);
-                    nuevoObj.usada = false;
-                    tabla.insertarSimbolo(nuevoObj, nodo);
-                    #endregion
+
+
+
+
+
                 }
             }
             else
@@ -479,8 +528,58 @@ namespace xForms.Analizar
                 }
                 else
                 {
-                    Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso, false);
-                    tabla.insertarSimbolo(nuevo, nodo);
+                    Clase claseBuscada = this.claseArchivo.obtenerClase(tipo);
+                    if(claseBuscada!= null){
+                        Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso, false);
+                        tabla.insertarSimbolo(nuevo, nodo);
+                        Simbolo atriTemp;
+                        ListaAtributos lTemporal = new ListaAtributos();
+
+                        //cambiando de valor la ruta de acceso de los atribtos de la declaracion
+                        string[] valoresRuta;
+                        
+                        lTemporal.lAtributos = claseBuscada.atributosClase.clonarLista();
+                        for (int j = 0; j < lTemporal.lAtributos.Count; j++)
+                        {
+                            string rutaTemp = "";
+                            atriTemp = lTemporal.lAtributos.ElementAt(j);
+                            valoresRuta = atriTemp.rutaAcceso.Split('/');
+                            valoresRuta[0] = ambiente.getAmbito() + "/" + nombre;
+                            for (int i = 0; i < valoresRuta.Length; i++)
+                            {
+                                if (i == (valoresRuta.Length - 1))
+                                {
+                                    rutaTemp += valoresRuta[i];
+                                }
+                                else
+                                {
+                                    rutaTemp += valoresRuta[i]+"/";
+                                }
+                            }
+
+                            atriTemp.rutaAcceso = rutaTemp;
+                            if (atriTemp.nodoExpresionValor != null)
+                            {
+                                elementoRetorno r = new elementoRetorno();
+                                r = resolverExpresion(atriTemp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla);
+                                atriTemp.asignarValor(r.val, atriTemp.nodoExpresionValor);
+                            }
+                            tabla.insertarSimbolo(atriTemp);
+                        }
+
+
+                    }else{
+                        Constantes.erroresEjecucion.errorSemantico("No se pudo declarar la variable de nombre " + nombre + ", de tipo " + tipo + ", no existe esa clase");
+                    }
+                    
+
+
+
+
+                   
+
+
+
                 }
                 #endregion
             }
@@ -1769,21 +1868,7 @@ namespace xForms.Analizar
                     Funcion funBuscada = this.claseArchivo.obtenerFuncion(tipoInstancia, tipoInstancia, cadParametros);
                     if (funBuscada != null)
                     {
-                        Simbolo atriTemp;
-                        ListaAtributos lTemporal= new ListaAtributos();
-                        lTemporal.lAtributos= claseTemporal.atributosClase.clonarLista();
-                        for (int j = 0; j < lTemporal.lAtributos.Count; j++)
-                        {
-                            atriTemp = lTemporal.lAtributos.ElementAt(j);
-                            atriTemp.rutaAcceso = ambiente.getAmbito();
-                            if (atriTemp.nodoExpresionValor != null)
-                            {
-                                elementoRetorno r = new elementoRetorno();
-                                r = resolverExpresion(atriTemp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla);
-                                atriTemp.asignarValor(r.val, atriTemp.nodoExpresionValor);
-                            }
-                            tabla.insertarSimbolo(atriTemp);
-                        }
+                        
 
                         ambiente.addAmbito(tipoInstancia);
                         tabla.crearNuevoAmbito(tipoInstancia);

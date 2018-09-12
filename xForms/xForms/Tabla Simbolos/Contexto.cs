@@ -98,7 +98,7 @@ namespace xForms.Tabla_Simbolos
 		if(i==0){
 			contexto +=valTemporal;
 		}else{
-			contexto+=valTemporal+"_";
+			contexto+=valTemporal+"/";
 		}
 	}
    
