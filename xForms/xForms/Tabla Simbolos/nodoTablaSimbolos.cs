@@ -43,7 +43,7 @@ namespace xForms.Tabla_Simbolos
             {
                 temp = this.variablesAmbito.ElementAt(i);
                 if(temp.nombre.ToLower().Equals(simb.nombre.ToLower()) &&
-                    temp.rutaAcceso.ToLower().Equals(simb.rutaAcceso.ToLower()))
+                    temp.ambito.ToLower().Equals(simb.ambito.ToLower()))
                 {
                     return true;
                 }
@@ -53,14 +53,14 @@ namespace xForms.Tabla_Simbolos
         }
 
 
-        public Simbolo obtenerSimbolo2(string nombre, string rutaAcceso)
+        public Simbolo obtenerSimbolo2(string nombre, string amb)
         {
             Simbolo temp;
             for (int i = 0; i < this.variablesAmbito.Count; i++)
             {
                 temp = this.variablesAmbito.ElementAt(i);
                 if (temp.nombre.ToLower().Equals(nombre.ToLower()) &&
-                    temp.rutaAcceso.ToLower().Equals(rutaAcceso.ToLower()))
+                    temp.ambito.ToLower().Equals(amb.ToLower()))
                 {
                     return temp;
                 }
@@ -81,7 +81,8 @@ namespace xForms.Tabla_Simbolos
                 simb = variablesAmbito.ElementAt(i);
                 Console.WriteLine("--------------Simbolo  "+i+"------------------------------");
                 Console.WriteLine("Nombre var:  " + simb.nombre);
-                Console.WriteLine("ruta acceso:  " + simb.rutaAcceso);
+                Console.WriteLine("Ambito:  " + simb.ambito);
+                Console.WriteLine("ruta acceso:  " + simb.rutaAcc);
                 Console.WriteLine("--------------------------------------------");
             }
         }
@@ -99,7 +100,7 @@ namespace xForms.Tabla_Simbolos
                 {
                     temp = this.variablesAmbito.ElementAt(j);
                     if (temp.nombre.Equals(nombre,StringComparison.CurrentCultureIgnoreCase) &&
-                    temp.rutaAcceso.Equals(rutaTemporal,StringComparison.CurrentCultureIgnoreCase))
+                    temp.ambito.Equals(rutaTemporal,StringComparison.CurrentCultureIgnoreCase))
                     {
                         return temp;
                     }

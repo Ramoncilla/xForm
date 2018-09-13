@@ -26,7 +26,7 @@ namespace xForms.Ejecucion
             for (int i = 0; i < this.lAtributos.Count; i++)
             {
                 if (lAtributos.ElementAt(i).nombre.ToLower().Equals(at.nombre.ToLower()) &&
-                    lAtributos.ElementAt(i).rutaAcceso.ToLower().Equals(at.rutaAcceso.ToLower()))
+                    lAtributos.ElementAt(i).ambito.ToLower().Equals(at.ambito.ToLower()))
                 {
                     return true;
                 }

@@ -118,7 +118,7 @@ namespace xForms.Ejecucion
                             else
                             {
                                 Objeto nuevo = new Objeto(nombre, tipo, Constantes.PUBLICO, null);
-                                nuevo.rutaAcceso= nombreClase;;
+                                nuevo.ambito= nombreClase;;
                                 this.atributosClase.insertarAtributo(nuevo, nodo);
 
                             }
@@ -145,7 +145,7 @@ namespace xForms.Ejecucion
                                 else
                                 {
                                     Objeto nuevo = new Objeto(nombre, tipo, visibilidad, null);
-                                    nuevo.rutaAcceso= nombreClase;;
+                                    nuevo.ambito= nombreClase;;
                                     this.atributosClase.insertarAtributo(nuevo, nodo);
 
                                 }
@@ -155,7 +155,7 @@ namespace xForms.Ejecucion
                                 nombre = nodo.ChildNodes[1].Token.ValueString;
                                 ParseTreeNode nodoExpresiones = nodo.ChildNodes[2];
                                 Arreglo nuevo = new Arreglo(nombre, tipo, Constantes.PUBLICO, null, nodoExpresiones);
-                                nuevo.rutaAcceso= nombreClase;;
+                                nuevo.ambito= nombreClase;;
                                 this.atributosClase.insertarAtributo(nuevo, nodo);
                             }
                             else
@@ -172,7 +172,7 @@ namespace xForms.Ejecucion
                                 else
                                 {
                                     Objeto nuevo = new Objeto(nombre, tipo, Constantes.PUBLICO, expr);
-                                    nuevo.rutaAcceso= nombreClase;;
+                                    nuevo.ambito= nombreClase;;
                                     this.atributosClase.insertarAtributo(nuevo, nodo);
 
                                 }
@@ -191,7 +191,7 @@ namespace xForms.Ejecucion
                                     nombre = nodo.ChildNodes[2].Token.ValueString;
                                     ParseTreeNode nodoDim = nodo.ChildNodes[3];
                                     Arreglo nuevo = new Arreglo(nombre, tipo, visibilidad, null, nodoDim);
-                                    nuevo.rutaAcceso= nombreClase;;
+                                    nuevo.ambito= nombreClase;;
                                     this.atributosClase.insertarAtributo(nuevo, nodo);
 
                                 }
@@ -211,7 +211,7 @@ namespace xForms.Ejecucion
                                     else
                                     {
                                         Objeto nuevo = new Objeto(nombre, tipo, visibilidad, nodoExp);
-                                        nuevo.rutaAcceso= nombreClase;;
+                                        nuevo.ambito= nombreClase;;
                                         this.atributosClase.insertarAtributo(nuevo, nodo);
                                     }
                                 }
@@ -223,7 +223,7 @@ namespace xForms.Ejecucion
                                 ParseTreeNode nodoDim = nodo.ChildNodes[2];
                                 ParseTreeNode nodoExp = nodo.ChildNodes[3];
                                 Arreglo arr = new Arreglo(nombre, tipo, Constantes.PUBLICO, nodoExp, nodoDim);
-                                arr.rutaAcceso= nombreClase;;
+                                arr.ambito= nombreClase;;
                                 this.atributosClase.insertarAtributo(arr, nodo);
                             }
 
@@ -239,7 +239,7 @@ namespace xForms.Ejecucion
                             ParseTreeNode nodoDim = nodo.ChildNodes[3];
                             ParseTreeNode nodoExp = nodo.ChildNodes[4];
                             Arreglo arr = new Arreglo(nombre, tipo, visibilidad, nodoExp, nodoDim);
-                            arr.rutaAcceso= nombreClase;;
+                            arr.ambito= nombreClase;;
                             this.atributosClase.insertarAtributo(arr, nodo);
                         }
 

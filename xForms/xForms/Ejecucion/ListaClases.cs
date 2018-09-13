@@ -87,9 +87,9 @@ namespace xForms.Ejecucion
                     {
                         atriTemp = atributosTemporales.ElementAt(j);
 
-                        if (atriTemp.rutaAcceso.Equals(nomClase, StringComparison.InvariantCultureIgnoreCase))
+                        if (atriTemp.ambito.Equals(nomClase, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            atriTemp.rutaAcceso = ambiente.getAmbito();
+                            atriTemp.rutaAcc= ambiente.getAmbito();
                             atributosClase.insertarAtributo(atriTemp);
                             if (esObjecto(atriTemp.tipo))
                             {
@@ -111,50 +111,7 @@ namespace xForms.Ejecucion
         }
 
 
-        public ListaAtributos instanciaLocal(string nombClase, ListaAtributos atributosClase, Contexto ambiente){
-            asignarAtributosLocales(nombClase, atributosClase,ambiente);
-            return atributosClase;
-        }
-
-
-        private void asignarAtributosLocales(string nomClase, ListaAtributos atributosClase, Contexto ambiente)
-        {
-            Clase claseTemp;
-            Simbolo atriTemp;
-            List<Simbolo> atributosTemporales;
-            for (int i = 0; i < lClases.Count; i++)
-            {
-                claseTemp = lClases.ElementAt(i);
-                if (claseTemp.nombreClase.Equals(nomClase, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    atributosTemporales = claseTemp.atributosClase.clonarLista();
-                    for (int j = 0; j < atributosTemporales.Count; j++)
-                    {
-                        atriTemp = atributosTemporales.ElementAt(j);
-
-                        if (atriTemp.rutaAcceso.Equals(nomClase, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            atriTemp.rutaAcceso = ambiente.getAmbito();
-                            atriTemp.esAtributo = false;
-                            atributosClase.insertarAtributo(atriTemp);
-                            if (esObjecto(atriTemp.tipo))
-                            {
-                                ambiente.addAmbito(atriTemp.nombre);
-                                asignarAtributosLocales(atriTemp.tipo, atributosClase, ambiente);
-                                ambiente.salirAmbito();
-                            }
-
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                        
-                    }
-                }
-            }
-        }
-
+    
         private bool esObjecto(String tipo)
         {
             tipo = tipo.ToLower();

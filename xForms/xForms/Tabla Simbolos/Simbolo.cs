@@ -16,9 +16,10 @@ namespace xForms.Tabla_Simbolos
         public String tipo;
         public Valor valor=new Valor(Constantes.NULO, Constantes.NULO);
         public Boolean usada=false;
-        public string rutaAcceso;
+        public string rutaAcc="noTiene";
         public string visibilidad = "noTiene";
         public bool esAtributo = false;
+        public string ambito;
 
         public ParseTreeNode nodoExpresionValor;
 

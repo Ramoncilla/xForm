@@ -8,18 +8,20 @@ coordenada coorAtributo ;
 
 
 
-persona(){
+persona(cadena nom, entero ed, entero pos){
 
-  nombre = "Rafa";
-  edad= 26;
-  coorAtributo = nuevo coordenada();
+  nombre = nom;
+  edad= ed;
+  coorAtributo = nuevo coordenada(pos, pos*2);
 
 
 }
 principal(){
 
-persona pepe;
-pepe = nuevo persona();
+persona alina;
+alina = nuevo persona("Alina Urbina", 26, 6);
+alina.mostrar();
+
 
 
 
@@ -30,6 +32,7 @@ pepe = nuevo persona();
 vacio mostrar(){
 
   imprimir(coorAtributo.v.popo);
+  coordenada nueva = nuevo coordenada(2,3);
 }
 
 
@@ -45,17 +48,18 @@ valor v;
 
 
 
-coordenada(){
-  x= 5;
-  y =6;
-  v= nuevo valor();
+coordenada(entero xx, entero yy){
+  x= xx;
+  y =yy;
+  v= nuevo valor(x*2);
   nada();
 
 }
 
 vacio nada(){
-
   entero a;
+  a= 5*5;
+  imprimir(a);
 }
 
 
@@ -66,11 +70,10 @@ clase valor publico{
  entero elem;
  cadena popo;
  
- valor(){
-   elem = 25;
-   popo= "popo";
-   entero b;
-   
+ valor(entero num){
+   elem = num;
+   popo = "Popo "+ elem;
+   imprimir(popo);
  }
 
 

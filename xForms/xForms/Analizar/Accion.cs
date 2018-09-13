@@ -162,6 +162,7 @@ namespace xForms.Analizar
                         evaluarArbol(sentencia, contexto, temp.nombreClase, Constantes.PRINCIPAL, tabla, new elementoRetorno());
                     }
                     contexto.Ambitos.Pop();
+                    tabla.mostrarSimbolos();
                     tabla.salirAmbiente();
                     //contexto.Ambitos.Pop();
                     //tabla.salirAmbiente();
@@ -466,7 +467,7 @@ namespace xForms.Analizar
                         {
                             string rutaTemp = "";
                             atriTemp = lTemporal.lAtributos.ElementAt(j);
-                            valoresRuta = atriTemp.rutaAcceso.Split('/');
+                            valoresRuta = atriTemp.rutaAcc.Split('/');
                             valoresRuta[0] = ambiente.getAmbito() + "/" + nombre;
                             for (int i = 0; i < valoresRuta.Length; i++)
                             {
@@ -480,7 +481,8 @@ namespace xForms.Analizar
                                 }
                             }
 
-                            atriTemp.rutaAcceso = rutaTemp;
+                            atriTemp.rutaAcc = rutaTemp;
+                            atriTemp.ambito = ambiente.getAmbito()+"/"+nombre;
                             if (atriTemp.nodoExpresionValor != null)
                             {
                                 elementoRetorno r = new elementoRetorno();
@@ -543,7 +545,7 @@ namespace xForms.Analizar
                         {
                             string rutaTemp = "";
                             atriTemp = lTemporal.lAtributos.ElementAt(j);
-                            valoresRuta = atriTemp.rutaAcceso.Split('/');
+                            valoresRuta = atriTemp.rutaAcc.Split('/');
                             valoresRuta[0] = ambiente.getAmbito() + "/" + nombre;
                             for (int i = 0; i < valoresRuta.Length; i++)
                             {
@@ -557,7 +559,8 @@ namespace xForms.Analizar
                                 }
                             }
 
-                            atriTemp.rutaAcceso = rutaTemp;
+                            atriTemp.rutaAcc= rutaTemp;
+                            atriTemp.ambito = ambiente.getAmbito() + "/" + nombre;
                             if (atriTemp.nodoExpresionValor != null)
                             {
                                 elementoRetorno r = new elementoRetorno();

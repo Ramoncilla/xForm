@@ -22,11 +22,11 @@ namespace xForms.Ejecucion
             this.nodoExpresionValor = nodoExprsion;
         }
 
-        public Objeto(string nombre, string tipo, string rutaAcceso, bool atri)
+        public Objeto(string nombre, string tipo, string ambito, bool atri)
         {
             this.nombre = nombre;
             this.tipo = tipo;
-            this.rutaAcceso = rutaAcceso;
+            this.ambito = ambito;
             this.esAtributo = atri;
         }
 
@@ -49,11 +49,12 @@ namespace xForms.Ejecucion
         public override Simbolo clonar()
         {
 
-            Objeto nueva = new Objeto(this.nombre, this.tipo, this.rutaAcceso, this.esAtributo);
+            Objeto nueva = new Objeto(this.nombre, this.tipo, this.ambito, this.esAtributo);
             nueva.valor = this.valor;
             nueva.usada = this.usada;
             nueva.visibilidad = this.visibilidad;
             nueva.nodoExpresionValor = this.nodoExpresionValor;
+            nueva.rutaAcc = this.rutaAcc;
 
             return nueva;
         }
