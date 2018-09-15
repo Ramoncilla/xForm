@@ -389,6 +389,64 @@ namespace xForms.Analizar
 
         #region Declaraciones Locales
 
+
+        private void declaraObjeto(string nombre, string tipo,ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            string rutaAcceso = ambiente.getAmbito();
+            Clase claseBuscada = this.claseArchivo.obtenerClase(tipo);
+            if (claseBuscada != null)
+            {
+                Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso, false);
+                tabla.insertarSimbolo(nuevo, nodo);
+                Simbolo atriTemp;
+                ListaAtributos lTemporal = new ListaAtributos();
+                //cambiando de valor la ruta de acceso de los atribtos de la declaracion
+                string[] valoresRuta;
+                lTemporal.lAtributos = claseBuscada.atributosClase.clonarLista();
+                for (int j = 0; j < lTemporal.lAtributos.Count; j++)
+                {
+                    string rutaTemp = "";
+                    atriTemp = lTemporal.lAtributos.ElementAt(j);
+                    valoresRuta = atriTemp.rutaAcc.Split('/');
+                    valoresRuta[0] = ambiente.getAmbito() + "/" + nombre;
+                    for (int i = 0; i < valoresRuta.Length; i++)
+                    {
+                        if (i == (valoresRuta.Length - 1))
+                        {
+                            rutaTemp += valoresRuta[i];
+                        }
+                        else
+                        {
+                            rutaTemp += valoresRuta[i] + "/";
+                        }
+                    }
+
+                    atriTemp.rutaAcc = rutaTemp;
+                    string ambitoTemporal= ambiente.getAmbito() + "/" + nombre;;
+                    atriTemp.ambito = ambitoTemporal;
+                    tabla.insertarSimbolo(atriTemp);
+
+                    /*---- buscando nuevamente el simbolo para poderlo asignar a la tabla*/
+                    Contexto c = new Contexto();
+                    c.llenarAmbitos(ambitoTemporal);
+                    if (atriTemp.nodoExpresionValor != null)
+                    {
+                        elementoRetorno r = new elementoRetorno();
+                        Simbolo s = tabla.buscarSimbolo(atriTemp.nombre, c);
+                        r = resolverExpresion(atriTemp.nodoExpresionValor, c, nombreClase, nombreMetodo, tabla);
+                        asignarSimbolo(atriTemp.nombre, nodo, r.val, s, c, nombreClase, nombreMetodo, tabla);
+                    }
+                   // tabla.insertarSimbolo(atriTemp);
+                }
+
+
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico("No se pudo declarar la variable de nombre " + nombre + ", de tipo " + tipo + ", no existe esa clase");
+            }                  
+        }
+
         private elementoRetorno resolverDeclaracion(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             #region declaraion de vairables
@@ -405,24 +463,47 @@ namespace xForms.Analizar
                     this.esAtriAsigna = false;
                     v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
                     Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
-                    varNueva.asignarValor(v.val, nodo);
                     varNueva.usada = true;
                     tabla.insertarSimbolo(varNueva, nodo);
+                    asignarSimbolo(nombre, nodo, v.val, varNueva, ambiente, nombreClase, nombreMetodo, tabla);
                 }
                 else
                 {
                     this.esAtriAsigna = false;
+
+                    declaraObjeto(nombre, tipo, nodo, ambiente, nombreClase, nombreMetodo, tabla);
+
+                    if (nodo.ChildNodes[2].Term.Name.Equals(Constantes.INSTANCIA, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ambiente.addAmbito(nombre);
+                        v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                        ambiente.salirAmbito();
+                    }
+                    else
+                    {
+                        v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                    }
+                    Simbolo nuevoObj = tabla.buscarSimbolo(nombre, ambiente);
+        
+                    asignarSimbolo(nombre, nodo, v.val, nuevoObj, ambiente, nombreClase, nombreMetodo, tabla);
+                    /*
+                    nuevoObj.asignarValor(v.val, nodo.ChildNodes[2]);
+                    nuevoObj.usada = false;
+                    tabla.insertarSimbolo(nuevoObj, nodo);*/
+
+
+                    /*
                     Clase claseBuscada = this.claseArchivo.obtenerClase(tipo);
                     if (claseBuscada != null)
                     {
                         Objeto nuevoObj = new Objeto(nombre, tipo, rutaAcceso, false);
-                       // tabla.insertarSimbolo(nuevo, nodo);
+                        // tabla.insertarSimbolo(nuevo, nodo);
                         Simbolo atriTemp;
                         ListaAtributos lTemporal = new ListaAtributos();
 
                         //cambiando de valor la ruta de acceso de los atribtos de la declaracion
                         string[] valoresRuta;
-                       
+
                         lTemporal.lAtributos = claseBuscada.atributosClase.clonarLista();
                         for (int j = 0; j < lTemporal.lAtributos.Count; j++)
                         {
@@ -443,7 +524,7 @@ namespace xForms.Analizar
                             }
 
                             atriTemp.rutaAcc = rutaTemp;
-                            atriTemp.ambito = ambiente.getAmbito()+"/"+nombre;
+                            atriTemp.ambito = ambiente.getAmbito() + "/" + nombre;
                             if (atriTemp.nodoExpresionValor != null)
                             {
                                 elementoRetorno r = new elementoRetorno();
@@ -452,6 +533,8 @@ namespace xForms.Analizar
                             }
                             tabla.insertarSimbolo(atriTemp);
                         }
+                        
+                        //////////////////////
                         if (nodo.ChildNodes[2].Term.Name.Equals(Constantes.INSTANCIA, StringComparison.CurrentCultureIgnoreCase))
                         {
                             ambiente.addAmbito(nombre);
@@ -464,7 +547,7 @@ namespace xForms.Analizar
                         }
                         nuevoObj.asignarValor(v.val, nodo.ChildNodes[2]);
                         nuevoObj.usada = false;
-                        tabla.insertarSimbolo(nuevoObj, nodo);
+                        tabla.insertarSimbolo(nuevoObj, nodo);////////////////////////
 
 
 
@@ -473,10 +556,7 @@ namespace xForms.Analizar
                     {
                         Constantes.erroresEjecucion.errorSemantico("No se pudo declarar la variable de nombre " + nombre + ", de tipo " + tipo + ", no existe esa clase");
                     }
-
-
-
-
+                    */
 
                 }
             }
@@ -491,59 +571,7 @@ namespace xForms.Analizar
                 }
                 else
                 {
-                    Clase claseBuscada = this.claseArchivo.obtenerClase(tipo);
-                    if(claseBuscada!= null){
-                        Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso, false);
-                        tabla.insertarSimbolo(nuevo, nodo);
-                        Simbolo atriTemp;
-                        ListaAtributos lTemporal = new ListaAtributos();
-
-                        //cambiando de valor la ruta de acceso de los atribtos de la declaracion
-                        string[] valoresRuta;
-                        
-                        lTemporal.lAtributos = claseBuscada.atributosClase.clonarLista();
-                        for (int j = 0; j < lTemporal.lAtributos.Count; j++)
-                        {
-                            string rutaTemp = "";
-                            atriTemp = lTemporal.lAtributos.ElementAt(j);
-                            valoresRuta = atriTemp.rutaAcc.Split('/');
-                            valoresRuta[0] = ambiente.getAmbito() + "/" + nombre;
-                            for (int i = 0; i < valoresRuta.Length; i++)
-                            {
-                                if (i == (valoresRuta.Length - 1))
-                                {
-                                    rutaTemp += valoresRuta[i];
-                                }
-                                else
-                                {
-                                    rutaTemp += valoresRuta[i]+"/";
-                                }
-                            }
-
-                            atriTemp.rutaAcc= rutaTemp;
-                            atriTemp.ambito = ambiente.getAmbito() + "/" + nombre;
-                            if (atriTemp.nodoExpresionValor != null)
-                            {
-                                elementoRetorno r = new elementoRetorno();
-                                r = resolverExpresion(atriTemp.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla);
-                                atriTemp.asignarValor(r.val, atriTemp.nodoExpresionValor);
-                            }
-                            tabla.insertarSimbolo(atriTemp);
-                        }
-
-
-                    }else{
-                        Constantes.erroresEjecucion.errorSemantico("No se pudo declarar la variable de nombre " + nombre + ", de tipo " + tipo + ", no existe esa clase");
-                    }
-                    
-
-
-
-
-                   
-
-
-
+                    declaraObjeto(nombre, tipo, nodo, ambiente, nombreClase, nombreMetodo, tabla);
                 }
                 #endregion
             }
@@ -612,7 +640,17 @@ namespace xForms.Analizar
                     if (simbActual != null)
                     {
                         tipoObj = simbActual.tipo;
-                        ret.val = simbActual.valor;
+                        if (esObjecto(tipoObj))
+                        {
+                            string ambitoObj = simbActual.ambito;
+                            VairablesObjeto obj = tabla.obtenerObjetoConAtributos(simbActual.nombre, simbActual.ambito);
+                            ret.val = new Valor(tipoObj, obj);
+                        }
+                        else
+                        {
+                            ret.val = new Valor(simbActual.tipo, simbActual);
+                            //ret.val = simbActual.valor;
+                        }
                         ambiente.addAmbito(simbActual.nombre);
                         cont++;
                     }
@@ -651,6 +689,63 @@ namespace xForms.Analizar
             return ret;
         }
 
+
+        private elementoRetorno asignar2(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            ParseTreeNode nodoAcceso = nodo.ChildNodes[0];
+            ParseTreeNode expresion = nodo.ChildNodes[1];
+            int cont = 0;
+            ParseTreeNode nodoTemporal;
+            string nombreElemento;
+            Object simboloOVariablesClase;
+            do
+            {
+                nodoTemporal = nodoAcceso.ChildNodes[cont];
+
+                if (nodoTemporal.Term.Name.Equals(Constantes.ID, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    nombreElemento= nodoTemporal.ChildNodes[0].Token.ValueString;
+                    Simbolo simb = tabla.buscarSimbolo(nombreElemento, ambiente);
+                    elementoRetorno r = new elementoRetorno();
+
+                    if (simb != null)
+                    {
+                        if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            ambiente.addAmbito(nombreElemento);
+                        }
+                        r = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
+                        if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            ambiente.salirAmbito();
+                        }
+
+                    }
+                    else
+                    {
+
+                    }
+
+                    
+                    
+
+                }
+                else if (nodoTemporal.Term.Name.Equals(Constantes.LLAMADA, StringComparison.InvariantCultureIgnoreCase))
+                {
+
+                }
+                else
+                {// es una posicion de un arreglo
+
+                }
+                cont++;
+            } while (cont < nodoAcceso.ChildNodes.Count);
+            
+
+
+            return ret;
+        }
+
         private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             ParseTreeNode acceso = nodo.ChildNodes[0];
@@ -672,7 +767,6 @@ namespace xForms.Analizar
                     elementoRetorno r = new elementoRetorno();
                     if (simb != null)
                     {
-                       
                         if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
                         {
                             //ambiente.addAmbito(simb.nombre);
@@ -696,19 +790,8 @@ namespace xForms.Analizar
                         //
 
                     }
-                   
-                    
-                    Valor v = r.val;
-                    if (simb != null)
-                    {
-                        simb.asignarValor(v, expresion);
-                    }
-                    else
-                    {
-                        Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreElemento + ", en el ambito actual " + ambiente.getAmbito());
-                        tabla.mostrarSimbolos();
-                        //
-                    }
+                 
+                    asignarSimbolo(nombreElemento, nodo,r.val, simb, ambiente, nombreClase, nombreMetodo, tabla);
 
                 }
                 else if (temp.Term.Name.ToLower().Equals(Constantes.LLAMADA.ToLower()))
@@ -726,6 +809,66 @@ namespace xForms.Analizar
 
         #endregion
 
+
+        private void asignarSimbolo(string nombreAsignar, ParseTreeNode nodo, Valor v, Simbolo simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            if (simb != null)
+            {
+                if (v.valor is Simbolo)
+                {
+                    Simbolo s = (Simbolo)v.valor;
+                    simb.asignarValor(s.valor, nodo);
+
+                }
+                else if (v.valor is VairablesObjeto)
+                {
+                    VairablesObjeto vars = (VairablesObjeto)v.valor;
+                    asignarVariablesObjeto(nodo, simb, vars, ambiente, nombreClase, nombreMetodo, tabla);
+                }
+                else
+                {
+                    simb.asignarValor(v, nodo);
+                }
+
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la variable " + nombreAsignar + ", en el ambito actual " + ambiente.getAmbito());
+                tabla.mostrarSimbolos();
+                //
+            }
+
+        }
+
+
+        private void asignarVariablesObjeto(ParseTreeNode nodo, Simbolo simbAsignar, VairablesObjeto objetoRetorno, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Simbolo simbPapaRetorno = objetoRetorno.simboloObjeto;
+            Simbolo varTemp;
+            string ambitoNuevo;
+            Contexto nuevoAmbiente = new Contexto();
+            Simbolo simbBuscado;
+            if (simbAsignar.tipo.Equals(simbPapaRetorno.tipo, StringComparison.InvariantCultureIgnoreCase)) {
+                ambitoNuevo = simbAsignar.ambito + "/" + simbAsignar.nombre;
+                nuevoAmbiente.llenarAmbitos(ambitoNuevo);
+                for (int i = 0; i < objetoRetorno.variablesInstancia.Count; i++)
+                {
+                    varTemp = objetoRetorno.variablesInstancia.ElementAt(i);
+                    simbBuscado = tabla.buscarSimbolo(varTemp.nombre, nuevoAmbiente);
+                    if (simbBuscado != null)
+                    {
+                        simbBuscado.asignarValor(varTemp.valor, nodo);
+                    }                    
+                }
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "Tipo no valido para asignar a " + simbAsignar.nombre + " que es de tipo " + simbAsignar.tipo + " con " + simbPapaRetorno.tipo);
+
+            }
+
+
+        }
 
 
         /*-------------------------------- Fin declaraciones y Asignaciones ---------------------------------------*/
@@ -1629,7 +1772,19 @@ namespace xForms.Analizar
                         int no = nodo.ChildNodes.Count;
 
                         elementoRetorno r = new elementoRetorno();
-                        r.val = this.resolverAccesoVar(nodo, ambiente, nombreClase, nombreMetodo, tabla, r).val;
+                        Valor valTemporal;
+                        valTemporal = this.resolverAccesoVar(nodo, ambiente, nombreClase, nombreMetodo, tabla, r).val;
+
+                        if (valTemporal.valor is Simbolo)
+                        {
+                            Simbolo s = (Simbolo) valTemporal.valor;
+                            r.val = s.valor;
+                        }
+                        else 
+                        {
+                            r.val = valTemporal;
+                        }
+
                         return r;
                         #endregion
                     }
@@ -1642,6 +1797,7 @@ namespace xForms.Analizar
                     }
 
                 #region resolver Acceso
+                    /*
                 case Constantes.ID:{
                     string nombreVar = nodo.ChildNodes[0].Token.ValueString;
                     string ruta= ambiente.getAmbito();
@@ -1671,7 +1827,7 @@ namespace xForms.Analizar
                 case Constantes.POS_ARREGLO:
                     {
                         break;
-                    }
+                    }*/
                 #endregion
 
                 #region Funciones Nativas

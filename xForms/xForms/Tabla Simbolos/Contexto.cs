@@ -105,6 +105,16 @@ namespace xForms.Tabla_Simbolos
 	return contexto;
   }
 
+
+  public void llenarAmbitos(String cadena)
+  {
+      string[] valores = cadena.Split('/');
+      for (int i = 0; i < valores.Length; i++)
+      {
+          addAmbito(valores[i]);
+      }
+  }
+
   public Contexto clonarLista()
   {
       Contexto nuevo = new Contexto();

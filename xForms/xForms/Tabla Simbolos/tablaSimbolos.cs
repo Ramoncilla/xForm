@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Irony.Ast;
 using Irony.Interpreter;
 using Irony.Parsing;
+using xForms.Ejecucion;
 
 namespace xForms.Tabla_Simbolos
 {
@@ -84,6 +85,13 @@ namespace xForms.Tabla_Simbolos
         }
 
 
+        public VairablesObjeto obtenerObjetoConAtributos(string nombreObjeto, string ambitoObjeto)
+        {
+
+            nodoTablaSimbolos actual = this.listaSimbolos.Peek();
+            return actual.obtenerObjetoConAtributos(nombreObjeto, ambitoObjeto);
+
+        }
 
         public int esAtributoSimbolo(string nombre, Contexto ambiente)
         { 

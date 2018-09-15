@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Irony.Ast;
 using Irony.Interpreter;
 using Irony.Parsing;
+using xForms.Ejecucion;
 
 namespace xForms.Tabla_Simbolos
 {
@@ -113,6 +114,35 @@ namespace xForms.Tabla_Simbolos
         }
 
 
+
+
+        public VairablesObjeto obtenerObjetoConAtributos(string nombreObj, string ambitoObjeto)
+        {
+            Simbolo temp;
+            for (int i = 0; i < this.variablesAmbito.Count; i++)
+            {
+                temp = variablesAmbito.ElementAt(i);
+                if(temp.nombre.Equals(nombreObj, StringComparison.InvariantCultureIgnoreCase) &&
+                    temp.ambito.Equals(ambitoObjeto, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Simbolo temp2;
+                    VairablesObjeto objRet = new VairablesObjeto(temp);
+                    string nuevoAmbito = ambitoObjeto + "/" + nombreObj;
+                    for (int j = 0; j < this.variablesAmbito.Count; j++)
+                    {
+                        temp2 = variablesAmbito.ElementAt(j);
+                        if (temp2.ambito.Equals(nuevoAmbito, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            objRet.guardarSimbolo(temp2);
+                        }
+                    }
+                    return objRet;
+                }
+                
+            }
+
+            return null;
+        }
 
 
 
