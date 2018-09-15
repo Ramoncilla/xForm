@@ -11,10 +11,13 @@ namespace xForms.Ejecucion
     {
 
         public List<Simbolo> variablesInstancia;
+        public Simbolo simboloObjeto;
 
-        public VairablesObjeto (){
+        public VairablesObjeto (Simbolo simb){
+            this.simboloObjeto = simb;
             this.variablesInstancia = new List<Simbolo>();
         }
+
 
         public void guardarSimbolo(Simbolo simb)
         {

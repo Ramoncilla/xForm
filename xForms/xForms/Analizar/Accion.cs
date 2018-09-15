@@ -22,7 +22,7 @@ namespace xForms.Analizar
         private bool esAtriAsigna = false;
         private bool esAtriRes = false;
         string cadenaImprimir;
-       public string rutaCarpeta;
+        public string rutaCarpeta;
 
         public Accion(string ruta)
         {
