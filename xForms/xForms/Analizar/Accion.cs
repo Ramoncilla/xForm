@@ -21,9 +21,11 @@ namespace xForms.Analizar
         string variableInstancia = "";
         private bool esAtriAsigna = false;
         private bool esAtriRes = false;
+        string cadenaImprimir;
 
         public Accion()
         {
+            this.cadenaImprimir = "";
             this.claseArchivo = new ListaClases();
             this.importaciones = new List<Importar>();
         }
@@ -132,14 +134,12 @@ namespace xForms.Analizar
         }
 
 
-        public void ejecutarArchivo()
+        public string ejecutarArchivo()
         {
             Clase temp;
             Funcion principal;
             tablaSimbolos tabla = new tablaSimbolos();
             Contexto contexto = new Contexto();
-            
-
             for (int i = 0; i < this.claseArchivo.size(); i++)
             {
                 temp = this.claseArchivo.get(i);
@@ -147,12 +147,6 @@ namespace xForms.Analizar
                 if (principal != null)
                 {
                     ParseTreeNode sentencia;
-                    //1. Agregamos el ambito de la clase y los atributos
-                    //contexto.addAmbito(temp.nombreClase);
-                    //tabla.crearNuevoAmbito(temp.nombreClase);
-                    //tabla = agregarAtributosClase(temp, contexto, temp.nombreClase, "", tabla);
-                    
-                    //2. Agregamos el ambito del metodo principal
                     contexto.addAmbito(Constantes.PRINCIPAL);
                     tabla.crearNuevoAmbito(Constantes.PRINCIPAL);
                   
@@ -164,12 +158,11 @@ namespace xForms.Analizar
                     contexto.Ambitos.Pop();
                     tabla.mostrarSimbolos();
                     tabla.salirAmbiente();
-                    //contexto.Ambitos.Pop();
-                    //tabla.salirAmbiente();
                     break;
 
                 }  
             }
+            return cadenaImprimir;
         }
 
 
@@ -332,58 +325,14 @@ namespace xForms.Analizar
                     {
                         #region resolver un acceso
                         int no = nodo.ChildNodes.Count;
-                        ret = resolverAccesoVar(nodo, ambiente, nombreClase, nombreMetodo,tabla,ret);
+                        ret = resolverAccesoVar(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         return ret;
-                        /*if (no == 1)
-                        {
-                            ret = evaluarArbol(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
-                            return ret;
-                        }*/
-
-                        /*foreach (ParseTreeNode item in nodo.ChildNodes)
-                        {
-                            evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
-                        }
-                        break;*/
-
-                        break;
                         #endregion
-                    }
-
-                case Constantes.ID:
-                    {
-                        /*
-                        string nombreVar = nodo.ChildNodes[0].Token.ValueString;
-                        string ruta = ambiente.getAmbito();
-                        Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
-                        if (simb != null)
-                        {
-                            return simb.valor;
-                        }
-                        else
-                        {
-                            Constantes.erroresEjecucion.errorSemantico(nodo, "La variable " + nombreVar + ", no existe en el ambito actual " + ambiente.getAmbito());
-                            return new Valor(Constantes.NULO, Constantes.NULO);
-                        }*/
-                        break;
-                    }
-
-                case Constantes.LLAMADA:
-                    {
-                        ret = this.llamadaFuncion(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
-                        return ret;
-                        //break;
-                    }
-
-                case Constantes.POS_ARREGLO:
-                    {
-                        break;
                     }
                 #endregion
                 #region retorno
                 case Constantes.RETORNO:
                     {
-                        
                         ret.banderaRetorno = true;
                         int no = nodo.ChildNodes.Count;
                         if (no == 1)
@@ -630,88 +579,63 @@ namespace xForms.Analizar
             return ret;
         }
 
-
-        private elementoRetorno resolverAcceso2(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
-        {
-
-            return ret;
-        }
-
-
         private elementoRetorno resolverAccesoVar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
-
-            int numeroValores = nodo.ChildNodes.Count;
-            if (numeroValores > 1)
+            int noValores = nodo.ChildNodes.Count;
+            ParseTreeNode elementoAcceso;
+            string tipoObj = "";
+            string nombreElemento = "";
+            bool banderaSeguir = true;
+            int i=0;
+            Simbolo simbActual;
+            tipoObj = nombreClase;
+            int cont = 0;
+            do
             {
-                bool banderaObjeto = false;
-                bool banderaAtributo = false;
-                ParseTreeNode elementoTemporal;
-                int i = 0;
-                string rutaElemento="";
-                Valor valorAcceso;
-                int contAmbitos = 0;
-                do
+                elementoAcceso = nodo.ChildNodes[i];
+                if (elementoAcceso.Term.Name.Equals(Constantes.ID, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    elementoTemporal = nodo.ChildNodes[i];
-                    if (elementoTemporal.Term.Name.Equals(Constantes.ID, StringComparison.CurrentCultureIgnoreCase))
+                    nombreElemento= elementoAcceso.ChildNodes[0].Token.ValueString;
+                    simbActual = tabla.buscarSimbolo(nombreElemento, ambiente);
+                    if (simbActual != null)
                     {
-                        string nombreVar = elementoTemporal.ChildNodes[0].Token.ValueString;
-                        if (nombreVar.Equals(Constantes.ESTE, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            banderaAtributo = true;
-                        }
-                        else
-                        {
-                            Simbolo simb = tabla.buscarSimbolo(nombreVar, ambiente);
-                            if (simb != null)
-                            {
-                                string tipo = simb.tipo;
-                                if (esObjecto(tipo))
-                                {
-                                    banderaObjeto = true;
-                                }
-
-                            }
-                            else
-                            {
-                                Constantes.erroresEjecucion.errorSemantico(nodo, "La variable " + nombreVar + ", no existe en el ambito actual. Imposible resolver acceso");
-                                tabla.mostrarSimbolos();
-                                //
-                            }
-                        }
-
+                        tipoObj = simbActual.tipo;
+                        ret.val = simbActual.valor;
+                        ambiente.addAmbito(simbActual.nombre);
+                        cont++;
                     }
-                    #region llamada
-                    else if (elementoTemporal.Term.Name.Equals(Constantes.LLAMADA, StringComparison.CurrentCultureIgnoreCase))
-                    {
-
-                    }
-                    #endregion
-                    #region posArreglo
                     else
                     {
-                        // es una posicion arreglo
+                        banderaSeguir = false;
+                        ret.val = new Valor(Constantes.NULO, Constantes.NULO);
+                        Constantes.erroresEjecucion.errorSemantico(elementoAcceso, "No existe el elemento " + nombreElemento + ", en el ambito actual");
                     }
-                    #endregion
+                }
+                else if (elementoAcceso.Term.Name.Equals(Constantes.LLAMADA, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Clase claseTemporal = claseArchivo.obtenerClase(tipoObj);
+                    if (claseTemporal != null)
+                    {
+                        ret = this.llamadaFuncion(elementoAcceso, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                    }
+                    else
+                    {
+                        banderaSeguir = false;
+                        ret.val = new Valor(Constantes.NULO, Constantes.NULO);
+                        Constantes.erroresEjecucion.errorSemantico(elementoAcceso, "No existe el elemento " + tipoObj+ ", en las clases actuales");
+                    }
+                }
+                else
+                {
 
+                }
+                i++;
 
-                    i++;
-                } while (i < numeroValores && banderaObjeto);
-
+            } while (i < noValores && banderaSeguir);
+            for (int j = 0; j < cont; j++)
+            {
+                ambiente.salirAmbito();
             }
-            else
-            {// solo trae un elemento id, llamada o pos arreglo
-
-            }
-
-            return ret;
-        }
-
-        private elementoRetorno resolverAccesoRes(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
-        {
-            elementoRetorno ret = new elementoRetorno();
-
             return ret;
         }
 
@@ -1212,30 +1136,6 @@ namespace xForms.Analizar
         /*-------------------------------------- Llamada a Funciones -----------------------------------------------*/
         #region llamadaFuncion
 
-        private elementoRetorno AccesoLlamadaFuncion(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
-        {
-            ParseTreeNode nodoId = nodo.ChildNodes[0];
-            ParseTreeNode nodoParametros = nodo.ChildNodes[1];
-            string nombreFuncion = nodoId.Token.ValueString.ToLower();
-            int noParametros = nodoParametros.ChildNodes[0].ChildNodes.Count;
-
-            //verificando a las fucniones nativas
-            if (nombreFuncion.Equals(Constantes.SUPER.ToLower()))
-            {
-
-            }
-            else if (nombreFuncion.Equals(Constantes.MENSAJE.ToLower()))
-            {
-
-            }else if(nombreFuncion.Equals(Constantes.CADENA,StringComparison.InvariantCultureIgnoreCase)){
-
-            }
-
-
-            return ret;
-        }
-
-
         private elementoRetorno llamadaFuncion(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             ParseTreeNode nodoId = nodo.ChildNodes[0];
@@ -1350,8 +1250,6 @@ namespace xForms.Analizar
         #endregion
         /*--------------------------------- Fin de llamada --------------------------------------------------------*/
 
-             
-
         #region Imprimir
         private elementoRetorno imprimir(ParseTreeNode nodo, Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
@@ -1363,21 +1261,25 @@ namespace xForms.Analizar
                 if (v.valor is Fecha)
                 {
                     Fecha f = (Fecha)v.valor;
-                    Console.WriteLine(f.valFechaCadena);
+                    cadenaImprimir += (f.valFechaCadena)+"\n";
+                    //Console.WriteLine(f.valFechaCadena);
                 }
                 else if (v.valor is Hora)
                 {
                     Hora f = (Hora)v.valor;
-                    Console.WriteLine(f.valHoraCadena);
+                    //Console.WriteLine(f.valHoraCadena);
+                    cadenaImprimir += (f.valHoraCadena) + "\n";
                 }
                 else if (v.valor is FechaHora)
                 {
                     FechaHora f = (FechaHora)v.valor;
-                    Console.WriteLine(f.cadenaRealFechaHora);
+                   // Console.WriteLine(f.cadenaRealFechaHora);
+                    cadenaImprimir += (f.cadenaRealFechaHora) + "\n";
                 }
                 else
                 {
-                    Console.WriteLine(v.valor);
+                   // Console.WriteLine(v.valor);
+                    cadenaImprimir += (v.valor) + "\n";
 
                 }
                 
@@ -1423,7 +1325,6 @@ namespace xForms.Analizar
         }
 
         #endregion
-
 
 
         /*---------------------------------------------------------- Resolviendo Expresiones  ------------------------------------------------------*/
@@ -1714,20 +1615,10 @@ namespace xForms.Analizar
                     {
                         #region resolver un acceso
                         int no = nodo.ChildNodes.Count;
-                        if (no == 1)
-                        {
-                           
 
-                            return resolverExpresion(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
-                        }
-
-                        /*foreach (ParseTreeNode item in nodo.ChildNodes)
-                        {
-                            evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla);
-                        }
-                        break;*/
-
-                        break;
+                        elementoRetorno r = new elementoRetorno();
+                        r.val = this.resolverAccesoVar(nodo, ambiente, nombreClase, nombreMetodo, tabla, r).val;
+                        return r;
                         #endregion
                     }
 
@@ -1770,7 +1661,221 @@ namespace xForms.Analizar
                         break;
                     }
                 #endregion
+
+                #region Funciones Nativas
+
+                case Constantes.FUN_CADENA:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val= this.funcionCadena(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_SUB_CAD:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionSubCad(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_POS:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionPosCad(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_BOOL:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionBooleano(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_ENTERO:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionEntero(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_TAM:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val =this.funcionTam(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_RANDOM:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionRandom(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_MIN:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionMin(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_MAX:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionMax(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_POW:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionPow(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_LOG:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionLog(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_LOG10:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionLog10(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_ABS:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionAbs(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_SIN:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionSin(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_COS:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionCos(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_TAN:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionTan(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_SQRT:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionSqrt(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_PI:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionPi(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_HOY:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionHoy(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_AHORA:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionAhora(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_FECHA:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionFecha(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_HORA:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionHora(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+
+                case Constantes.FUN_FECHA_HORA:
+                    {
+                        elementoRetorno ret = new elementoRetorno();
+                        ret.val = this.funcionFechaHora(nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        return ret;
+                    }
+                #endregion
+
+
+                case Constantes.NEGATIVO:
+                    {
+                        Valor v = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+                        elementoRetorno r = new elementoRetorno();
+                        if (esDecimal(v))
+                        {
+                            double d = getDecimal(v);
+                            d = d * -1;
+                            r.val = new Valor(Constantes.DECIMAL, d);
+                        }
+                        else if (esEntero(v))
+                        {
+                            int d = getEntero(v);
+                            d = d * -1;
+                            r.val = new Valor(Constantes.ENTERO, d);
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo, "Tipo no valido para un negativo, " + v.tipo + ", debe de ser tipo numerico");
+                        }
+                        return r;
+                    }
+
+                case Constantes.NOT2:
+                    {
+                        Valor v = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+                        elementoRetorno r = new elementoRetorno();
+                        if (esBool(v))
+                        {
+                            if (esVerdadero(v))
+                            {
+                                r.val = new Valor(Constantes.BOOLEANO, "falso");
+                            }
+                            else
+                            {
+                                r.val = new Valor(Constantes.BOOLEANO, "verdadero");
+                            }
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo, "Tipo no valido para un operacion NOT, " + v.tipo + " y debe de ser booleano");
+                        }
+                        return r;
+
+                    }
+
                 #region valoresNativos
+
+           
                 case Constantes.FECHA_HORA:
                     {
                         FechaHora nueva = new FechaHora(nodo,  nodo.ChildNodes[0].Token.ValueString);
@@ -1877,7 +1982,6 @@ namespace xForms.Analizar
                         tabla.crearNuevoAmbito(tipoInstancia);
 
                         /*insertar parametros*/
-                        elementoRetorno ret2;
                         ParseTreeNode paramTemp;
                         ParseTreeNode nodoParametrosDecla = funBuscada.obtenerNodoParametros();
 
@@ -1939,78 +2043,6 @@ namespace xForms.Analizar
                 }
             }
             
-
-            /*
-
-            // busco la funcion 
-            Funcion funBuscada = this.claseArchivo.obtenerFuncion(tipoInstancia, tipoInstancia, cadParametros);
-            if (funBuscada != null)
-            {
-                Clase temp;
-                for (int i = 0; i < claseArchivo.size(); i++)
-                {
-                    temp = claseArchivo.get(i);
-                    if (temp.nombreClase.Equals(tipoInstancia, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        
-                        
-                        ambiente.addAmbito(tipoInstancia);
-                        tabla.crearNuevoAmbito(tipoInstancia);
-                        //agrego los parametros 
-                        ParseTreeNode paramTemp;
-                        ParseTreeNode nodoParametrosDecla = funBuscada.obtenerNodoParametros();
-
-                        // ingresando a la tabla de simbolos las variables de los parametros y obtener nombres de parametros 
-                        List<string> nombresParametros = new List<string>();
-                        for (int h = 0; h < nodoParametrosDecla.ChildNodes.Count; h++)
-                        {
-                            paramTemp = nodoParametrosDecla.ChildNodes[h];
-                            ret = this.evaluarArbol(paramTemp, ambiente, temp.nombreClase, tipoInstancia, tabla, ret);
-                            nombresParametros.Add(paramTemp.ChildNodes[1].Token.ValueString);
-                        }
-
-                        if (nombresParametros.Count == valoresParametros.Count)
-                        {
-                            string nomParTemp = "";
-                            Valor temporalVal;
-                            Simbolo simbTemp;
-                            for (int h = 0; h < nombresParametros.Count; h++)
-                            {
-                                nomParTemp = nombresParametros.ElementAt(h);
-                                temporalVal = valoresParametros.ElementAt(h);
-                                simbTemp = tabla.buscarSimbolo(nomParTemp, ambiente);
-                                if (simbTemp != null)
-                                {
-                                    simbTemp.asignarValor(temporalVal, nodoParametros.ChildNodes[0].ChildNodes[h]);
-                                }
-                                else
-                                {
-                                    Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la vriable parametro " + nomParTemp + ", en la funcion " + funBuscada.nombreFuncion);
-                                    tabla.mostrarSimbolos();
-                                    //
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            Constantes.erroresEjecucion.errorSemantico(nodo, "No se puede realizar la llamada, no encajan los numero de parametros ");
-                        }
-                        //
-                        ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, temp.nombreClase, tipoInstancia, tabla, ret);
-                        ambiente.Ambitos.Pop();
-                        tabla.salirAmbiente();
-                        ret.val = new Valor(tipoInstancia, tabla.listaSimbolos.Peek());
-                        return ret;
-                    }
-                }
-            }
-            else
-            {
-                ret.val = new Valor(Constantes.NULO, Constantes.NULO);
-                return ret;
-            }*/
-
             return ret;
         }
 
@@ -2041,6 +2073,694 @@ namespace xForms.Analizar
 
             return expresionesPArametros;
         }
+
+
+
+        #region FUNCIONES NATIVAS
+
+        private void ErrorFuncionNativa(String numeroParametro, String funcion, String tipoV, string tipoF, ParseTreeNode nodo)
+        {
+            Constantes.erroresEjecucion.errorSemantico(nodo, "El " + numeroParametro + " debe de ser de tipo " + tipoV + ", y es de tipo " + tipoF + ", Error en funcion " + funcion);
+        }
+
+
+        private bool hayParametrosNulos(List<Valor> valores)
+        {
+            bool band=true;
+            Valor temp;
+            for (int i = 0; i < valores.Count; i++)
+            {
+                temp = valores.ElementAt(i);
+                band = band && (!(temp.tipo.Equals(Constantes.NULO, StringComparison.CurrentCultureIgnoreCase)));
+            }
+            return band;
+        }
+
+
+        private Valor funcionCadena(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla){
+            // A_CADENA:= cadena + abrePAr+ EXPRESION + cierraPar
+            Valor v1 = new Valor(Constantes.CADENA, "");
+            Valor v2 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            return  sumar(v1, v2);
+
+        }
+
+        private  Valor funcionSubCad(ParseTreeNode nodo,  Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla){
+
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor v2 = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor v3 = resolverExpresion(nodo.ChildNodes[3], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor(Constantes.NULO, Constantes.NULO);
+            if (v1.tipo.Equals(Constantes.CADENA, StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (v2.tipo.Equals(Constantes.ENTERO, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (v3.tipo.Equals(Constantes.ENTERO, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        int inicio = int.Parse(v2.valor.ToString());
+                        int fin = int.Parse(v3.valor.ToString()) - 1;
+                        Valor resp = new Valor(Constantes.NULO, Constantes.NULO);
+                        string cadena = v1.valor.ToString();
+                        char c;
+                        string res = "";
+                        if (inicio < fin)
+                        {
+                            for (int i = 0; i < cadena.Count(); i++)
+                            {
+                                c = cadena.ElementAt(i);
+                                if (i >= inicio && i < fin)
+                                {
+                                    res += c + "";
+                                }
+                            }
+                            Valor V = new Valor(Constantes.CADENA, res);
+                            return V;
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo.ChildNodes[1], "El indice inicio debe de ser menor al indice final, Error en Subcad");
+                            return ret;
+                        }
+                     
+                    }
+                    else
+                    {
+                        Constantes.erroresEjecucion.errorSemantico(nodo.ChildNodes[3], "Tercer parametro de la funcion SubCad, debe de ser entero y es de tipo " + v3.tipo);
+                        return ret;
+                    }
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodo.ChildNodes[2], "Segundo parametro de la funcion SubCad, debe de ser entero y es de tipo " + v2.tipo);
+                    return ret;
+                }
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo.ChildNodes[1], "Primer parametro de la funcion SubCad, debe de ser cadena y es de tipo " + v1.tipo);
+                return ret;
+            }
+
+
+    }
+
+
+        private Valor funcionPosCad(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor v2 = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor(Constantes.NULO, Constantes.NULO);
+            if (esCadena(v1))
+            {
+                if (esEntero(v2))
+                {
+                    string cad = v1.valor.ToString();
+                    int sizeCad = cad.Count();
+                    int pos = int.Parse(v2.valor.ToString());
+                    if (pos < (sizeCad - 1))
+                    {
+                        Valor v = new Valor(Constantes.CADENA, cad.ElementAt(pos));
+                        return v;
+                    }
+                    else
+                    {
+                        Constantes.erroresEjecucion.errorSemantico(nodo.ChildNodes[2], "Posicion invalida para recuperar, es mayor a la cadena, en funcion PosCad ");
+                    }
+
+                }
+                else
+                {
+                    ErrorFuncionNativa("segundo", "PosCad", "entero", v2.tipo, nodo.ChildNodes[2]);
+                }
+            }
+            else
+            {
+                ErrorFuncionNativa("primer", "PosCad", "cadena", v1.tipo,nodo.ChildNodes[1]);
+            }
+
+            return ret;
+        }
+
+
+
+        private Valor funcionBooleano(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+            if(esEntero(v1) || esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                if (d > 0)
+                {
+                    ret = new Valor(Constantes.BOOLEANO, Constantes.VERDADERO);
+                }
+                else
+                {
+                    ret = new Valor(Constantes.BOOLEANO, Constantes.FALSO);
+                }
+            }
+            else if (esCadena(v1))
+            {
+                string cad = v1.valor.ToString();
+                if (cad.Count() > 0)
+                {
+                    ret = new Valor(Constantes.BOOLEANO, Constantes.VERDADERO);
+                }
+                else
+                {
+                   ret = new Valor(Constantes.BOOLEANO, Constantes.FALSO);
+                }
+            }
+            else if (esObjecto(v1.tipo))
+            {
+                ret = new Valor(Constantes.BOOLEANO, Constantes.VERDADERO);
+            }
+            else
+            {
+                ErrorFuncionNativa("primer", "Booleano", v1.tipo, " numerico, cadena u objeto", nodo.ChildNodes[1]);
+            }
+           
+
+            return ret;
+        }
+
+
+
+        private int obtenerSumaAsciiCadena(String cadena)
+        {
+   
+            char c;
+            int val = 0;
+            for (int i = 0; i < cadena.Count(); i++)
+            {
+                c = Convert.ToChar(cadena.ElementAt(i));
+                val=+ Convert.ToInt32(c);
+            }
+            return val;
+        }
+
+
+        private Valor funcionEntero(ParseTreeNode nodo,  Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+            if (esCadena(v1))
+            {
+                string cadena = v1.valor.ToString();
+                int acum =obtenerSumaAsciiCadena(cadena);
+                ret = new Valor(Constantes.ENTERO, acum);
+            }
+            else if (esEntero(v1))
+            {
+                ret = new Valor(Constantes.ENTERO, v1.valor);
+            }
+            else if (esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                d = Math.Round(d);
+                ret = new Valor(Constantes.ENTERO, d);
+            }
+            else if (esBool(v1))
+            {
+                int v = getBooleanoNumero(v1);
+                ret = new Valor(Constantes.ENTERO, v);
+            }
+            else if (esFecha(v1))
+            {
+                Fecha f = (Fecha)v1.valor;
+                DateTime fechaR = f.fechaReal;
+                
+
+            }
+            else if (esHora(v1))
+            {
+
+            }
+            else if (esFechaHora(v1))
+            {
+
+            }
+            else
+            {
+                ret = new Valor();
+            }
+            return ret;
+        }
+        private Valor funcionTam(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor ret = new Valor();
+
+            return ret;
+        }
+
+        private Valor funcionRandom(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            //random parametrosllamada
+            Valor ret = new Valor();
+            List<Valor> valoresRandom = resolviendoParametros(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla);
+            if (valoresRandom.Count > 0)
+            {
+                if (hayParametrosNulos(valoresRandom))
+                {
+                    int n = valoresRandom.Count - 1;
+                    Random r = new Random();
+                    int indiceR = r.Next(0, n);
+                    ret = new Valor(Constantes.ENTERO, valoresRandom.ElementAt(indiceR).valor);
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodo, "Error al resolver expresion para funcion random");
+                    ret = new Valor();
+                }
+
+            }
+            else
+            {
+                Random r = new Random();
+                double d = Math.Round(r.NextDouble(),5);
+                ret = new Valor(Constantes.DECIMAL, d);
+            }
+            return ret;
+        }
+
+
+        private Valor conseguirValorEnteroDecima(Valor v)
+        {
+            Valor ret = new Valor(Constantes.ENTERO, 0);
+            if (esEntero(v))
+            {
+                ret = new Valor(Constantes.ENTERO, getEntero(v));
+            }
+            else if (esDecimal(v))
+            {
+                ret = new Valor(Constantes.ENTERO, getDecimal(v));
+            }
+            else if (esBool(v))
+            {
+                ret = new Valor(Constantes.ENTERO, getBooleanoNumero(v));
+            }
+            else if (esCadena(v))
+            {
+                ret = new Valor(Constantes.ENTERO, obtenerSumaAsciiCadena(v.valor.ToString()));
+            }
+            else
+            {
+                //por si retorna objetos
+            }
+            return ret;
+        }
+        private Valor funcionMin(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            List<Valor> valores = resolviendoParametros(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla);
+            if (hayParametrosNulos(valores))
+            {
+
+                if (valores.Count > 0)
+                {
+                    Valor temp;
+                    Valor minimo = conseguirValorEnteroDecima(valores.ElementAt(0));
+                    int e1, e2;
+                    double d1, d2;
+                    for (int i = 1; i < valores.Count; i++)
+                    {
+                        temp = conseguirValorEnteroDecima(valores.ElementAt(i));
+                        if (esEntero(minimo) && esEntero(temp))
+                        {
+                            e1 = getEntero(minimo);
+                            e2 = getEntero(temp);
+                            if (e2 <= e1)
+                            {
+                                minimo = temp;
+                            }
+                        }
+                        else if (esDecimal(minimo) && esDecimal(temp))
+                        {
+                            d1 = getDecimal(minimo);
+                            d2 = getDecimal(temp);
+                            if (d2 <= d1)
+                            {
+                                minimo = temp;
+                            }
+
+                        }
+                        else if (esDecimal(minimo) && esEntero(temp))
+                        {
+                            d1 = getDecimal(minimo);
+                            e2 = getEntero(temp);
+                            if (e2 <= d1)
+                            {
+                                minimo = temp;
+                            }
+
+                        }
+                        else if (esEntero(minimo) && esDecimal(temp))
+                        {
+                            e1 = getEntero(minimo);
+                            d2 = getDecimal(temp);
+                            if (d2 <= e1)
+                            {
+                                minimo = temp;
+                            }
+
+                        }
+
+                        
+                    }
+
+                    return  minimo;
+                }
+                else
+                {
+                   return new Valor(Constantes.ENTERO, 0);
+                }
+            }
+            else
+            {
+                return new Valor(Constantes.ENTERO, 0);
+            }
+        }
+
+
+        private Valor funcionMax(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+
+             List<Valor> valores = resolviendoParametros(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla);
+            if (hayParametrosNulos(valores))
+            {
+
+                if (valores.Count > 0)
+                {
+                    Valor temp;
+                    Valor minimo = conseguirValorEnteroDecima(valores.ElementAt(0));
+                    int e1, e2;
+                    double d1, d2;
+                    for (int i = 1; i < valores.Count; i++)
+                    {
+                        temp = conseguirValorEnteroDecima(valores.ElementAt(i));
+                        if (esEntero(minimo) && esEntero(temp))
+                        {
+                            e1 = getEntero(minimo);
+                            e2 = getEntero(temp);
+                            if (e2 >= e1)
+                            {
+                                minimo = temp;
+                            }
+                        }
+                        else if (esDecimal(minimo) && esDecimal(temp))
+                        {
+                            d1 = getDecimal(minimo);
+                            d2 = getDecimal(temp);
+                            if (d2 >= d1)
+                            {
+                                minimo = temp;
+                            }
+
+                        }
+                        else if (esDecimal(minimo) && esEntero(temp))
+                        {
+                            d1 = getDecimal(minimo);
+                            e2 = getEntero(temp);
+                            if (e2 >= d1)
+                            {
+                                minimo = temp;
+                            }
+
+                        }
+                        else if (esEntero(minimo) && esDecimal(temp))
+                        {
+                            e1 = getEntero(minimo);
+                            d2 = getDecimal(temp);
+                            if (d2 >= e1)
+                            {
+                                minimo = temp;
+                            }
+
+                        }
+
+                        
+                    }
+
+                    return minimo;
+                }
+                else
+                {
+                   return new Valor(Constantes.ENTERO, 0);
+                }
+            }
+            else
+            {
+                return  new Valor(Constantes.ENTERO, 0);
+            }
+        }
+
+        private Valor funcionPow(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor v2 = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla).val;
+
+            Valor ret = new Valor();
+            if((esEntero(v1) || esDecimal(v1)) &&
+               (esEntero(v2) || esDecimal(v2)))
+            {
+                double n1= double.Parse(v1.valor.ToString());
+                double n2 = double.Parse(v2.valor.ToString());
+                double d = Math.Round(Math.Pow(n1, n2), 5);
+                ret = new Valor(Constantes.DECIMAL, d);
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "Los parametros para la funcion POW deben de ser numericos y son " + v1.tipo + " y " + v2.tipo);
+            }
+
+            return ret;
+        }
+
+        private Valor funcionLog(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+
+            if (esEntero(v1) || esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                if (d>=0)
+                {
+                    double b = Math.Round(Math.Log(d), 5);
+                    ret = new Valor(Constantes.DECIMAL, b);
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodo.ChildNodes[1], "El parametro para la funcion Log debe de ser positivo");
+                }
+            }
+
+            return ret;
+        }
+
+
+        private Valor funcionLog10(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+
+            if (esEntero(v1) || esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                if (d >= 0)
+                {
+                    double b = Math.Round(Math.Log10(d), 5);
+                    ret = new Valor(Constantes.DECIMAL, b);
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodo.ChildNodes[1], "El parametro para la funcion Log debe de ser positivo");
+                }
+            }
+
+            return ret;
+        }
+
+
+        private Valor funcionAbs(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+
+            if (esEntero(v1))
+            {
+                int d = int.Parse(v1.valor.ToString());
+                int b = Math.Abs(d);
+                ret = new Valor(Constantes.ENTERO, b);
+            }
+            else if (esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                double b = Math.Abs(d);
+                ret = new Valor(Constantes.DECIMAL, b);
+            }
+            return ret;
+        }
+
+
+        private Valor funcionSin(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+
+            if (esEntero(v1) || esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                double b = Math.Round(Math.Sin(d), 5);
+                ret = new Valor(Constantes.DECIMAL, b);
+            }
+
+            return ret;
+        }
+
+
+        private Valor funcionCos(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+
+            if (esEntero(v1) || esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                double b = Math.Round(Math.Cos(d), 5);
+                ret = new Valor(Constantes.DECIMAL, b);
+            }
+
+            return ret;
+        }
+
+
+        private Valor funcionTan(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+
+            if (esEntero(v1) || esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                double b = Math.Round(Math.Tan(d), 5);
+                ret = new Valor(Constantes.DECIMAL, b);
+            }
+
+            return ret;
+        }
+
+
+        private Valor funcionSqrt(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor ret = new Valor();
+
+            if (esEntero(v1) || esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                if (d >= 0)
+                {
+                    double b = Math.Round(Math.Sqrt(d), 5);
+                    ret = new Valor(Constantes.DECIMAL, b);
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodo.ChildNodes[1], "El parametro para una raiz cuadrada debe ser positivo");
+                }
+            }
+
+            return ret;
+        }
+
+
+        private Valor funcionPi(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor ret = new Valor(Constantes.DECIMAL, Math.Round(Math.PI,5));
+            return ret;
+        }
+
+        private Valor funcionHoy(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            DateTime f = DateTime.Today;
+            Fecha nueva = new Fecha(nodo,f.ToString("dd/MM/yyyy"));
+            Valor ret= nueva.validarFecha();
+            return ret;
+        }
+
+
+        private Valor funcionAhora(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            DateTime f = DateTime.Now;
+            FechaHora nueva = new FechaHora(nodo, f.ToString("dd/MM/yyyy HH:mm:ss"));
+            Valor ret = nueva.validarFechaHora();
+            return ret;
+        }
+
+
+        private Valor funcionFecha(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+
+            Valor ret = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            if (!esFecha(ret))
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La tipo no valido para convertir en fecha " + ret.tipo);
+                ret = new Valor(Constantes.NULO, Constantes.NULO); 
+            }
+            
+            return ret;
+        }
+
+
+        private Valor funcionHora(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor ret = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            if (!esHora(ret))
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La tipo no valido para convertir en hora " + ret.tipo);
+                ret = new Valor(Constantes.NULO, Constantes.NULO);
+            }
+
+            return ret;
+        }
+
+
+        private Valor funcionFechaHora(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            Valor ret = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
+            if (!esFechaHora(ret))
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La tipo no valido para convertir en fechahora " + ret.tipo);
+                ret = new Valor(Constantes.NULO, Constantes.NULO);
+            }
+
+            return ret;
+        }
+
+
+        private elementoRetorno funcionImagen(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+
+            return ret;
+        }
+
+
+        private elementoRetorno funcionVideo(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+
+            return ret;
+        }
+
+
+        private elementoRetorno funcionAudio(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+
+            return ret;
+        }
+
+
+
+
+        #endregion
 
 
         #region Operaciones Logicas

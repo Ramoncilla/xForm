@@ -47,7 +47,7 @@ namespace xForms
         public const string DEFECTO = "DEFECTO";
         public const string HEXADECIMAL = "HEXADECIMAL";
         public const string COLOR = "COLOR";
-        public const string TAM = "TAM";
+
         public const string REPETIR = "REPETIR";
         public const string HASTA = "HASTA";
         public const string DEC_ASIG = "DEC_ASIG";
@@ -101,7 +101,7 @@ namespace xForms
         public const string REPETIR_HASTA = "REPETIR_HASTA";
         public const string PARA = "PARA";
         public const string IMPRIMIR = "IMPRIMIR";
-        public const string MENSAJE = "MENSAJE";
+ 
         public const string PARAMETROS_LLAMADA = "PARAMETROS_LLAMADA";
         public const string LLAMADA = "LLAMADA";
         public const string PAR_CORCHETES_EXPRESION = "PAR_CORCHETES_EXPRESION";
@@ -160,6 +160,62 @@ namespace xForms
         public const string ERROR_SINTACTICO = "SINTACTICO";
         public const string ERROR_LEXICO = "LEXICO";
         public const string ESTE = "ESTE";
+
+
+        public const string FUN_CADENA = "FUN_CADENA";
+        public const string FUN_SUB_CAD = "FUN_SUB_CAD";
+        public const string FUN_POS = "FUN_POS";
+        public const string FUN_BOOL = "FUN_BOOL";
+        public const string FUN_ENTERO = "FUN_ENTERO";
+        public const string FUN_TAM = "FUN_TAM";
+        public const string FUN_RANDOM = "FUN_RANDOM";
+        public const string FUN_MIN = "FUN_MIN";
+        public const string FUN_MAX = "FUN_MAX";
+        public const string FUN_POW = "FUN_POW";
+        public const string FUN_LOG = "FUN_LOG";
+        public const string FUN_LOG10 = "FUN_LOG10";
+        public const string FUN_ABS = "FUN_ABS";
+        public const string FUN_SIN = "FUN_SIN";
+        public const string FUN_COS = "FUN_COS";
+        public const string FUN_TAN = "FUN_TAN";
+        public const string FUN_SQRT = "FUN_SQRT";
+        public const string FUN_PI = "FUN_PI";
+        public const string FUN_HOY = "FUN_HOY";
+        public const string FUN_AHORA = "FUN_AHORA";
+        public const string FUN_FECHA = "FUN_FECHA";
+        public const string FUN_HORA = "FUN_HORA";
+        public const string FUN_FECHA_HORA = "FUN_FECHA_HORA";
+        public const string FUN_IMAGEN = "FUN_IMAGEN";
+        public const string FUN_VIDEO = "FUN_VIDEO";
+        public const string FUN_AUDIO = "FUN_AUDIO";
+        public const string FUN_MENSAJE = "FUN_MENSAJE";
+
+        public const string  MENSAJE= "MENSAJE";
+        public const string  SUBCAD= "SUBCAD";
+        public const string  POSCAD= "POSCAD";
+        public const string  TAM= "TAM";
+        public const string  RANDOM= "RANDOM";
+        public const string  MIN= "MIN";
+        public const string  MAX= "MAX";
+        public const string  POW= "POW";
+        public const string  LOG= "LOG";
+        public const string  LOG10= "LOG10";
+        public const string  ABS= "ABS";
+        public const string  SIN= "SIN";
+        public const string  COS= "COS";
+        public const string  TAN= "TAN";
+        public const string  SQRT= "SQRT";
+        public const string  PI= "PI";
+        public const string  HOY= "HOY";
+        public const string  AHORA= "AHORA";
+        public const string  IMAGEN= "IMAGEN";
+        public const string  VIDEO= "VIDEO";
+        public const string  AUDIO= "AUDIO";
+
+
+
+
+
 
 
 

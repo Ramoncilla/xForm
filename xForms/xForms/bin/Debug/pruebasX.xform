@@ -16,23 +16,66 @@ persona(cadena nom, entero ed, entero pos){
 
 
 }
-principal(){
 
+persona tenerHijo(Cadena nomHijo, entero edHijo, entero PosH){
+ persona hijo = nuevo persona(nomHijo, edHijo, posH);
+ retorno hijo;
+}
+principal(){
+$#
 persona alina;
 alina = nuevo persona("Alina Urbina", 26, 6);
-alina.mostrar();
+persona rafa = alina;
+persona cano = rafa;
+persona hijoCano = cano.tenerHijo("Cano Junior", 0, 25);
+hijoCano.coorAtributo.v.x = 100;
+imprimir(hijoCano.coorAtributo.v.x * hijoCano.coorAtributo.v.y + " Este es la multiplicacion de la coordenada");
 
-
-
-
+Cadena a = cadena(10);
+cadena hola = "hola mundo bonito";
+imprimir(subCad(hola,2,5));
+imprimir(posCad(hola,3));
+booleano b = booleano(25);
+imprimir(b);
+entero c= entero("h");
+imprimir(c);
+imprimir(Random());
+imprimir(Random("popo", "pipi", "estupidoCano","putoDragon", a,25,30,2*6));
+imprimir(min(1,2,3,0,8));
+imprimir(max(100,1,2,3,0,9,50));
+imprimir(max(100,1,2,3000,0,9,50));
+fecha n = "25/05/1992";
+imprimir(n);
+fecha n2 = '26/06/1992';
+imprimir(n2);
+#$
+entero hola =entero("a");
+IMPRIMIR("MATEMATICAS");
+      imprimir(pow("hola",2));
+      imprimir(LOG(90+3));
+      imprimir(LOG10(90));
+      imprimir(ABS(-90)+"JEJE");
+      imprimir("seno de pi rad:"+SIN(PI()));
+      imprimir(COS(90));
+      imprimir(TAN(90));
+      imprimir(SQRT(81));
+      imprimir(PI());
+      imprimir(HOY());
+      imprimir(AHORA());
+      imprimir(FECHA("11/01/1992"));
+      imprimir(HORA("23:55:33"));
+      imprimir(FECHAHORA("11/01/1992 11:23:44"));
 
 
 }
 
-vacio mostrar(){
+entero r(entero num){
 
-  imprimir(coorAtributo.v.popo);
-  coordenada nueva = nuevo coordenada(2,3);
+retorno num*5;
+}
+
+vacio mostrar(){
+  imprimir(coorAtributo.v.popo +" esto debe imprimir");
 }
 
 

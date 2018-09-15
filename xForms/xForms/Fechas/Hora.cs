@@ -34,14 +34,14 @@ namespace xForms.Fechas
         {
             Valor ret = new Valor(Constantes.NULO, Constantes.NULO);
            // string cadenaFechaOriginal = nodoHora.ChildNodes[0].Token.ValueString; ;
-            string cad = cadenaRealHora.Replace("'", "").Trim();
+            string cad = cadenaRealHora.Replace("'", "").Replace("\"", "").Trim();
             string[] valores = cad.Split(':');
             int h = int.Parse(valores[0]);
             int m = int.Parse(valores[1]);
             int s = int.Parse(valores[2]);
             try
             {
-                DateTime d = new DateTime(1992, 5, 25, h, m, s);
+                DateTime d = new DateTime(2000, 01, 01, h, m, s);
                 this.horaReal = d;
                 this.horas = h;
                 this.minutos = m;
@@ -51,7 +51,16 @@ namespace xForms.Fechas
             }
             catch (Exception e)
             {
-                Constantes.erroresEjecucion.errorSemantico(this.nodoHora, "No es posible crear una hora con los parametros de horas: " + h + ", minutos: " + m + " y segundos: " + s);
+                if (nodoHora != null)
+                {
+                    Constantes.erroresEjecucion.errorSemantico(this.nodoHora, "No es posible crear una hora con los parametros de horas: " + h + ", minutos: " + m + " y segundos: " + s);
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico("No es posible crear una hora con los parametros de horas: " + h + ", minutos: " + m + " y segundos: " + s);
+
+                }
+                
             }
 
             return ret;

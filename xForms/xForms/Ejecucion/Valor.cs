@@ -17,5 +17,11 @@ namespace xForms.Ejecucion
             this.valor = valor;
         }
 
+        public Valor()
+        {
+            this.tipo = Constantes.NULO;
+            this.valor = Constantes.NULO;
+        }
+
     }
 }

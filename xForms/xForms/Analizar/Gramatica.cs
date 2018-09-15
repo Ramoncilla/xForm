@@ -27,9 +27,9 @@ namespace xForms.Analizar
             StringLiteral cadena = new StringLiteral(Constantes.CADENA, "\"");
             var caracter = TerminalFactory.CreateCSharpChar(Constantes.CHAR);
             var hexadecimal = new RegexBasedTerminal(Constantes.HEXADECIMAL, "#([a-fA-F]|[0-9])+");
-            var fecha = new RegexBasedTerminal(Constantes.FECHA, "([']([ ]*)([0-9][0-9])[/]([0-9][0-9])[/]([0-9][0-9][0-9][0-9])[ ]*['])");
-            var hora = new RegexBasedTerminal(Constantes.HORA, "([']([ ]*)([0-9][0-9])[:]([0-9][0-9])[:]([0-9][0-9])[ ]*['])");
-            var fechaHora = new RegexBasedTerminal(Constantes.FECHA_HORA, "([']([ ]*)([0-9][0-9])[/]([0-9][0-9])[/]([0-9][0-9][0-9][0-9])([ ])(([0-9][0-9])[:]([0-9][0-9])[:]([0-9][0-9]))[ ]*['])");
+            var fecha = new RegexBasedTerminal(Constantes.FECHA, "(([\"]|['])([ ]*)([0-9][0-9])[/]([0-9][0-9])[/]([0-9][0-9][0-9][0-9])[ ]*([\"]|[']))");
+            var hora = new RegexBasedTerminal(Constantes.HORA, "(([\"]|['])([ ]*)([0-9][0-9])[:]([0-9][0-9])[:]([0-9][0-9])[ ]*([\"]|[']))");
+            var fechaHora = new RegexBasedTerminal(Constantes.FECHA_HORA, "(([\"]|['])([ ]*)([0-9][0-9])[/]([0-9][0-9])[/]([0-9][0-9][0-9][0-9])([ ])(([0-9][0-9])[:]([0-9][0-9])[:]([0-9][0-9]))[ ]*([\"]|[']))");
 
             CommentTerminal COMENT_BLOQUE = new CommentTerminal("COMENTARIO BLOQUE", "$#", "#$");
             CommentTerminal COMENT_LINEA = new CommentTerminal("COMENTARIO LINEA", "$$", "\n", "\r\n");
@@ -125,6 +125,37 @@ namespace xForms.Analizar
             NonTerminal INSTANCIA_ARREGLO= new NonTerminal(Constantes.INSTANCIA_ARREGLO);
             NonTerminal ASIGNA_UNARIO = new NonTerminal(Constantes.ASIGNA_UNARIO);
             NonTerminal UNARIO = new NonTerminal(Constantes.UNARIO);
+
+
+            NonTerminal FUN_CADENA = new NonTerminal(Constantes.FUN_CADENA);
+            NonTerminal FUN_SUB_CAD = new NonTerminal(Constantes.FUN_SUB_CAD);
+            NonTerminal FUN_POS = new NonTerminal(Constantes.FUN_POS);
+            NonTerminal FUN_BOOL = new NonTerminal(Constantes.FUN_BOOL);
+            NonTerminal FUN_ENTERO = new NonTerminal(Constantes.FUN_ENTERO);
+            NonTerminal FUN_TAM = new NonTerminal(Constantes.FUN_TAM);
+            NonTerminal FUN_RANDOM = new NonTerminal(Constantes.FUN_RANDOM);
+            NonTerminal FUN_MIN = new NonTerminal(Constantes.FUN_MIN);
+            NonTerminal FUN_MAX = new NonTerminal(Constantes.FUN_MAX);
+            NonTerminal FUN_POW = new NonTerminal(Constantes.FUN_POW);
+            NonTerminal FUN_LOG = new NonTerminal(Constantes.FUN_LOG);
+            NonTerminal FUN_LOG10 = new NonTerminal(Constantes.FUN_LOG10);
+            NonTerminal FUN_ABS = new NonTerminal(Constantes.FUN_ABS);
+            NonTerminal FUN_SIN = new NonTerminal(Constantes.FUN_SIN);
+            NonTerminal FUN_COS = new NonTerminal(Constantes.FUN_COS);
+            NonTerminal FUN_TAN = new NonTerminal(Constantes.FUN_TAN);
+            NonTerminal FUN_SQRT = new NonTerminal(Constantes.FUN_SQRT);
+            NonTerminal FUN_PI = new NonTerminal(Constantes.FUN_PI);
+            NonTerminal FUN_HOY = new NonTerminal(Constantes.FUN_HOY);
+            NonTerminal FUN_AHORA = new NonTerminal(Constantes.FUN_AHORA);
+            NonTerminal FUN_FECHA = new NonTerminal(Constantes.FUN_FECHA);
+            NonTerminal FUN_HORA = new NonTerminal(Constantes.FUN_HORA);
+            NonTerminal FUN_FECHA_HORA = new NonTerminal(Constantes.FUN_FECHA_HORA);
+            NonTerminal FUN_IMAGEN = new NonTerminal(Constantes.FUN_IMAGEN);
+            NonTerminal FUN_VIDEO = new NonTerminal(Constantes.FUN_VIDEO);
+            NonTerminal FUN_AUDIO = new NonTerminal(Constantes.FUN_AUDIO);
+            NonTerminal FUN_MENSAJE = new NonTerminal(Constantes.FUN_MENSAJE);
+            NonTerminal FUN_NATICA = new NonTerminal("FUN_NATIVA");
+
 
             #endregion
 
@@ -297,8 +328,7 @@ namespace xForms.Analizar
 
                 IMPRIMIR.Rule = ToTerm(Constantes.IMPRIMIR) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
 
-                MENSAJE.Rule = ToTerm(Constantes.MENSAJE) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
-
+                
                 ASIGNA_UNARIO.Rule = identificador + ToTerm(Constantes.MAS_MAS)
                     | identificador + ToTerm(Constantes.MENOS_MENOS);
 
@@ -306,7 +336,7 @@ namespace xForms.Analizar
                 DEC_ASIG.Rule = DECLA_VARIABLE
                     | ASIGNACION;
 
-                SENTENCIA.Rule = MENSAJE
+                SENTENCIA.Rule = FUN_MENSAJE
                     | IMPRIMIR
                     | PARA
                     | REPETIR_HASTA
@@ -379,7 +409,8 @@ namespace xForms.Analizar
                 | NOT
                 | FECHA
                 | FECHA_HORA
-                | HORA;
+                | HORA
+                | FUN_NATICA;
 
             FECHA.Rule = fecha;
             HORA.Rule = hora;
@@ -412,6 +443,81 @@ namespace xForms.Analizar
             UNARIO.Rule = identificador + ToTerm(Constantes.MAS_MAS)
                     | identificador + ToTerm(Constantes.MENOS_MENOS);
 
+
+            /*FUNCIONES NATIVAS*/
+
+            FUN_NATICA.Rule = FUN_CADENA
+                | FUN_SUB_CAD
+                | FUN_POS
+                | FUN_BOOL
+                | FUN_ENTERO
+                | FUN_TAM
+                | FUN_RANDOM
+                | FUN_MIN
+                | FUN_MAX
+                | FUN_POW
+                | FUN_LOG
+                | FUN_LOG10
+                | FUN_SIN
+                | FUN_COS
+                | FUN_TAN
+                | FUN_SQRT
+                | FUN_PI
+                | FUN_HOY
+                | FUN_AHORA
+                | FUN_FECHA
+                | FUN_HORA
+                | FUN_FECHA_HORA
+                | FUN_ABS;
+
+            FUN_MENSAJE.Rule = ToTerm(Constantes.MENSAJE) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
+
+            FUN_CADENA.Rule = ToTerm(Constantes.CADENA) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR);
+
+            FUN_SUB_CAD.Rule = ToTerm(Constantes.SUBCAD) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.COMA) + EXPRESION + ToTerm(Constantes.COMA) + EXPRESION + ToTerm(Constantes.CIERRA_PAR);
+
+            FUN_POS.Rule = ToTerm(Constantes.POSCAD) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.COMA) + EXPRESION + ToTerm(Constantes.CIERRA_PAR);
+
+            FUN_BOOL.Rule = ToTerm(Constantes.BOOLEANO) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR);
+
+
+            FUN_ENTERO.Rule = ToTerm(Constantes.ENTERO) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR);
+
+            FUN_TAM.Rule = ToTerm(Constantes.TAM) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR);
+
+            FUN_RANDOM.Rule = ToTerm(Constantes.RANDOM) + PARAMETROS_LLAMADA;
+
+            FUN_MIN.Rule = ToTerm(Constantes.MIN) + PARAMETROS_LLAMADA;
+
+            FUN_MAX.Rule = ToTerm(Constantes.MAX) + PARAMETROS_LLAMADA;
+
+            FUN_POW.Rule = ToTerm(Constantes.POW) + ToTerm(Constantes.ABRE_PAR) + EXPRESION+ ToTerm(",")+ EXPRESION + ToTerm(Constantes.CIERRA_PAR);
+
+            FUN_LOG.Rule = ToTerm(Constantes.LOG) + ToTerm("(") + EXPRESION + ToTerm(")");
+
+            FUN_LOG10.Rule = ToTerm(Constantes.LOG10) + ToTerm("(") + EXPRESION + ToTerm(")");
+
+            FUN_ABS.Rule = ToTerm(Constantes.ABS) + ToTerm("(") + EXPRESION + ToTerm(")");
+
+            FUN_SIN.Rule = ToTerm(Constantes.SIN) + ToTerm("(") + EXPRESION + ToTerm(")");
+
+            FUN_COS.Rule = ToTerm(Constantes.COS) + ToTerm("(") + EXPRESION + ToTerm(")");
+
+            FUN_TAN.Rule = ToTerm(Constantes.TAN) + ToTerm("(") + EXPRESION + ToTerm(")");
+
+            FUN_SQRT.Rule = ToTerm(Constantes.SQRT) + ToTerm("(") + EXPRESION + ToTerm(")");
+
+            FUN_PI.Rule = ToTerm(Constantes.PI) + ToTerm("(") + ToTerm(")");
+
+            FUN_HOY.Rule = ToTerm(Constantes.HOY) + ToTerm("(") + ToTerm(")");
+
+            FUN_AHORA.Rule = ToTerm(Constantes.AHORA) + ToTerm("(") + ToTerm(")");
+
+            FUN_FECHA.Rule = ToTerm(Constantes.FECHA) + ToTerm("(") + EXPRESION + ToTerm(")");
+            FUN_HORA.Rule = ToTerm(Constantes.HORA) + ToTerm("(") + EXPRESION + ToTerm(")");
+            FUN_FECHA_HORA.Rule = ToTerm(Constantes.FECHA_HORA) + ToTerm("(") + EXPRESION + ToTerm(")");
+
+
             #endregion
 
 
@@ -439,7 +545,7 @@ namespace xForms.Analizar
 
 
 
-            MarkTransient(TERMINO, OP_ARITMETICO,OP_LOGICO,OP_RELACIONAL, ELEMENTO_ACCESO, EXPRESION, SENTENCIA, ELEMENTO_CLASE, PARAMETROS, OPCION_VALOR);
+            MarkTransient(FUN_NATICA,TERMINO, OP_ARITMETICO,OP_LOGICO,OP_RELACIONAL, ELEMENTO_ACCESO, EXPRESION, SENTENCIA, ELEMENTO_CLASE, PARAMETROS, OPCION_VALOR);
 
 
         }

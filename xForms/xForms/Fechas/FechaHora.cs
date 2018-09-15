@@ -29,7 +29,7 @@ namespace xForms.Fechas
         public Valor validarFechaHora()
         {
             Valor ret = new Valor(Constantes.NULO, Constantes.NULO);
-            string cad = cadenaRealFechaHora.Replace("'", "").Trim();
+            string cad = cadenaRealFechaHora.Replace("'", "").Replace("\"", "").Trim();
             string[] valores = cad.Split(' ');
             String fecha = (valores[0]);
             String  hora = (valores[1]);
@@ -44,7 +44,17 @@ namespace xForms.Fechas
                 this.cadenaRealFechaHora = fechaA.valFechaCadena + " " + horaA.valHoraCadena;
                 ret = new Valor(Constantes.FECHA_HORA, this);
             }else{
-                Constantes.erroresEjecucion.errorSemantico(this.nodoFechaHora, "No es posible crear un valor de tipo FechaHora, con los valores dados");
+                if (nodoFechaHora != null)
+                {
+                    Constantes.erroresEjecucion.errorSemantico(this.nodoFechaHora, "No es posible crear un valor de tipo FechaHora, con los valores dados");
+
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico( "No es posible crear un valor de tipo FechaHora, con los valores dados");
+
+                }
+                
             }
             return ret;
             

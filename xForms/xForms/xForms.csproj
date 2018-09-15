@@ -66,6 +66,7 @@
     <Compile Include="Ejecucion\ListaFunciones.cs" />
     <Compile Include="Ejecucion\listaParametros.cs" />
     <Compile Include="Ejecucion\parametro.cs" />
+    <Compile Include="Ejecucion\VairablesObjeto.cs" />
     <Compile Include="Ejecucion\Valor.cs" />
     <Compile Include="Errores\Error.cs" />
     <Compile Include="Errores\ListaErrores.cs" />

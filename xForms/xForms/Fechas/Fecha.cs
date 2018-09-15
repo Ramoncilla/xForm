@@ -18,7 +18,7 @@ namespace xForms.Fechas
         int mes;
         int anio;
         public String valFechaCadena;
-        DateTime fechaReal;
+        public DateTime fechaReal;
         String cadenaRealFecha;
 
         public Fecha(ParseTreeNode nodo, String cadena)
@@ -33,8 +33,8 @@ namespace xForms.Fechas
         public Valor validarFecha()
         {
             Valor ret = new Valor(Constantes.NULO, Constantes.NULO);
-            //string cadenaFechaOriginal = nodoFecha.ChildNodes[0].Token.ValueString;;
-            string cad = cadenaRealFecha.Replace("'", "").Trim();
+            Console.WriteLine(cadenaRealFecha);
+            string cad = cadenaRealFecha.Replace("\"", "").Replace("'","").Trim();
             string[] valores = cad.Split('/');
             int d = int.Parse(valores[0]);
             int m = int.Parse(valores[1]);
@@ -51,7 +51,15 @@ namespace xForms.Fechas
             }
             catch (Exception e)
             {
-                Constantes.erroresEjecucion.errorSemantico(this.nodoFecha, "No es posible crear una fecha con los parametros de dia: " + d + ", mes: " + m + " y anio: " + a);
+                if (nodoFecha != null)
+                {
+                    Constantes.erroresEjecucion.errorSemantico(this.nodoFecha, "No es posible crear una fecha con los parametros de dia: " + d + ", mes: " + m + " y anio: " + a);
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico( "No es posible crear una fecha con los parametros de dia: " + d + ", mes: " + m + " y anio: " + a);
+                }
+                
             }
 
             return ret;

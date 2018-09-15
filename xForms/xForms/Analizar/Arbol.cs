@@ -32,8 +32,9 @@ namespace xForms.Analizar
         #region 1. ANALIZAR ARBOL
 
 
-        public ParseTreeNode parse(String str)
+        public string parse(String str)
         {
+            string cad = "";
             ParseTree s_tree = p.Parse(str); //parsear la entrada
             if (s_tree.HasErrors())//SE VERIFICA SI LA ENTRADA POSEE ERRORES
                 foreach (var item in s_tree.ParserMessages)
@@ -45,18 +46,17 @@ namespace xForms.Analizar
             if (s_tree.Root != null)
             {
                 Console.WriteLine("========ACCIONES AL EVVALUAR EL ARBOL=============");
-                 //accion.evaluarArbol(s_tree.Root,null,"","",null);//EVALUO EL ARBOL
                 accion.generarClases(s_tree.Root);
                 accion.instanciarAtributosClase();
-                accion.ejecutarArchivo();
+               cad = accion.ejecutarArchivo();
                 Console.WriteLine("==================================================");
                  //dispTree(s_tree.Root, 0);//IMPRIMO EL ARBOL
                  graficarArbol(s_tree.Root);//GRAFICO EL ARBOL
-                return s_tree.Root;
+                //return s_tree.Root;
             }
             else
                 MessageBox.Show(null, "Entrada posee errores", "Error", 0);
-            return null;
+            return cad;
         }
 
 

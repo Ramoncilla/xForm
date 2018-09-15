@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using xForms.Analizar;
 using xForms.Errores;
 
+
 namespace xForms
 {
     public partial class Form1 : Form
@@ -179,9 +180,26 @@ namespace xForms
             file.Close();
             //Console.WriteLine(contenido);
 
-           n.parse(contenido);
+          txtImpresion.Text = n.parse(contenido);
            Constantes.erroresEjecucion.moostrarErrores();
             
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+            Console.WriteLine(Math.Sqrt(-10));
+            
+            string cadena = "hola Mundo";
+            char c;
+            int val=0;
+            for (int i = 0; i < cadena.Count(); i++)
+            {
+                c = Convert.ToChar(cadena.ElementAt(i));
+                Console.WriteLine(c);
+                val = Convert.ToInt32(c);
+                Console.WriteLine(val);
+            }
         }
     }
 }
