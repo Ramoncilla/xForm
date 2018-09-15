@@ -54,7 +54,7 @@ IMPRIMIR("MATEMATICAS");
       imprimir(pow("hola",2));
       imprimir(LOG(90+3));
       imprimir(LOG10(90));
-      imprimir(ABS(-90)+"JEJE");
+      imprimir(ABS(-390)+"JEJE");
       imprimir("seno de pi rad:"+SIN(PI()));
       imprimir(COS(90));
       imprimir(TAN(90));

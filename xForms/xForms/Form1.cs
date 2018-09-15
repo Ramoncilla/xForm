@@ -12,18 +12,69 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using xForms.Analizar;
 using xForms.Errores;
+using xForms.Interfaz;
 
 
 namespace xForms
 {
     public partial class Form1 : Form
     {
-       
 
+        ListaPaginas paginas;
+        int contador;
         public Form1()
         {
-
+            
             InitializeComponent();
+            paginas = new ListaPaginas();
+            contador = 0;
+        }
+
+
+        private void nuevaPestanha()
+        {
+            elementoPlantilla nuevaPagina = new elementoPlantilla();
+            paginas.insertarPagina(nuevaPagina);
+            TabPage nuevoTab= new TabPage("Nueva "+ contador);
+            nuevoTab.Controls.Add(nuevaPagina.cajaTexto);
+            tabControl1.TabPages.Add(nuevoTab);
+            tabControl1.SelectedTab = nuevoTab;
+            contador++;
+
+        }
+
+        private string[] cargarArchivo()
+        {
+            string fileName = null;
+            string rutaCarpeta = null;
+
+            using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
+            {
+                openFileDialog1.InitialDirectory = "c:\\";
+                openFileDialog1.RestoreDirectory = true;
+
+                if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    fileName = openFileDialog1.FileName;
+                    rutaCarpeta = Path.GetDirectoryName(openFileDialog1.FileName);  
+                }
+            }
+
+            if (fileName != null)
+            {
+                string text = File.ReadAllText(fileName);
+                string[] valores = new string[3];
+                valores[0] = rutaCarpeta;
+                valores[1] = fileName;
+                valores[2] = text;
+                return valores;
+
+            }
+            else
+            {
+                MessageBox.Show("Error, no se ha podido abrir el archivo");
+            }
+            return null;
         }
 
 
@@ -119,54 +170,14 @@ namespace xForms
         private void button1_Click(object sender, EventArgs e)
         {
             abrirArchivo();
-          
-            
-
         }
 
 
-        private void imprimir()
-        {
-           
-            int d = 0;
-            int e = 0;
-           
-                        while (d < 20)
-                        {
-                            if (d == 1)
-                            {
-                                continue;
-                            }
-                            if (d == 3)
-                            {
-                                break;
-                            }
-                            while (e < 10)
-                            {
-                                if (e == 4)
-                                {
-                                    break;
-                                }
-                                if (e == 2)
-                                {
-                                    continue;
-                                }
-                                Console.WriteLine("Ciclo e " + e);
-                                e++;
-                            }
-                            Console.WriteLine("Ciclo d " + d);
-                            d++;
-                        }
-                
-
-
-
-        }
-
+      
         private void button2_Click(object sender, EventArgs e)
         {
          //   imprimir();
-         
+         /*
             Arbol n = new Arbol();
             string line;
             string contenido = "";
@@ -180,8 +191,8 @@ namespace xForms
             file.Close();
             //Console.WriteLine(contenido);
 
-          txtImpresion.Text = n.parse(contenido);
-           Constantes.erroresEjecucion.moostrarErrores();
+           txtImpresion.Text = n.parse(contenido);*/
+           
             
         }
 
@@ -200,6 +211,39 @@ namespace xForms
                 val = Convert.ToInt32(c);
                 Console.WriteLine(val);
             }
+        }
+
+        private void nuevaPestanhaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            nuevaPestanha();
+        }
+
+        private void abrirToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string [] valores = cargarArchivo();
+            if (valores != null)
+            {
+                int no = tabControl1.SelectedIndex;
+                tabControl1.SelectedTab.Text = valores[1];
+                string ruta = valores[0];
+                Console.WriteLine(ruta);
+                string nombre = valores[1];
+                string texto = valores[2];
+                paginas.escribirTexto(no, texto, nombre, ruta);
+            }
+        }
+
+        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+           int no = tabControl1.SelectedIndex;
+           string impresion= paginas.ejecutar(no);
+           txtImpresion.Text = impresion;
+           Constantes.erroresEjecucion.moostrarErrores();
+           if (Constantes.erroresEjecucion.lErrores.Count > 0)
+           {
+               MessageBox.Show("Han ocurrido errores al analizar el archivo, favor de revisar");
+           }
+
         }
     }
 }

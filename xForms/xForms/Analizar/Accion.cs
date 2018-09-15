@@ -22,10 +22,12 @@ namespace xForms.Analizar
         private bool esAtriAsigna = false;
         private bool esAtriRes = false;
         string cadenaImprimir;
+       public string rutaCarpeta;
 
-        public Accion()
+        public Accion(string ruta)
         {
             this.cadenaImprimir = "";
+            this.rutaCarpeta = ruta;
             this.claseArchivo = new ListaClases();
             this.importaciones = new List<Importar>();
         }
@@ -109,6 +111,16 @@ namespace xForms.Analizar
         }
 
         #endregion
+
+        public void ejecutarImportaciones()
+        {
+            Importar temp;
+            for (int i = 0; i < this.importaciones.Count; i++)
+            {
+                temp = importaciones.ElementAt(i);
+
+            }
+        }
 
 
         private tablaSimbolos agregarAtributosClase(Clase clase,  Contexto ambiente, String nombreClase, String nombreMetodo, tablaSimbolos actual)
