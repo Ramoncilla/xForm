@@ -13,6 +13,7 @@ namespace xForms.Ejecucion
     class Objeto:Simbolo
     {
          public Object valorObjeto;
+         public bool instanciado=false;
 
         public Objeto(string nombre, string tipo, string visibilidad, ParseTreeNode nodoExprsion)
         {
