@@ -116,7 +116,7 @@ namespace xForms.Tabla_Simbolos
 
 
 
-        public VairablesObjeto obtenerObjetoConAtributos(string nombreObj, string ambitoObjeto)
+        public VairablesObjeto obtenerObjetoConAtributos(string nombreObj, string ambitoObjeto, string rutaA)
         {
             Simbolo temp;
             for (int i = 0; i < this.variablesAmbito.Count; i++)
@@ -128,10 +128,13 @@ namespace xForms.Tabla_Simbolos
                     Simbolo temp2;
                     VairablesObjeto objRet = new VairablesObjeto(temp);
                     string nuevoAmbito = ambitoObjeto + "/" + nombreObj;
+                    string nuevaRuta = rutaA + "/" + nombreObj;
                     for (int j = 0; j < this.variablesAmbito.Count; j++)
                     {
                         temp2 = variablesAmbito.ElementAt(j);
-                        if (temp2.ambito.Equals(nuevoAmbito, StringComparison.InvariantCultureIgnoreCase))
+                        
+                        if (temp2.ambito.Equals(nuevoAmbito, StringComparison.InvariantCultureIgnoreCase) ||
+                            temp2.rutaAcc.ToLower().Contains(nuevaRuta.ToLower()))
                         {
                             objRet.guardarSimbolo(temp2);
                         }

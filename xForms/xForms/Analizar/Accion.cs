@@ -550,7 +550,7 @@ namespace xForms.Analizar
                         if (esObjecto(tipoObj))
                         {
                             string ambitoObj = simbActual.ambito;
-                            VairablesObjeto obj = tabla.obtenerObjetoConAtributos(simbActual.nombre, simbActual.ambito);
+                            VairablesObjeto obj = tabla.obtenerObjetoConAtributos(simbActual.nombre, simbActual.ambito, simbActual.rutaAcc);
                             ret.val = new Valor(tipoObj, obj);
                         }
                         else
@@ -653,7 +653,7 @@ namespace xForms.Analizar
             return ret;
         }
 
-        private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        private elementoRetorno resolverAsignar2(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             ParseTreeNode acceso = nodo.ChildNodes[0];
             ParseTreeNode expresion = nodo.ChildNodes[1];
@@ -710,6 +710,62 @@ namespace xForms.Analizar
 
                 }
             }
+            return ret;
+        }
+        private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            ParseTreeNode acceso = nodo.ChildNodes[0];
+            ParseTreeNode expresion = nodo.ChildNodes[1];
+            int cont = acceso.ChildNodes.Count;
+            elementoRetorno rr = new elementoRetorno();
+            elementoRetorno retAcceso = resolverAccesoVar(acceso, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
+            if ((retAcceso.val.valor is Simbolo) ||(retAcceso.val.valor is VairablesObjeto))
+            {
+                if (retAcceso.val.valor is Simbolo)
+                {
+                    Simbolo s = (Simbolo)retAcceso.val.valor;
+                    if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        ambiente.addAmbito(s.nombre);
+                        rr = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
+                        ambiente.salirAmbito();
+                    }
+                    else
+                    {
+                        rr = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
+                    }
+
+                    asignarSimbolo(s.nombre, nodo, rr.val, s, ambiente, nombreClase, nombreMetodo, tabla);
+
+
+                }
+                else if (retAcceso.val.valor is VairablesObjeto)
+                {
+                    VairablesObjeto s = (VairablesObjeto)retAcceso.val.valor;
+                    if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        ambiente.addAmbito(s.simboloObjeto.nombre);
+                        rr = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
+                        ambiente.salirAmbito();
+                    }
+                    else
+                    {
+                        rr = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
+                    }
+
+                    asignarSimbolo(s.simboloObjeto.nombre, nodo, rr.val, s.simboloObjeto, ambiente, nombreClase, nombreMetodo, tabla);
+
+                }
+
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "Valor no valido para realizar una asignacion");
+
+            }
+
+              
             return ret;
         }
 
@@ -1912,6 +1968,7 @@ namespace xForms.Analizar
                         ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, tipoInstancia, tipoInstancia, tabla, ret);
                         tabla.salirAmbiente();
                         ambiente.salirAmbito();
+                        ret.val = new Valor(tipoInstancia, true);
                     }
 
                 }
@@ -1974,49 +2031,6 @@ namespace xForms.Analizar
                 ParseTreeNode nodoParametrosDecla = funBuscada.obtenerNodoParametros();
                 declararAsignarParametrosLlamada(valoresParametros, nodo, nodoParametrosDecla, nodoParametros, ambiente, nombreClase, nombreMetodo, tabla);
 
-                /*
-                // ingresando a la tabla de simbolos las variables de los parametros y obtener nombres de parametros 
-                List<string> nombresParametros = new List<string>();
-                for (int i = 0; i < nodoParametrosDecla.ChildNodes.Count; i++)
-                {
-                    paramTemp = nodoParametrosDecla.ChildNodes[i];
-                    ret = this.evaluarArbol(paramTemp, ambiente, nombreClase, nombreMetodo, tabla, ret);
-                    nombresParametros.Add(paramTemp.ChildNodes[1].Token.ValueString);
-                }
-
-              
-
-                //Asignar parametros
-                if (nombresParametros.Count == valoresParametros.Count)
-                {
-                    string nomParTemp = "";
-                    Valor temporalVal;
-                    Simbolo simbTemp;
-                    for (int i = 0; i < nombresParametros.Count; i++)
-                    {
-                        nomParTemp = nombresParametros.ElementAt(i);
-                        temporalVal = valoresParametros.ElementAt(i);
-                        simbTemp = tabla.buscarSimbolo(nomParTemp, ambiente);
-                        if (simbTemp != null)
-                        {
-                            simbTemp.asignarValor(temporalVal, nodoParametros.ChildNodes[0].ChildNodes[i]);
-                        }
-                        else
-                        {
-                            Constantes.erroresEjecucion.errorSemantico(nodo, "No existe la vriable parametro " + nomParTemp + ", en la funcion " + funBuscada.nombreFuncion);
-                            tabla.mostrarSimbolos();
-                            //
-                        }
-                    }
-
-                }
-                else
-                {
-                    Constantes.erroresEjecucion.errorSemantico(nodo, "No se puede realizar la llamada, no encajan los numero de parametros ");
-                }
-                */
-                // Ejecutar sentencias
-
                 ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, nombreClase, nombreMetodo, tabla, ret);
                 Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
                
@@ -2033,7 +2047,6 @@ namespace xForms.Analizar
             {
                 Constantes.erroresEjecucion.errorSemantico(nodo, "La funcion " + nombreFuncion + ", no existe en la clase actual " + nombreClase);
                 tabla.mostrarSimbolos();
-                //
             }
             return ret;
         }

@@ -85,11 +85,25 @@ namespace xForms.Tabla_Simbolos
         }
 
 
-        public VairablesObjeto obtenerObjetoConAtributos(string nombreObjeto, string ambitoObjeto)
+        public VairablesObjeto obtenerObjetoConAtributos(string nombreObjeto, string ambitoObjeto, string rutaA)
         {
+            nodoTablaSimbolos temp;
+            VairablesObjeto simb;
+            for (int i = 0; i < this.listaSimbolos.Count; i++)
+            {
+                temp = listaSimbolos.ElementAt(i);
+                simb = temp.obtenerObjetoConAtributos(nombreObjeto, ambitoObjeto, rutaA);
+                if (simb != null)
+                {
+                    return simb;
+                }
 
+            }
+            return null;
+
+            /*
             nodoTablaSimbolos actual = this.listaSimbolos.Peek();
-            return actual.obtenerObjetoConAtributos(nombreObjeto, ambitoObjeto);
+            return actual.obtenerObjetoConAtributos(nombreObjeto, ambitoObjeto, rutaA);*/
 
         }
 
