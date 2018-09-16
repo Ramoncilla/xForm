@@ -208,7 +208,7 @@ namespace xForms.Analizar
                 |ToTerm(Constantes.PROTEGIDO)
                 |ToTerm(Constantes.PRIVADO);
 
-            IMPORTAR.Rule = ToTerm(Constantes.IMPORTAR) + Constantes.ABRE_PAR + identificador + Constantes.PUNTO + Constantes.XFORM + Constantes.CIERRA_PAR + Constantes.PUNTO_COMA;
+            IMPORTAR.Rule = ToTerm(Constantes.IMPORTAR) + ToTerm("(") + identificador + ToTerm(".")+ ToTerm("xform")+ ToTerm(")")+ ToTerm(";");
 
             IMPORTACIONES.Rule = MakeStarRule(IMPORTACIONES, IMPORTAR);
             

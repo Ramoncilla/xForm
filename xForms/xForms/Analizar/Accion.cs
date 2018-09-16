@@ -9,6 +9,7 @@ using Irony.Ast;
 using Irony.Interpreter;
 using Irony.Parsing;
 using xForms.Fechas;
+using System.IO;
 
 namespace xForms.Analizar
 {
@@ -112,13 +113,49 @@ namespace xForms.Analizar
 
         #endregion
 
+
+        private string obtenerContenidoArchivo(string ruta)
+        {
+            string contenido = "";
+            StreamReader objReader = new StreamReader(ruta);
+            string sLine = "";
+            while (sLine != null)
+            {
+                sLine = objReader.ReadLine();
+                if (sLine != null)
+                    contenido += sLine + "\n";
+            }
+            objReader.Close();
+
+            return contenido;
+        }
+
         public void ejecutarImportaciones()
         {
             Importar temp;
+            Arbol b;
+            List<ParseTreeNode> archivosImortados = new List<ParseTreeNode>();
+            ParseTreeNode raizTemporal;
+            string contenido = "";
+            Console.WriteLine("***************************************** iMPORTACIONES ************************************");
             for (int i = 0; i < this.importaciones.Count; i++)
             {
                 temp = importaciones.ElementAt(i);
-
+                string r = rutaCarpeta  + temp.nombreArchivo + ".xform";
+                if (File.Exists(r))
+                {
+                    contenido = obtenerContenidoArchivo(r);
+                    b = new Arbol(rutaCarpeta);
+                    raizTemporal = b.parseArchivoImportado(contenido, temp.nombreArchivo);
+                    if (raizTemporal != null)
+                    {
+                        archivosImortados.Add(raizTemporal);
+                    }
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico("El archivo " + r + ", no existe en la carpeta del proyecto");
+                }
             }
         }
 

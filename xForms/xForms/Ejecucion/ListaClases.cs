@@ -24,8 +24,32 @@ namespace xForms.Ejecucion
 
         public void insertarClase(Clase c)
         {
-            this.lClases.Add(c);
+            if (!existeClase(c.nombreClase))
+            {
+                this.lClases.Add(c);
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico("No se ha podido ingresar la clase " + c.nombreClase + ", ya existe");
+            }            
         }
+
+        private bool existeClase(string nombreClase)
+        {
+            Clase temp;
+            for (int i = 0; i < this.lClases.Count; i++)
+            {
+                temp = lClases.ElementAt(i);
+                if (temp.nombreClase.Equals(nombreClase, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+
+            return false;
+        }
+
 
 
         public int size()

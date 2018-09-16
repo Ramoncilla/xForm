@@ -32,6 +32,36 @@ namespace xForms.Analizar
         #region 1. ANALIZAR ARBOL
 
 
+        public ParseTreeNode parseArchivoImportado(string contenido, string nombreA){
+            ParseTree s_tree = p.Parse(contenido);
+            if (s_tree.HasErrors())
+                foreach (var item in s_tree.ParserMessages)
+                {   
+                    Console.WriteLine("en Fil: {0}, Col: {1}, Pos: {2}, Tipo: {3}", item.Location.Line + 1, item.Location.Column + 1, item.Location.Position, item.Message);
+                }
+            if (s_tree.Root != null)
+            {
+
+
+                Console.WriteLine("========ACCIONES AL EVVALUAR EL ARBOL=============");
+                /*accion.generarClases(s_tree.Root);
+                accion.ejecutarImportaciones();
+                accion.instanciarAtributosClase();
+                cad = accion.ejecutarArchivo();*/
+                Console.WriteLine("==================================================");
+                //dispTree(s_tree.Root, 0);//IMPRIMO EL ARBOL
+                graficarArbol(s_tree.Root);//GRAFICO EL ARBOL
+                return s_tree.Root;
+
+            }
+            else
+                MessageBox.Show(null, "Archivo de importacion "+nombreA+" posee errores", "Error", 0);
+            return null;
+
+
+        }
+
+
         public string parse(String str)
         {
             string cad = "";
