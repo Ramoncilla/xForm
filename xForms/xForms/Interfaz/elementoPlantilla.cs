@@ -28,7 +28,7 @@ namespace xForms.Interfaz
         public string ejecutar()
         {
             Constantes.erroresEjecucion = new Errores.ListaErrores();
-            Arbol analizador = new Arbol(rutaCarpeta);
+            Arbol analizador = new Arbol(rutaCarpeta, tituloPestanha);
             string v = analizador.parse(cajaTexto.Text);
             return v;
 

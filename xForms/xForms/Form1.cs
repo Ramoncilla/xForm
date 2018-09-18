@@ -50,7 +50,7 @@ namespace xForms
 
             using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
             {
-                openFileDialog1.InitialDirectory = "c:\\";
+                openFileDialog1.InitialDirectory = "C:\\Users\\Ramonella\\Desktop\\proyecto\\";
                 openFileDialog1.RestoreDirectory = true;
 
                 if (openFileDialog1.ShowDialog() == DialogResult.OK)

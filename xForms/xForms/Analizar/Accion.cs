@@ -24,15 +24,29 @@ namespace xForms.Analizar
         private bool esAtriRes = false;
         string cadenaImprimir;
         public string rutaCarpeta;
+        public string nombreArchivoPrincipal;
 
-        public Accion(string ruta)
+        public Accion(string ruta, string nombreA)
         {
             this.cadenaImprimir = "";
+            nombreArchivoPrincipal = nombreA;
             this.rutaCarpeta = ruta;
-            this.claseArchivo = new ListaClases();
+            this.claseArchivo = new ListaClases(nombreA,ruta);
             this.importaciones = new List<Importar>();
         }
         //faltan las importaciones 
+
+        /*Paso 1   Generar archivos clase*/
+
+        public void generarArchivosClase(ParseTreeNode nodoRaiz)
+        {
+            ListaArchivos archivos = new ListaArchivos(rutaCarpeta);
+            archivos.insertarArchivo(nombreArchivoPrincipal, nodoRaiz);
+            this.claseArchivo = archivos.crearLista();
+            //Console.WriteLine("holaaaa");
+          //  return null;
+        }
+
 
         public void instanciarAtributosClase(){
             this.claseArchivo.instanciarAtributosClase();
@@ -40,6 +54,7 @@ namespace xForms.Analizar
 
 
         #region generacion de un lisado de clases e importaciones
+        /*
         public void generarClases(ParseTreeNode nodo)
         {
             switch (nodo.Term.Name)
@@ -109,7 +124,7 @@ namespace xForms.Analizar
 
             
 
-        }
+        }*/
 
         #endregion
 
@@ -145,7 +160,7 @@ namespace xForms.Analizar
                 if (File.Exists(r))
                 {
                     contenido = obtenerContenidoArchivo(r);
-                    b = new Arbol(rutaCarpeta);
+                    b = new Arbol(rutaCarpeta, r);
                     raizTemporal = b.parseArchivoImportado(contenido, temp.nombreArchivo);
                     if (raizTemporal != null)
                     {
@@ -414,7 +429,7 @@ namespace xForms.Analizar
             if (claseBuscada != null)
             {
                 Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso, false);
-                tabla.insertarSimbolo(nuevo, nodo);
+                
                 Simbolo atriTemp;
                 ListaAtributos lTemporal = new ListaAtributos();
                 //cambiando de valor la ruta de acceso de los atribtos de la declaracion
@@ -440,9 +455,9 @@ namespace xForms.Analizar
 
                     atriTemp.rutaAcc = rutaTemp;
                     string ambitoTemporal= ambiente.getAmbito() + "/" + nombre;;
-                    atriTemp.ambito = ambitoTemporal;
+                    atriTemp.ambito = ambitoTemporal; //
                     tabla.insertarSimbolo(atriTemp);
-
+                    nuevo.rutaAcc = ambitoTemporal;
                     /*---- buscando nuevamente el simbolo para poderlo asignar a la tabla*/
                     Contexto c = new Contexto();
                     c.llenarAmbitos(ambitoTemporal);
@@ -455,7 +470,7 @@ namespace xForms.Analizar
                     }
                    // tabla.insertarSimbolo(atriTemp);
                 }
-
+                tabla.insertarSimbolo(nuevo, nodo);
 
             }
             else
@@ -573,6 +588,7 @@ namespace xForms.Analizar
             int i=0;
             Simbolo simbActual;
             tipoObj = nombreClase;
+            Contexto nuevoC = new Contexto();
             int cont = 0;
             do
             {
@@ -580,13 +596,27 @@ namespace xForms.Analizar
                 if (elementoAcceso.Term.Name.Equals(Constantes.ID, StringComparison.CurrentCultureIgnoreCase))
                 {
                     nombreElemento= elementoAcceso.ChildNodes[0].Token.ValueString;
-                    simbActual = tabla.buscarSimbolo(nombreElemento, ambiente);
+                    
+                    if (i == 0)
+                    {
+                        simbActual = tabla.buscarSimbolo(nombreElemento, ambiente);
+                        if(simbActual!= null){
+                            string c = simbActual.rutaAcc;
+                            nuevoC.llenarAmbitos(c);
+                        }
+                    }
+                    else
+                    {
+                        simbActual = tabla.buscarSimboloRutaAcceso(nombreElemento, nuevoC);
+                    }
+                    
                     if (simbActual != null)
                     {
                         tipoObj = simbActual.tipo;
                         if (esObjecto(tipoObj))
                         {
                             string ambitoObj = simbActual.ambito;
+                            string ruta = simbActual.rutaAcc;
                             VairablesObjeto obj = tabla.obtenerObjetoConAtributos(simbActual.nombre, simbActual.ambito, simbActual.rutaAcc);
                             ret.val = new Valor(tipoObj, obj);
                         }
@@ -595,6 +625,8 @@ namespace xForms.Analizar
                             ret.val = new Valor(simbActual.tipo, simbActual);
                             //ret.val = simbActual.valor;
                         }
+                     
+                            nuevoC.addAmbito(simbActual.nombre);
                         ambiente.addAmbito(simbActual.nombre);
                         cont++;
                     }

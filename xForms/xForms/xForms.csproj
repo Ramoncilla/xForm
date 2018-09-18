@@ -61,6 +61,7 @@
     <Compile Include="Ejecucion\Clase.cs" />
     <Compile Include="Ejecucion\elementoRetorno.cs" />
     <Compile Include="Ejecucion\Importar.cs" />
+    <Compile Include="Ejecucion\ListaArchivos.cs" />
     <Compile Include="Ejecucion\ListaAtributos.cs" />
     <Compile Include="Ejecucion\ListaClases.cs" />
     <Compile Include="Ejecucion\ListaFunciones.cs" />

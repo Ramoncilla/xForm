@@ -107,43 +107,7 @@ namespace xForms.Tabla_Simbolos
 
         }
 
-        public int esAtributoSimbolo(string nombre, Contexto ambiente)
-        { 
-
-            //1 es atributo
-            //2 es local
-            //0 no existe el simbolo 
-
-            int no = this.listaSimbolos.Count;
-            if (no > 1)
-            {
-                nodoTablaSimbolos actual = this.listaSimbolos.Peek();
-                Simbolo busc = actual.obtenerSimbolo(nombre, ambiente);
-                if (busc != null)
-                {
-                    return 2;
-                }
-                else
-                {
-                    nodoTablaSimbolos global = this.listaSimbolos.ElementAt((listaSimbolos.Count - 1));
-                    busc = global.obtenerSimbolo(nombre, ambiente);
-                    return 1;
-                }
-            }
-            else if (no == 1)
-            {
-                nodoTablaSimbolos actual = this.listaSimbolos.Peek();
-                Simbolo busc = actual.obtenerSimbolo(nombre, ambiente);
-                if (busc != null)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
-
-        }
-
+      
 
         public Simbolo buscarSimbolo(string nombre, Contexto ambiente)
         {
@@ -162,38 +126,30 @@ namespace xForms.Tabla_Simbolos
             }
             return null;
 
-            /*
-            int no = this.listaSimbolos.Count;
-            if (no > 1)
-            {
-                nodoTablaSimbolos actual = this.listaSimbolos.Peek();
-                Simbolo busc = actual.obtenerSimbolo(nombre, ambiente);
-                if (busc != null)
-                {
-                    return busc;
-                }
-                else
-                {
-                    nodoTablaSimbolos global = this.listaSimbolos.ElementAt((listaSimbolos.Count-1));
-                    busc = global.obtenerSimbolo(nombre, ambiente);
-                    return busc;
-                }
-            }
-            else if(no==1)
-            {
-                nodoTablaSimbolos actual = this.listaSimbolos.Peek();
-                Simbolo busc = actual.obtenerSimbolo(nombre, ambiente);
-                if (busc != null)
-                {
-                    return busc;
-                }
-
-            }
-            return null;*/
+            
         }
 
 
 
+        public Simbolo buscarSimboloRutaAcceso(string nombre, Contexto ambiente)
+        {
+
+            nodoTablaSimbolos temp;
+            Simbolo simb;
+            for (int i = 0; i < this.listaSimbolos.Count; i++)
+            {
+                temp = listaSimbolos.ElementAt(i);
+                simb = temp.obtenerSimboloRuta(nombre, ambiente);
+                if (simb != null)
+                {
+                    return simb;
+                }
+
+            }
+            return null;
+
+
+        }
 
 
 

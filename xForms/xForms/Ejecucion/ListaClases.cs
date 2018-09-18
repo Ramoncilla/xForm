@@ -4,26 +4,61 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using xForms.Tabla_Simbolos;
+using Irony.Ast;
+using Irony.Interpreter;
+using Irony.Parsing;
+using System.IO;
+using xForms.Analizar;
 
 namespace xForms.Ejecucion
 {
     class ListaClases
     {
-       List<Clase> lClases;
-
-
+       public List<Clase> lClases;
+       public  String rutaArchivo;
+       public string rutaCarpeta;
+      // public List<String> importaciones;
+       public List<ListaClases> archivosImportados;
 
        public Clase get(int i)
        {
            return this.lClases.ElementAt(i);
+           
        }
-        public ListaClases()
+        public ListaClases(string rutaA, string rutaC)
         {
+            this.archivosImportados = new List<ListaClases>();
             this.lClases = new List<Clase>();
+            this.rutaArchivo = rutaA;
+            rutaCarpeta = rutaC;
+          //  importaciones = new List<string>();
         }
+
+
+        public bool hayPrincipalClasesArchivoPrincipal()
+        {
+            Clase temp;
+            for (int i = 0; i < this.lClases.Count; i++)
+            {
+                temp = this.lClases.ElementAt(i);
+                if (temp.perteneceArchivoPrincipal)
+                {
+                    if (temp.tienePrincipal())
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+
+
+    
 
         public void insertarClase(Clase c)
         {
+           
             if (!existeClase(c.nombreClase))
             {
                 this.lClases.Add(c);
@@ -31,7 +66,7 @@ namespace xForms.Ejecucion
             else
             {
                 Constantes.erroresEjecucion.errorSemantico("No se ha podido ingresar la clase " + c.nombreClase + ", ya existe");
-            }            
+            }           
         }
 
         private bool existeClase(string nombreClase)
@@ -114,6 +149,7 @@ namespace xForms.Ejecucion
                         if (atriTemp.ambito.Equals(nomClase, StringComparison.InvariantCultureIgnoreCase))
                         {
                             atriTemp.rutaAcc= ambiente.getAmbito();
+                            atriTemp.ambito = ambiente.getAmbito();
                             atributosClase.insertarAtributo(atriTemp);
                             if (esObjecto(atriTemp.tipo))
                             {
@@ -135,6 +171,62 @@ namespace xForms.Ejecucion
         }
 
 
+
+        private bool existe(string ruta)
+        {
+            if (this.rutaArchivo.Equals(ruta, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return true;
+            }
+            else if (this.archivosImportados.Count > 0)
+            {
+                ListaClases temp;
+                for (int i = 0; i < this.archivosImportados.Count; i++)
+                {
+                    temp = archivosImportados.ElementAt(i);
+                    if (temp.rutaArchivo.Equals(ruta, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+                    
+                }
+            }
+
+            return false;
+        }
+
+
+        private ParseTreeNode obtenerRaizArchivo(string ruta)
+        {
+            string contenidoArchivo = obtenerContenidoArchivo(ruta);
+            if (!(contenidoArchivo.Equals("")))
+            {
+                Arbol b = new Arbol(rutaCarpeta, ruta);
+                return b.parseArchivoImportado(contenidoArchivo, ruta);
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico("Archivo " + ruta + " no valido");
+            }
+
+            return null;
+        }
+
+        private string obtenerContenidoArchivo(string ruta)
+        {
+            string contenido = "";
+            StreamReader objReader = new StreamReader(ruta);
+            string sLine = "";
+            while (sLine != null)
+            {
+                sLine = objReader.ReadLine();
+                if (sLine != null)
+                    contenido += sLine + "\n";
+            }
+            objReader.Close();
+
+            return contenido;
+        }
     
         private bool esObjecto(String tipo)
         {
@@ -167,6 +259,90 @@ namespace xForms.Ejecucion
                 }
             }
             return null;
+        }
+
+
+
+
+        public void generarClases(ParseTreeNode nodo)
+        {
+            switch (nodo.Term.Name)
+            {
+                case Constantes.ARCHIVO:{
+                    foreach (ParseTreeNode item in nodo.ChildNodes)
+                        {
+                            generarClases(item);
+                        }
+                        break;
+                }
+                case Constantes.LISTA_CLASES:
+                    {
+                        foreach (ParseTreeNode item in nodo.ChildNodes)
+                        {
+                            generarClases(item);
+                        }
+                        break;
+                    }
+                case Constantes.IMPORTACIONES:
+                    {
+                        foreach (var item in nodo.ChildNodes)
+                        {
+                            generarClases(item);
+                        }
+                        break;
+                    }
+                case Constantes.IMPORTAR:
+                    {
+                        string nombreArchivo = nodo.ChildNodes[0].Token.ValueString;
+                        string nuevaRuta = rutaCarpeta+"\\"+nombreArchivo+".xform";
+                        ListaClases claseImportada = new ListaClases(nuevaRuta, rutaCarpeta);
+                        if (!existe(nuevaRuta))
+                        {
+                            ParseTreeNode nodoRaiz = obtenerRaizArchivo(nuevaRuta);
+                            if (nodoRaiz != null)
+                            {
+                                claseImportada.generarClases(nodoRaiz);
+                                archivosImportados.Add(claseImportada);
+                            }
+                        }
+                        
+                        /*
+                        Importar nuevo = new Importar(nombreArchivo);
+                        importaciones.Add(nombreArchivo);*/
+                        break;
+                    }
+                case Constantes.CLASE:
+                    {
+                        int no = nodo.ChildNodes.Count;
+                        String nombre = "";
+                        String visibilidad="";
+                        ParseTreeNode cuerpoClase;
+                        string herencia = "";
+
+                        if (no == 3)
+                        {// no posee herencia
+                            nombre = nodo.ChildNodes[0].Token.ValueString;
+                            visibilidad = nodo.ChildNodes[1].ChildNodes[0].Token.ValueString;
+                            cuerpoClase = nodo.ChildNodes[2];
+                            Clase c = new Clase(nombre, "", visibilidad, cuerpoClase);
+                            insertarClase(c);
+                        }
+                        else
+                        {
+                            nombre = nodo.ChildNodes[0].Token.ValueString;
+                            visibilidad = nodo.ChildNodes[1].ChildNodes[0].Token.ValueString;
+                            cuerpoClase = nodo.ChildNodes[3];
+                            herencia = nodo.ChildNodes[2].Token.ValueString;
+                            Clase c = new Clase(nombre, herencia, visibilidad, cuerpoClase);
+                            insertarClase(c);
+
+                        }
+                        break;
+                    }
+            }
+
+            
+
         }
 
 

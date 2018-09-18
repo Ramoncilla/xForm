@@ -20,10 +20,10 @@ namespace xForms.Analizar
         private String path;
         
 
-        public Arbol(string rutaCarpeta)
+        public Arbol(string rutaCarpeta, string nombreA)
         {
             
-            accion = new Accion(rutaCarpeta);
+            accion = new Accion(rutaCarpeta, nombreA);
             lenguaje = new LanguageData(new Gramatica());//clase de la gramatica
             p = new Parser(lenguaje);
             path = @"C:\";
@@ -76,8 +76,9 @@ namespace xForms.Analizar
             if (s_tree.Root != null)
             {
                 Console.WriteLine("========ACCIONES AL EVVALUAR EL ARBOL=============");
-                accion.generarClases(s_tree.Root);
-                accion.ejecutarImportaciones();
+                accion.generarArchivosClase(s_tree.Root);
+                // accion.generarClases(s_tree.Root);
+                //accion.ejecutarImportaciones();
                 accion.instanciarAtributosClase();
                 cad = accion.ejecutarArchivo();
                 Console.WriteLine("==================================================");

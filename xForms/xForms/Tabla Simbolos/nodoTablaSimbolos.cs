@@ -31,7 +31,7 @@ namespace xForms.Tabla_Simbolos
             }
             else
             {
-                Constantes.erroresEjecucion.errorSemantico( "La variable " + simb.nombre + ", ya existe en el ambito actual ");
+                Constantes.erroresEjecucion.errorSemantico( "La variable " + simb.nombre + ", ya existe en el ambito actual " + simb.ambito + "  "+ simb.rutaAcc);
                 return false;
             }
 
@@ -44,7 +44,8 @@ namespace xForms.Tabla_Simbolos
             {
                 temp = this.variablesAmbito.ElementAt(i);
                 if(temp.nombre.ToLower().Equals(simb.nombre.ToLower()) &&
-                    temp.ambito.ToLower().Equals(simb.ambito.ToLower()))
+                    temp.ambito.ToLower().Equals(simb.ambito.ToLower()) &&
+                    temp.rutaAcc.ToLower().Equals(simb.rutaAcc.ToLower()))
                 {
                     return true;
                 }
@@ -113,6 +114,29 @@ namespace xForms.Tabla_Simbolos
             return null;
         }
 
+        public Simbolo obtenerSimboloRuta(String nombre, Contexto ruta)
+        {
+            Simbolo temp;
+            Contexto ruta2 = ruta.clonarLista();
+            String rutaTemporal;
+            for (int i = 0; i < ruta.Ambitos.Count; i++)
+            {
+                rutaTemporal = ruta2.getAmbito();
+                for (int j = 0; j < this.variablesAmbito.Count; j++)
+                {
+                    temp = this.variablesAmbito.ElementAt(j);
+                    if (temp.nombre.Equals(nombre, StringComparison.CurrentCultureIgnoreCase) &&
+                    temp.rutaAcc.Equals(rutaTemporal, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return temp;
+                    }
+
+                }
+                ruta2.salirAmbito();
+            }
+
+            return null;
+        }
 
 
 

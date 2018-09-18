@@ -20,6 +20,7 @@ namespace xForms.Ejecucion
         public ListaFunciones funcionesClase;
         public ListaAtributos atributosClase;
         public Funcion principal;
+        public bool perteneceArchivoPrincipal;
  
 
         public Clase(String nombreC, String herencia, string visi, ParseTreeNode nodo)
@@ -32,6 +33,13 @@ namespace xForms.Ejecucion
             this.funcionesClase = new ListaFunciones();
             this.atributosClase = new ListaAtributos();
             crearElementosClasee();
+            perteneceArchivoPrincipal = false;
+        }
+
+
+        public bool tienePrincipal()
+        {
+            return (this.principal != null);
         }
 
 
