@@ -13,6 +13,8 @@ namespace xForms
 
 
         //PALABRAS RESERVADAS 
+        public const string PREGUNTA = "PREGUNTA";
+        public const string FORMULARIO = "FORMULARIO";
         public const string INSTANCIA_ARREGLO = "INSTANCIA_ARREGLO";
         public const string LISTA_ELEMENTOS_CLASEE = "LISTA_ELEMENTOS_CLASE";
         public const string CUERPO_CLASE = "CUERPO_CLASE";

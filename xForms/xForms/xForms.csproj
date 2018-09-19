@@ -80,6 +80,8 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Formularios\Formulario.cs" />
+    <Compile Include="Formularios\Pregunta.cs" />
     <Compile Include="Interfaz\elementoPlantilla.cs" />
     <Compile Include="Interfaz\ListaPaginas.cs" />
     <Compile Include="Program.cs" />
