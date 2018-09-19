@@ -54,7 +54,7 @@ namespace xForms.Ejecucion
 
 
 
-    
+     
 
         public void insertarClase(Clase c)
         {

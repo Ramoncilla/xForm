@@ -643,75 +643,84 @@ namespace xForms.Analizar
 
         private elementoRetorno resolverCaso(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
-            //CASO.Rule= ToTerm(Constantes.CASO) + ToTerm(Constantes.ABRE_PAR)+ EXPRESION +ToTerm(Constantes.CIERRA_PAR) +ToTerm(Constantes.DE) + CUERPO_CASO;
             ParseTreeNode expresionPivote = nodo.ChildNodes[0];
             ParseTreeNode cuerpoCaso = nodo.ChildNodes[1];
             Valor resPivote = resolverExpresion(expresionPivote, ambiente, nombreClase, nombreMetodo, tabla).val;
             if (!esNulo(resPivote))
             {
-                // VALOR.Rule= EXPRESION +ToTerm(Constantes.DOS_PUNTOS)+ CUERPO_FUNCION;
                 bool banderaEntroCaso = false;
                 ParseTreeNode temp, expresionTemp, cuerpoTemp;
 
-                string tipoCaso = "";
+                string tipoCasoDefecto = "";
                 Valor resCasoTemp;
                 for (int i = 0; i < cuerpoCaso.ChildNodes.Count; i++)
                 {
                     temp = cuerpoCaso.ChildNodes[i];
-                    expresionTemp= temp.ChildNodes[0];
-                    cuerpoTemp = temp.ChildNodes[1];
-                    tipoCaso = temp.Term.Name.ToString();
+                    tipoCasoDefecto = temp.Term.Name.ToString();
                     if ((banderaEntroCaso == false) || (banderaEntroCaso == true && ret.banderaRetorno == false))
                     {
-                        if (tipoCaso.Equals(Constantes.VALOR, StringComparison.CurrentCultureIgnoreCase))
+                        if (tipoCasoDefecto.Equals(Constantes.VALOR, StringComparison.CurrentCultureIgnoreCase))
                         {
+                            expresionTemp = temp.ChildNodes[0];
+                            cuerpoTemp = temp.ChildNodes[1];
                             resCasoTemp = resolverExpresion(expresionTemp, ambiente, nombreClase, nombreMetodo, tabla).val;
                             Valor v = igualIgual(resPivote, resCasoTemp);
                             if (esNulo(v))
                             {
-                                Constantes.erroresEjecucion.errorSemantico(temp, "La expresion pivote de la sentencia caso es de tipo, "+ resPivote.tipo+", no se puede operar con una operacion con Nulo");
+                                Constantes.erroresEjecucion.errorSemantico(temp, "La expresion pivote de la sentencia caso es de tipo, " + resPivote.tipo + ", no se puede operar con una operacion con Nulo");
                             }
-                            banderaEntroCaso = true;
-                                foreach (ParseTreeNode item in cuerpoCaso.ChildNodes[0].ChildNodes)
+                            else
+                            {
+                                if (esVerdadero(v) || (banderaEntroCaso == true && ret.banderaRetorno == false))
                                 {
-                                    if (ret.parar)
+                                    banderaEntroCaso = true;
+                                    foreach (ParseTreeNode item in cuerpoTemp.ChildNodes)
                                     {
-                                        ret.parar = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
-
+                                        if (ret.parar)
+                                        {
+                                            ret.parar = true;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                                        }
                                     }
                                 }
-                               
+                            }
                         }
                         else
                         {
-                            //es defecto 
+                            cuerpoTemp = temp.ChildNodes[0];
+                            banderaEntroCaso = true;
+                            foreach (ParseTreeNode item in cuerpoTemp.ChildNodes)
+                            {
+                                if (ret.parar)
+                                {
+                                    ret.parar = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    ret = evaluarArbol(item, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                                }
+                            }
+
+
                         }
 
                     }
-                    else
-                    {
-                        if (ret.parar)
-                        {
-                            ret.parar = false;
-                        }
-                        break;
-                    }
-                    
+                }
+
+                if (ret.parar)
+                {
+                    ret.parar = false;
                 }
             }
             else
             {
                 Constantes.erroresEjecucion.errorSemantico(expresionPivote, "Expresion no valida para la sentencia Caso");
             }
-
-
-
-
             return ret;
         }
 
@@ -789,8 +798,7 @@ namespace xForms.Analizar
             ParseTreeNode nodoCondicion = nodo.ChildNodes[1];
             ParseTreeNode asignaUnario = nodo.ChildNodes[2];
             ParseTreeNode nodoCuerpo = nodo.ChildNodes[3];
-
-            ambiente.addPara();
+            
             ret = evaluarArbol(nodoDeclaracion, ambiente, nombreClase, nombreMetodo, tabla, ret);
             Valor v = resolverExpresion(nodoCondicion, ambiente, nombreClase, nombreMetodo, tabla).val;
             if (!esNulo(v))
@@ -799,6 +807,7 @@ namespace xForms.Analizar
                 {
                     while (esVerdadero(v))
                     {
+                        ambiente.addPara();
                         foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
                         {
                             if (ret.continuar)
@@ -819,6 +828,7 @@ namespace xForms.Analizar
                         if (ret.parar)
                         {
                             ret.parar = false;
+                            ambiente.salirAmbito();
                             break;
                         }
                         if (ret.continuar)
@@ -827,11 +837,13 @@ namespace xForms.Analizar
                             ret = evaluarArbol(asignaUnario, ambiente, nombreClase, nombreMetodo, tabla, ret);
                             v = resolverExpresion(nodoCondicion, ambiente, nombreClase, nombreMetodo, tabla).val;
                             ret.continuar = false;
+                            ambiente.salirAmbito();
                             continue;
 
                         }
                         ret = evaluarArbol(asignaUnario, ambiente, nombreClase, nombreMetodo, tabla, ret);
                         v = resolverExpresion(nodoCondicion, ambiente, nombreClase, nombreMetodo, tabla).val;
+                        ambiente.salirAmbito();
 
                     }
                 }
@@ -845,17 +857,7 @@ namespace xForms.Analizar
             {
                 Constantes.erroresEjecucion.errorSemantico(nodoCondicion, "Condicion no validad para un ciclo para ");
             }
-
-
-
-
-
-            ambiente.salirAmbito();
-
-
-
-
-
+            
             return ret;
         }
 
@@ -870,14 +872,14 @@ namespace xForms.Analizar
             ParseTreeNode nodoExpresion = nodo.ChildNodes[1];
             elementoRetorno r = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
             Valor resExpr = r.val;
-            if (esBooleano(resExpr))
-            {
-                ambiente.addRepetir();
+           /* if (esBooleano(resExpr))
+            {*/
+                
                 // while (esVerdadero(resExpr))
 
                 do
                 {
-
+                    ambiente.addRepetir();
                     foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
                     {
                         if (ret.continuar)
@@ -898,24 +900,27 @@ namespace xForms.Analizar
                     if (ret.parar)
                     {
                         ret.parar = false;
+                        ambiente.salirAmbito();
                         break;
                     }
                     if (ret.continuar)
                     {
                         //resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
                         ret.continuar = false;
+                        ambiente.salirAmbito();
                         continue;
 
                     }
 
                     resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla).val;
-                } while (!esVerdadero(resExpr));
-                ambiente.salirAmbito();
-            }
+                    ambiente.salirAmbito();
+                } while (esVerdadero(resExpr)==false);
+                
+          /*  }
             else
             {
-                Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion para el ciclo hacer mientras  no es valida");
-            }
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La expresion para el ciclo repetir hasta  no es valida");
+            }*/
 
             return ret;
 
@@ -934,12 +939,12 @@ namespace xForms.Analizar
             Valor resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla).val;
             if (esBooleano(resExpr))
             {
-                ambiente.addHacerMientras();
+                
                 // while (esVerdadero(resExpr))
 
                 do
                 {
-
+                    ambiente.addHacerMientras();
                     foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
                     {
                         if (ret.continuar)
@@ -960,19 +965,22 @@ namespace xForms.Analizar
                     if (ret.parar)
                     {
                         ret.parar = false;
+                        ambiente.salirAmbito();
                         break;
                     }
                     if (ret.continuar)
                     {
                         //resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
                         ret.continuar = false;
+                        ambiente.salirAmbito();
                         continue;
 
                     }
 
                     resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla).val;
+                    ambiente.salirAmbito();
                 } while (esVerdadero(resExpr));
-                ambiente.salirAmbito();
+                
             }
             else
             {
@@ -995,9 +1003,10 @@ namespace xForms.Analizar
             Valor resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla).val;
             if (esBooleano(resExpr))
             {
-                ambiente.addMientras();
+                
                 while (esVerdadero(resExpr))
                 {
+                    ambiente.addMientras();
 
                     // resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
                     foreach (ParseTreeNode item in nodoCuerpo.ChildNodes[0].ChildNodes)
@@ -1020,19 +1029,22 @@ namespace xForms.Analizar
                     if (ret.parar)
                     {
                         ret.parar = false;
+                        ambiente.salirAmbito();
                         break;
                     }
                     if (ret.continuar)
                     {
                         //resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla);
                         ret.continuar = false;
+                        ambiente.salirAmbito();
                         continue;
 
                     }
 
                     resExpr = resolverExpresion(nodoExpresion, ambiente, nombreClase, nombreMetodo, tabla).val;
+                    ambiente.salirAmbito();
                 }
-                ambiente.salirAmbito();
+                
             }
             else
             {
@@ -2819,12 +2831,63 @@ namespace xForms.Analizar
                 return resp;
 
             }
-            else if (esCadena(v1) && esCadena(v2))
+            else if (esFecha(v1) && esFecha(v2))
             {
-                if(getCadena(v1).CompareTo(getCadena(v2)) < 0){
+                Fecha f = (Fecha)v1.valor;
+                Fecha f2 = (Fecha)v2.valor;
+                if (f.fechaReal < f2.fechaReal)
+                {
                     resp.valor = Constantes.VERDADERO;
                 }
+                return resp;
+
             }
+            else if (esFecha(v1) && esFechaHora(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (f.fechaReal < tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+
+            }
+            else if (esFechaHora(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v2.valor;
+                FechaHora f2 = (FechaHora)v1.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR2< f.fechaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esFechaHora(v1) && esFechaHora(v2))
+            {
+                FechaHora f = (FechaHora)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR1 = new DateTime(f.fechaA.fechaReal.Year, f.fechaA.fechaReal.Month, f.fechaA.fechaReal.Day, f.horaA.horaReal.Hour, f.horaA.horaReal.Minute, f.horaA.horaReal.Second);
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR1< tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esHora(v1) && esHora(v2))
+            {
+                Hora h1 = (Hora)v1.valor;
+                Hora h2 = (Hora)v2.valor;
+                if (h1.horaReal < h2.horaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+           
 
             /*si se tuvieran que incluir los demas tipos*/
             return new Valor(Constantes.NULO, Constantes.NULO);
@@ -2918,12 +2981,61 @@ namespace xForms.Analizar
                 return resp;
 
             }
-            else if (esCadena(v1) && esCadena(v2))
+            else if (esFecha(v1) && esFecha(v2))
             {
-                if (getCadena(v1).CompareTo(getCadena(v2)) >= 0)
+                Fecha f = (Fecha)v1.valor;
+                Fecha f2 = (Fecha)v2.valor;
+                if (f.fechaReal >= f2.fechaReal)
                 {
                     resp.valor = Constantes.VERDADERO;
                 }
+                return resp;
+
+            }
+            else if (esFecha(v1) && esFechaHora(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (f.fechaReal >= tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+
+            }
+            else if (esFechaHora(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v2.valor;
+                FechaHora f2 = (FechaHora)v1.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR2 >= f.fechaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esFechaHora(v1) && esFechaHora(v2))
+            {
+                FechaHora f = (FechaHora)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR1 = new DateTime(f.fechaA.fechaReal.Year, f.fechaA.fechaReal.Month, f.fechaA.fechaReal.Day, f.horaA.horaReal.Hour, f.horaA.horaReal.Minute, f.horaA.horaReal.Second);
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR1 >= tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esHora(v1) && esHora(v2))
+            {
+                Hora h1 = (Hora)v1.valor;
+                Hora h2 = (Hora)v2.valor;
+                if (h1.horaReal >= h2.horaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
             }
 
             /*si se tuvieran que incluir los demas tipos*/
@@ -3016,6 +3128,62 @@ namespace xForms.Analizar
                 return resp;
 
             }
+            else if (esFecha(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                Fecha f2 = (Fecha)v2.valor;
+                if (f.fechaReal > f2.fechaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+
+            }
+            else if (esFecha(v1) && esFechaHora(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (f.fechaReal > tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+
+            }
+            else if (esFechaHora(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v2.valor;
+                FechaHora f2 = (FechaHora)v1.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR2 > f.fechaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esFechaHora(v1) && esFechaHora(v2))
+            {
+                FechaHora f = (FechaHora)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR1 = new DateTime(f.fechaA.fechaReal.Year, f.fechaA.fechaReal.Month, f.fechaA.fechaReal.Day, f.horaA.horaReal.Hour, f.horaA.horaReal.Minute, f.horaA.horaReal.Second);
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR1 > tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esHora(v1) && esHora(v2))
+            {
+                Hora h1 = (Hora)v1.valor;
+                Hora h2 = (Hora)v2.valor;
+                if (h1.horaReal > h2.horaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
 
             /*si se tuvieran que incluir los demas tipos*/
             return new Valor(Constantes.NULO, Constantes.NULO);
@@ -3107,11 +3275,70 @@ namespace xForms.Analizar
                 return resp;
 
             }
+            else if (esFecha(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                Fecha f2 = (Fecha)v2.valor;
+                if (f.fechaReal <= f2.fechaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+
+            }
+            else if (esFecha(v1) && esFechaHora(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (f.fechaReal <= tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+
+            }
+            else if (esFechaHora(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v2.valor;
+                FechaHora f2 = (FechaHora)v1.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR2 <= f.fechaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esFechaHora(v1) && esFechaHora(v2))
+            {
+                FechaHora f = (FechaHora)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR1 = new DateTime(f.fechaA.fechaReal.Year, f.fechaA.fechaReal.Month, f.fechaA.fechaReal.Day, f.horaA.horaReal.Hour, f.horaA.horaReal.Minute, f.horaA.horaReal.Second);
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR1 <= tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esHora(v1) && esHora(v2))
+            {
+                Hora h1 = (Hora)v1.valor;
+                Hora h2 = (Hora)v2.valor;
+                if (h1.horaReal <= h2.horaReal)
+                {
+                    
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
 
             /*si se tuvieran que incluir los demas tipos*/
             return new Valor(Constantes.NULO, Constantes.NULO);
         }
         #endregion
+
+
 
         #region igualIgual
         private Valor igualIgual(Valor v1, Valor v2)
@@ -3198,12 +3425,79 @@ namespace xForms.Analizar
             }
             else if (esCadena(v1) && esCadena(v2))
             {
-                if (getCadena(v1).CompareTo(getCadena(v2)) == 0)
+                if (getCadena(v1).Equals(getCadena(v2)))
                 {
                     resp.valor = Constantes.VERDADERO;
                 }
+                return resp;
             }
+            else if (esFecha(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                Fecha f2 = (Fecha)v2.valor;
+                if (f.fechaReal == f2.fechaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
 
+            }
+            else if (esFecha(v1) && esFechaHora(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (f.fechaReal == tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+                
+            }
+            else if (esFechaHora(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v2.valor;
+                FechaHora f2 = (FechaHora)v1.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (f.fechaReal == tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esFechaHora(v1) && esFechaHora(v2))
+            {
+                FechaHora f = (FechaHora)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR1 = new DateTime(f.fechaA.fechaReal.Year, f.fechaA.fechaReal.Month, f.fechaA.fechaReal.Day, f.horaA.horaReal.Hour, f.horaA.horaReal.Minute, f.horaA.horaReal.Second);
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR1 == tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esHora(v1) && esHora(v2))
+            {
+                Hora h1 = (Hora)v1.valor;
+                Hora h2 = (Hora)v2.valor;
+                if (h1.horaReal == h2.horaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esBool(v1) && esBool(v2))
+            {
+                int a = getBooleanoNumero(v1);
+                int b = getBooleanoNumero(v2);
+                if (a == b)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+
+            }
             /*si se tuvieran que incluir los demas tipos*/
             return new Valor(Constantes.NULO, Constantes.NULO);
         }
@@ -3216,7 +3510,7 @@ namespace xForms.Analizar
             Valor resp = new Valor(Constantes.BOOLEANO, Constantes.FALSO);
             if (esEntero(v1) && esEntero(v2))
             {
-                if (getEntero(v1) != getEntero(v2))
+                if (getEntero(v1)!= getEntero(v2))
                 {
                     resp.valor = Constantes.VERDADERO;
                 }
@@ -3299,8 +3593,74 @@ namespace xForms.Analizar
                 {
                     resp.valor = Constantes.VERDADERO;
                 }
+                return resp;
             }
+            else if (esFecha(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                Fecha f2 = (Fecha)v2.valor;
+                if (f.fechaReal != f2.fechaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
 
+            }
+            else if (esFecha(v1) && esFechaHora(v2))
+            {
+                Fecha f = (Fecha)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (f.fechaReal != tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+
+            }
+            else if (esFechaHora(v1) && esFecha(v2))
+            {
+                Fecha f = (Fecha)v2.valor;
+                FechaHora f2 = (FechaHora)v1.valor;
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (f.fechaReal != tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esFechaHora(v1) && esFechaHora(v2))
+            {
+                FechaHora f = (FechaHora)v1.valor;
+                FechaHora f2 = (FechaHora)v2.valor;
+                DateTime tiempoR1 = new DateTime(f.fechaA.fechaReal.Year, f.fechaA.fechaReal.Month, f.fechaA.fechaReal.Day, f.horaA.horaReal.Hour, f.horaA.horaReal.Minute, f.horaA.horaReal.Second);
+                DateTime tiempoR2 = new DateTime(f2.fechaA.fechaReal.Year, f2.fechaA.fechaReal.Month, f2.fechaA.fechaReal.Day, f2.horaA.horaReal.Hour, f2.horaA.horaReal.Minute, f2.horaA.horaReal.Second);
+                if (tiempoR1 != tiempoR2)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esHora(v1) && esHora(v2))
+            {
+                Hora h1 = (Hora)v1.valor;
+                Hora h2 = (Hora)v2.valor;
+                if (h1.horaReal != h2.horaReal)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
+            else if (esBool(v1) && esBool(v2))
+            {
+                int a = getBooleanoNumero(v1);
+                int b = getBooleanoNumero(v2);
+                if (a != b)
+                {
+                    resp.valor = Constantes.VERDADERO;
+                }
+                return resp;
+            }
             /*si se tuvieran que incluir los demas tipos*/
             return new Valor(Constantes.NULO, Constantes.NULO);
         }
@@ -3447,23 +3807,24 @@ namespace xForms.Analizar
             Valor resp;
             if (esBool(v1) && esEntero(v2))
             {
-                int a = getBooleanoNumero(v1);
-                int b = getEntero(v2);
+                double a = getBooleanoNumero(v1);
+                double b = getEntero(v2);
                 if (!esCero(b))
                 {
-                    int c = a / b;
-                    resp = new Valor(Constantes.ENTERO, c);
+                    double c = a / b;
+                    resp = new Valor(Constantes.DECIMAL, c);
                     return resp;
                 }
                 else
                 {
+                    Constantes.erroresEjecucion.errorSemantico("No es valido la division entre los valores  " + a + "  entre " + b);
 
                 }
                 
             }
             else if (esBool(v1) && esDecimal(v2))
             {
-                int a = getBooleanoNumero(v1);
+                double a = getBooleanoNumero(v1);
                 double b = getDecimal(v2);
                 if (!esCero(b))
                 {
@@ -3474,32 +3835,32 @@ namespace xForms.Analizar
                 }
                 else
                 {
-
+                    Constantes.erroresEjecucion.errorSemantico("No es valido la division entre los valores  " + a + "  entre " + b);
                 }
                
 
             }
             else if (esEntero(v1) && esEntero(v2))
             {
-                int a = getEntero(v1);
-                int b = getEntero(v2);
+                double a = getEntero(v1);
+                double b = getEntero(v2);
                 if (!esCero(b))
                 {
-                    int c = a / b;
-                    resp = new Valor(Constantes.ENTERO, c);
+                    double c = a / b;
+                    resp = new Valor(Constantes.DECIMAL, c);
                     return resp;
 
                 }
                 else
                 {
-
+                    Constantes.erroresEjecucion.errorSemantico("No es valido la division entre los valores  " + a + "  entre " + b);
                 }
                 
 
             }
             else if (esEntero(v1) && esDecimal(v2))
             {
-                int a = getEntero(v1);
+                double a = getEntero(v1);
                 double b = getDecimal(v2);
                 if (!esCero(b))
                 {
@@ -3510,25 +3871,25 @@ namespace xForms.Analizar
                 }
                 else
                 {
-
+                    Constantes.erroresEjecucion.errorSemantico("No es valido la division entre los valores  " + a + "  entre " + b);
                 }
                 
 
             }
             else if (esDecimal(v1) && esEntero(v2))
             {
-                int a = getEntero(v2);
-                double b = getDecimal(v1);
+                double a = getDecimal(v1);
+                double b = getEntero(v2);
                 if (!esCero(b))
                 {
-                    double c = b / a;
+                    double c = a / b;
                     resp = new Valor(Constantes.DECIMAL, c);
                     return resp;
 
                 }
                 else
                 {
-
+                    Constantes.erroresEjecucion.errorSemantico("No es valido la division entre los valores  " + a + "  entre " + b);
                 }
                
 
@@ -3546,6 +3907,7 @@ namespace xForms.Analizar
                 }
                 else
                 {
+                    Constantes.erroresEjecucion.errorSemantico("No es valido la division entre los valores  " + a + "  entre " + b);
 
                 }
                 
@@ -3553,7 +3915,7 @@ namespace xForms.Analizar
             else if (esDecimal(v1) && esBool(v2))
             {
                 double a = getDecimal(v1);
-                int b = getBooleanoNumero(v2);
+                double b = getBooleanoNumero(v2);
                 if (!esCero(b))
                 {
                     double c = a / b;
@@ -3563,25 +3925,25 @@ namespace xForms.Analizar
                 }
                 else
                 {
-
+                    Constantes.erroresEjecucion.errorSemantico("No es valido la division entre los valores  " + a + "  entre " + b);
                 }
                 
 
             }
             else if (esEntero(v1) && esBool(v2))
             {
-                int a = getBooleanoNumero(v2);
-                int b = getEntero(v1);
+                double b = getBooleanoNumero(v2);
+                double a = getEntero(v1);
                 if (!esCero(b))
                 {
-                    int c = b / a;
-                    resp = new Valor(Constantes.ENTERO, c);
+                    double c = a / b;
+                    resp = new Valor(Constantes.DECIMAL, c);
                     return resp;
 
                 }
                 else
                 {
-
+                    Constantes.erroresEjecucion.errorSemantico("No es valido la division entre los valores  " + a + "  entre " + b);
                 }
                 
 
@@ -3818,7 +4180,7 @@ namespace xForms.Analizar
             }
             else if (esBool(v1) && esCadena(v2))
             {
-                int b1 = getBooleanoNumero(v1);
+                string b1 = getBooleanoLetra(v1);
                 string c1 = getCadena(v2);
                 resp = new Valor(Constantes.CADENA, b1 + c1 + "");
                 return resp;

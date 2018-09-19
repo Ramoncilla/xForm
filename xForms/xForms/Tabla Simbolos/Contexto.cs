@@ -17,6 +17,7 @@ namespace xForms.Tabla_Simbolos
         int contRepetir;
         int contCaso;
         int contHacerMientras;
+        int contDefecto;
 
         public Contexto()
         {
@@ -28,6 +29,7 @@ namespace xForms.Tabla_Simbolos
             this.contRepetir = 0;
             this.contCaso = 0;
             this.contHacerMientras = 0;
+            this.contDefecto = 0;
         }
 
         public void salirAmbito()
@@ -60,8 +62,8 @@ namespace xForms.Tabla_Simbolos
 
         public void addDefecto()
         {
-            contCaso++;
-            this.Ambitos.Push("Defecto" + contCaso);
+            contDefecto++;
+            this.Ambitos.Push("Defecto" + contDefecto);
         }
 
         public void addMientras()
@@ -85,7 +87,7 @@ namespace xForms.Tabla_Simbolos
         public void addPara()
         {
             contFor++;
-            this.Ambitos.Push("Para" + contRepetir);
+            this.Ambitos.Push("Para" + contFor);
         }
 
 

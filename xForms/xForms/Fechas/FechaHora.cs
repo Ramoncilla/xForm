@@ -15,8 +15,8 @@ namespace xForms.Fechas
     {
         ParseTreeNode nodoFechaHora;
         public string cadenaRealFechaHora;
-        Fecha fechaA;
-        Hora horaA;
+        public Fecha fechaA;
+        public Hora horaA;
 
 
         public FechaHora(ParseTreeNode nodo, String cadena)

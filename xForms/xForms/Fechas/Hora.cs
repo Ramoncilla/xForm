@@ -17,7 +17,7 @@ namespace xForms.Fechas
         int minutos;
         int segundos;
         public String valHoraCadena;
-        DateTime horaReal;
+        public DateTime horaReal;
         String cadenaRealHora;
 
         public Hora(ParseTreeNode nodo, String cadena)

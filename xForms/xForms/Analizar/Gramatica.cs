@@ -246,8 +246,8 @@ namespace xForms.Analizar
 
             DECLA_VARIABLE.Rule = TIPO_DATOS + identificador + ToTerm(Constantes.IGUAL) + EXPRESION
                 | TIPO_DATOS + identificador;
-	
-            ASIGNACION.Rule= ACCESO + ToTerm(Constantes.IGUAL) +  EXPRESION + ToTerm(Constantes.PUNTO_COMA);
+
+            ASIGNACION.Rule = ACCESO + ToTerm(Constantes.IGUAL) + EXPRESION;
 
 
             DECLA_ARREGLO.Rule = TIPO_DATOS + identificador + L_CORCHETES_VACIOS + ToTerm(Constantes.IGUAL) + EXPRESION + ToTerm(Constantes.PUNTO_COMA)
@@ -324,7 +324,7 @@ namespace xForms.Analizar
 
                 REPETIR_HASTA.Rule = ToTerm(Constantes.REPETIR) + CUERPO_FUNCION + ToTerm(Constantes.HASTA) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
 
-                PARA.Rule = ToTerm(Constantes.PARA) + ToTerm(Constantes.ABRE_PAR) + DEC_ASIG + EXPRESION + ToTerm(Constantes.PUNTO_COMA) + ASIGNA_UNARIO + ToTerm(Constantes.CIERRA_PAR) + CUERPO_FUNCION;
+                PARA.Rule = ToTerm(Constantes.PARA) + ToTerm(Constantes.ABRE_PAR) + DEC_ASIG + ToTerm(Constantes.PUNTO_COMA) +EXPRESION + ToTerm(Constantes.PUNTO_COMA) + ASIGNA_UNARIO + ToTerm(Constantes.CIERRA_PAR) + CUERPO_FUNCION;
 
                 IMPRIMIR.Rule = ToTerm(Constantes.IMPRIMIR) + ToTerm(Constantes.ABRE_PAR) + EXPRESION + ToTerm(Constantes.CIERRA_PAR) + ToTerm(Constantes.PUNTO_COMA);
 
@@ -348,7 +348,7 @@ namespace xForms.Analizar
                     | ROMPER
                     | SI
                     | RETORNO
-                    | ASIGNACION
+                    | ASIGNACION+ ToTerm(Constantes.PUNTO_COMA)
                     | DECLA_ARREGLO
                     | DECLA_VARIABLE + ToTerm(Constantes.PUNTO_COMA)
                     | SUPER
@@ -519,33 +519,44 @@ namespace xForms.Analizar
 
 
             #endregion
-
+/*
 
             this.RegisterOperators(9, Associativity.Left, "(",")");
-            this.RegisterOperators(8, Associativity.Right, "++","--","!");
+            this.RegisterOperators(8, Associativity.Right, "++","--");
             this.RegisterOperators(6, Associativity.Right, "^");
             this.RegisterOperators(7, Associativity.Left, "/", "*","%");
             this.RegisterOperators(6, Associativity.Left, "-", "+");
             this.RegisterOperators(5, "<", ">", "<=", ">=", "==", "!=");
            // this.RegisterOperators(4, Associativity.Left, "==", "!=");
             this.RegisterOperators(3, Associativity.Left, "&&");
-            this.RegisterOperators(2, Associativity.Left, "||");
+            this.RegisterOperators(2, Associativity.Left, "||");*/
 
+
+            this.RegisterOperators(9, Associativity.Left, "(", ")");
+            this.RegisterOperators(8, Associativity.Right, UNARIO, NEGATIVO);
+            this.RegisterOperators(7, Associativity.Right, "^");
+            this.RegisterOperators(6, Associativity.Left, "/", "*", "%");
+            this.RegisterOperators(5, Associativity.Left, "-", "+");
+            this.RegisterOperators(4, "==", "!=", "<", ">", "<=", ">=");
+            this.RegisterOperators(3, Associativity.Left, "!");
+            this.RegisterOperators(2, Associativity.Left, "&&");
+            this.RegisterOperators(1, Associativity.Left, "||");
+           
 
 
             this.Root = ARCHIVO;
 
-
+          
 
             #endregion
 
             MarkPunctuation("[","]","(",")",",","{","}", Constantes.IMPRIMIR, ";",":", Constantes.SI, Constantes.PADRE, Constantes.CLASE, Constantes.SINO, Constantes.IGUAL,
                 Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS, Constantes.HACER, Constantes.PARA, Constantes.RETORNO, Constantes.CASO, Constantes.DE,
-                Constantes.DOS_PUNTOS, Constantes.DEFECTO);
+                Constantes.DOS_PUNTOS, Constantes.DEFECTO, Constantes.REPETIR, Constantes.HASTA);
 
 
 
-            MarkTransient(FUN_NATICA,TERMINO, OP_ARITMETICO,OP_LOGICO,OP_RELACIONAL, ELEMENTO_ACCESO, EXPRESION, SENTENCIA, ELEMENTO_CLASE, PARAMETROS, OPCION_VALOR);
+            MarkTransient(CUERPO_CASO,FUN_NATICA,TERMINO, OP_ARITMETICO,OP_LOGICO,OP_RELACIONAL, ELEMENTO_ACCESO, EXPRESION, SENTENCIA, ELEMENTO_CLASE, PARAMETROS, OPCION_VALOR);
 
 
         }

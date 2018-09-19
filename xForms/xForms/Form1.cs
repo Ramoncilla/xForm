@@ -199,8 +199,15 @@ namespace xForms
         private void button3_Click(object sender, EventArgs e)
         {
 
-            Console.WriteLine(Math.Sqrt(-10));
-            
+
+            DateTime f = new DateTime(1992, 5, 25, 0, 0, 0);
+            DateTime f2 = new DateTime(1992, 5, 25, 23, 0, 0);
+            DateTime f3 = new DateTime(1992, 5, 25, 0, 0, 0);
+
+            if (f >f2)
+            {
+                Console.WriteLine("holis");
+            }
             string cadena = "hola Mundo";
             char c;
             int val=0;
