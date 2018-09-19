@@ -35,6 +35,9 @@ namespace xForms.Tabla_Simbolos
             }*/
         }
 
+
+
+
         public void crearNuevoAmbito(String nombreFuncion)
         {
             nodoTablaSimbolos nuevo = new nodoTablaSimbolos(nombreFuncion);
@@ -154,7 +157,32 @@ namespace xForms.Tabla_Simbolos
 
 
 
+        public tablaSimbolos clonarTabla()
+        {
+            tablaSimbolos nueva = new tablaSimbolos();
+            nodoTablaSimbolos temp;
+            nodoTablaSimbolos nuevoN;
+            for (int i = 0; i < this.listaSimbolos.Count; i++)
+            {
+                temp = this.listaSimbolos.ElementAt(i);
+                nuevoN = temp.clonarNodo();
+                nueva.listaSimbolos.Push(nuevoN);
+            }
+            return nueva;
+        }
 
+
+
+
+        public void cambiarAmbito(String nuevoAmbito)
+        {
+            nodoTablaSimbolos temp;
+            for (int i = 0; i < listaSimbolos.Count; i++)
+            {
+                temp = listaSimbolos.ElementAt(i);
+                temp.cambiarAmbito(nuevoAmbito);
+            }
+        }
 
 
     }

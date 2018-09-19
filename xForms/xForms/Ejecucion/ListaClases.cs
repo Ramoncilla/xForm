@@ -17,8 +17,8 @@ namespace xForms.Ejecucion
        public List<Clase> lClases;
        public  String rutaArchivo;
        public string rutaCarpeta;
-      // public List<String> importaciones;
        public List<ListaClases> archivosImportados;
+
 
        public Clase get(int i)
        {
@@ -344,6 +344,74 @@ namespace xForms.Ejecucion
             
 
         }
+
+
+
+        /*---------- Agregar los atributos a los objetos que sean atributos de una clase ------------*/
+
+   
+        public void iniciarAtributos()
+        {
+            Clase claseTemporal;
+            Contexto ambitos;
+            Simbolo atributoTemporal;
+            for (int i = 0; i < lClases.Count; i++)
+            {
+                claseTemporal = lClases.ElementAt(i);
+                ambitos = new Contexto();
+                ambitos.addAmbito(claseTemporal.nombreClase);
+                int sizeAtributos = claseTemporal.atributosClase.lAtributos.Count;
+                for (int j = 0; j < sizeAtributos; j++)
+                {
+                    atributoTemporal = claseTemporal.atributosClase.lAtributos.ElementAt(j);
+                    if (esObjecto(atributoTemporal.tipo))
+                    {
+                        Objeto objTemp = (Objeto)atributoTemporal;
+                        ambitos.addAmbito(atributoTemporal.nombre);
+                        agregarAtributosTabla(objTemp.tipo, objTemp.variablesObjeto, ambitos, objTemp.nombre);
+                        ambitos.salirAmbito();
+                    }
+                }
+                
+                
+            }
+
+        }
+
+
+
+        private void agregarAtributosTabla(string nomClase, tablaSimbolos tabla, Contexto ambiente, string nombreAtributo)
+        {
+            Clase claseTemp = obtenerClase(nomClase);
+            Simbolo atributoTemp;
+            List<Simbolo> atributosClase;
+            if (claseTemp != null)
+            {
+                atributosClase = claseTemp.atributosClase.clonarLista();
+                for (int i = 0; i < atributosClase.Count; i++)
+                {
+                    atributoTemp = atributosClase.ElementAt(i);
+                    if (atributoTemp.ambito.Equals(nomClase, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        atributoTemp.rutaAcc = ambiente.getAmbito();
+                        atributoTemp.ambito = nomClase;
+                        tabla.insertarSimbolo(atributoTemp);
+                        if (esObjecto(atributoTemp.tipo))
+                        {
+                            Objeto obj = (Objeto)atributoTemp;
+                            ambiente.addAmbito(obj.nombre);
+                            agregarAtributosTabla(obj.tipo, obj.variablesObjeto, ambiente, obj.nombre);
+                            ambiente.salirAmbito();
+                        }
+                    }
+                }
+
+
+            }
+
+        }
+
+      
 
 
     }

@@ -14,6 +14,7 @@ namespace xForms.Ejecucion
     {
          public Object valorObjeto;
          public bool instanciado=false;
+         public tablaSimbolos variablesObjeto; 
 
         public Objeto(string nombre, string tipo, string visibilidad, ParseTreeNode nodoExprsion)
         {
@@ -21,6 +22,8 @@ namespace xForms.Ejecucion
             this.tipo = tipo;
             this.visibilidad = visibilidad;
             this.nodoExpresionValor = nodoExprsion;
+            this.variablesObjeto = new tablaSimbolos();
+            this.variablesObjeto.crearNuevoAmbito(this.nombre);
         }
 
         public Objeto(string nombre, string tipo, string ambito, bool atri)
@@ -29,6 +32,8 @@ namespace xForms.Ejecucion
             this.tipo = tipo;
             this.ambito = ambito;
             this.esAtributo = atri;
+            this.variablesObjeto = new tablaSimbolos();
+            this.variablesObjeto.crearNuevoAmbito(this.nombre);
         }
 
         public override void asignarValor(Valor v, ParseTreeNode nodo)
@@ -45,19 +50,21 @@ namespace xForms.Ejecucion
 
         }
 
-
-
         public override Simbolo clonar()
         {
-
             Objeto nueva = new Objeto(this.nombre, this.tipo, this.ambito, this.esAtributo);
             nueva.valor = this.valor;
             nueva.usada = this.usada;
             nueva.visibilidad = this.visibilidad;
             nueva.nodoExpresionValor = this.nodoExpresionValor;
             nueva.rutaAcc = this.rutaAcc;
-
+            nueva.variablesObjeto = this.variablesObjeto.clonarTabla();
             return nueva;
         }
+
+        
+
+
+
     }
 }

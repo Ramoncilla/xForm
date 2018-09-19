@@ -43,90 +43,13 @@ namespace xForms.Analizar
             ListaArchivos archivos = new ListaArchivos(rutaCarpeta);
             archivos.insertarArchivo(nombreArchivoPrincipal, nodoRaiz);
             this.claseArchivo = archivos.crearLista();
-            //Console.WriteLine("holaaaa");
-          //  return null;
         }
 
 
         public void instanciarAtributosClase(){
-            this.claseArchivo.instanciarAtributosClase();
+            this.claseArchivo.iniciarAtributos();
+            //this.claseArchivo.instanciarAtributosClase();
         }
-
-
-        #region generacion de un lisado de clases e importaciones
-        /*
-        public void generarClases(ParseTreeNode nodo)
-        {
-            switch (nodo.Term.Name)
-            {
-                case Constantes.ARCHIVO:{
-                    foreach (ParseTreeNode item in nodo.ChildNodes)
-                        {
-                            generarClases(item);
-                        }
-                        break;
-                }
-
-                case Constantes.LISTA_CLASES:
-                    {
-                        foreach (ParseTreeNode item in nodo.ChildNodes)
-                        {
-                            generarClases(item);
-                        }
-                        break;
-                    }
-
-                case Constantes.IMPORTACIONES:
-                    {
-                        foreach (var item in nodo.ChildNodes)
-                        {
-                            generarClases(item);
-                        }
-                        break;
-                    }
-
-                case Constantes.IMPORTAR:
-                    {
-                        string nombreArchivo = nodo.ChildNodes[0].Token.ValueString;
-                        Importar nuevo = new Importar(nombreArchivo);
-                        this.importaciones.Add(nuevo);
-                        break;
-                    }
-                case Constantes.CLASE:
-                    {
-                        int no = nodo.ChildNodes.Count;
-                        String nombre = "";
-                        String visibilidad="";
-                        ParseTreeNode cuerpoClase;
-                        string herencia = "";
-
-                        if (no == 3)
-                        {// no posee herencia
-                            nombre = nodo.ChildNodes[0].Token.ValueString;
-                            visibilidad = nodo.ChildNodes[1].ChildNodes[0].Token.ValueString;
-                            cuerpoClase = nodo.ChildNodes[2];
-                            Clase c = new Clase(nombre, "", visibilidad, cuerpoClase);
-                            this.claseArchivo.insertarClase(c);
-                        }
-                        else
-                        {
-                            nombre = nodo.ChildNodes[0].Token.ValueString;
-                            visibilidad = nodo.ChildNodes[1].ChildNodes[0].Token.ValueString;
-                            cuerpoClase = nodo.ChildNodes[3];
-                            herencia = nodo.ChildNodes[2].Token.ValueString;
-                            Clase c = new Clase(nombre, herencia, visibilidad, cuerpoClase);
-                            this.claseArchivo.insertarClase(c);
-
-                        }
-                        break;
-                    }
-            }
-
-            
-
-        }*/
-
-        #endregion
 
 
         private string obtenerContenidoArchivo(string ruta)
@@ -145,35 +68,7 @@ namespace xForms.Analizar
             return contenido;
         }
 
-        public void ejecutarImportaciones()
-        {
-            Importar temp;
-            Arbol b;
-            List<ParseTreeNode> archivosImortados = new List<ParseTreeNode>();
-            ParseTreeNode raizTemporal;
-            string contenido = "";
-            Console.WriteLine("***************************************** iMPORTACIONES ************************************");
-            for (int i = 0; i < this.importaciones.Count; i++)
-            {
-                temp = importaciones.ElementAt(i);
-                string r = rutaCarpeta  + temp.nombreArchivo + ".xform";
-                if (File.Exists(r))
-                {
-                    contenido = obtenerContenidoArchivo(r);
-                    b = new Arbol(rutaCarpeta, r);
-                    raizTemporal = b.parseArchivoImportado(contenido, temp.nombreArchivo);
-                    if (raizTemporal != null)
-                    {
-                        archivosImortados.Add(raizTemporal);
-                    }
-                }
-                else
-                {
-                    Constantes.erroresEjecucion.errorSemantico("El archivo " + r + ", no existe en la carpeta del proyecto");
-                }
-            }
-        }
-
+       
         public string ejecutarArchivo()
         {
             Clase temp;
@@ -429,18 +324,19 @@ namespace xForms.Analizar
             if (claseBuscada != null)
             {
                 Objeto nuevo = new Objeto(nombre, tipo, rutaAcceso, false);
-                
+                tabla.insertarSimbolo(nuevo, nodo);
                 Simbolo atriTemp;
                 ListaAtributos lTemporal = new ListaAtributos();
                 //cambiando de valor la ruta de acceso de los atribtos de la declaracion
                 string[] valoresRuta;
                 lTemporal.lAtributos = claseBuscada.atributosClase.clonarLista();
+                lTemporal.lAtributos = cambiarAmbito(ambiente.getAmbito(), lTemporal.lAtributos);
                 for (int j = 0; j < lTemporal.lAtributos.Count; j++)
                 {
                     string rutaTemp = "";
                     atriTemp = lTemporal.lAtributos.ElementAt(j);
                     valoresRuta = atriTemp.rutaAcc.Split('/');
-                    valoresRuta[0] = ambiente.getAmbito() + "/" + nombre;
+                    valoresRuta[0] = ambiente.getAmbito();// +"/" + nombre;
                     for (int i = 0; i < valoresRuta.Length; i++)
                     {
                         if (i == (valoresRuta.Length - 1))
@@ -454,9 +350,9 @@ namespace xForms.Analizar
                     }
 
                     atriTemp.rutaAcc = rutaTemp;
-                    string ambitoTemporal= ambiente.getAmbito() + "/" + nombre;;
+                    string ambitoTemporal = ambiente.getAmbito();// +"/" + nombre; ;
                     atriTemp.ambito = ambitoTemporal; //
-                    tabla.insertarSimbolo(atriTemp);
+                    nuevo.variablesObjeto.insertarSimbolo(atriTemp);
                     nuevo.rutaAcc = ambitoTemporal;
                     /*---- buscando nuevamente el simbolo para poderlo asignar a la tabla*/
                     Contexto c = new Contexto();
@@ -464,13 +360,32 @@ namespace xForms.Analizar
                     if (atriTemp.nodoExpresionValor != null)
                     {
                         elementoRetorno r = new elementoRetorno();
-                        Simbolo s = tabla.buscarSimbolo(atriTemp.nombre, c);
-                        r = resolverExpresion(atriTemp.nodoExpresionValor, c, nombreClase, nombreMetodo, tabla);
-                        asignarSimbolo(atriTemp.nombre, nodo, r.val, s, c, nombreClase, nombreMetodo, tabla);
+                        Simbolo s = nuevo.variablesObjeto.buscarSimbolo(atriTemp.nombre, c);
+                        if (s != null)
+                        {
+                            if (s is Objeto && atriTemp.nodoExpresionValor.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                Objeto ob = (Objeto)s;
+                                r = resolverExpresion(atriTemp.nodoExpresionValor, c, nombreClase, nombreMetodo, ob.variablesObjeto);
+                            }
+                            else
+                            {
+                                r = resolverExpresion(atriTemp.nodoExpresionValor, c, nombreClase, nombreMetodo, nuevo.variablesObjeto);
+                            }
+                            asignarSimbolo(atriTemp.nombre, nodo, r.val, s, c, nombreClase, nombreMetodo, nuevo.variablesObjeto);
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(nodo, "No se ha podido encontrar el atributo " + atriTemp.nombre);
+
+                        }
+                        
+                        
+                       
                     }
                    // tabla.insertarSimbolo(atriTemp);
                 }
-                tabla.insertarSimbolo(nuevo, nodo);
+                
 
             }
             else
@@ -666,122 +581,8 @@ namespace xForms.Analizar
         }
 
 
-        private elementoRetorno asignar2(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
-        {
-            ParseTreeNode nodoAcceso = nodo.ChildNodes[0];
-            ParseTreeNode expresion = nodo.ChildNodes[1];
-            int cont = 0;
-            ParseTreeNode nodoTemporal;
-            string nombreElemento;
-            Object simboloOVariablesClase;
-            do
-            {
-                nodoTemporal = nodoAcceso.ChildNodes[cont];
-
-                if (nodoTemporal.Term.Name.Equals(Constantes.ID, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    nombreElemento= nodoTemporal.ChildNodes[0].Token.ValueString;
-                    Simbolo simb = tabla.buscarSimbolo(nombreElemento, ambiente);
-                    elementoRetorno r = new elementoRetorno();
-
-                    if (simb != null)
-                    {
-                        if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            ambiente.addAmbito(nombreElemento);
-                        }
-                        r = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
-                        if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            ambiente.salirAmbito();
-                        }
-
-                    }
-                    else
-                    {
-
-                    }
-
-                    
-                    
-
-                }
-                else if (nodoTemporal.Term.Name.Equals(Constantes.LLAMADA, StringComparison.InvariantCultureIgnoreCase))
-                {
-
-                }
-                else
-                {// es una posicion de un arreglo
-
-                }
-                cont++;
-            } while (cont < nodoAcceso.ChildNodes.Count);
-            
-
-
-            return ret;
-        }
-
-        private elementoRetorno resolverAsignar2(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
-        {
-            ParseTreeNode acceso = nodo.ChildNodes[0];
-            ParseTreeNode expresion = nodo.ChildNodes[1];
-            int cont = acceso.ChildNodes.Count;
-            ParseTreeNode temp;
-            string nombreElemento;
-            for (int i = 0; i < acceso.ChildNodes.Count; i++)
-            {
-                temp = acceso.ChildNodes[i];
-                if (temp.Term.Name.ToLower().Equals(Constantes.ID.ToLower()))
-                {
-                    nombreElemento = temp.ChildNodes[0].Token.ValueString;
-                    if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        ambiente.addAmbito(nombreElemento);
-                    }
-                    Simbolo simb = tabla.buscarSimbolo(nombreElemento, ambiente);
-                    elementoRetorno r = new elementoRetorno();
-                    if (simb != null)
-                    {
-                        if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            //ambiente.addAmbito(simb.nombre);
-                            r = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
-                            ambiente.salirAmbito();
-                        }
-                        else
-                        {
-                            r = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
-                        }
-
-                    }
-                    else
-                    {
-                        if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            ambiente.salirAmbito();
-                        }
-                        Constantes.erroresEjecucion.errorSemantico(expresion, "no existe la vairable " + nombreElemento + "en el ambiente " + ambiente.getAmbito() + "  aquii");
-                        tabla.mostrarSimbolos();
-                        //
-
-                    }
-                 
-                    asignarSimbolo(nombreElemento, nodo,r.val, simb, ambiente, nombreClase, nombreMetodo, tabla);
-
-                }
-                else if (temp.Term.Name.ToLower().Equals(Constantes.LLAMADA.ToLower()))
-                {
-
-                }
-                else if (temp.Term.Name.ToLower().Equals(Constantes.POS_ARREGLO.ToLower()))
-                {
-
-                }
-            }
-            return ret;
-        }
-        private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+     
+          private elementoRetorno resolverAsignar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             ParseTreeNode acceso = nodo.ChildNodes[0];
             ParseTreeNode expresion = nodo.ChildNodes[1];
@@ -796,9 +597,9 @@ namespace xForms.Analizar
                     Simbolo s = (Simbolo)retAcceso.val.valor;
                     if (expresion.Term.Name.Equals(Constantes.INSTANCIA, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        ambiente.addAmbito(s.nombre);
+                       // ambiente.addAmbito(s.nombre);
                         rr = resolverExpresion(expresion, ambiente, nombreClase, nombreMetodo, tabla);
-                        ambiente.salirAmbito();
+                       // ambiente.salirAmbito();
                     }
                     else
                     {
@@ -4276,6 +4077,25 @@ namespace xForms.Analizar
 
 
 #endregion
+
+
+        private List<Simbolo> cambiarAmbito(string ambito, List<Simbolo> simbs)
+        {
+            Simbolo temp;
+            for (int i = 0; i < simbs.Count; i++)
+            {
+                temp = simbs.ElementAt(i);
+                temp.ambito = ambito;
+                if (temp is Objeto)
+                {
+                    Objeto c = (Objeto)temp;
+                    c.variablesObjeto.cambiarAmbito(ambito);
+                    temp = c;
+                }
+            }
+
+            return simbs;
+        }
 
 
 

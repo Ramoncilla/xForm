@@ -173,5 +173,42 @@ namespace xForms.Tabla_Simbolos
 
 
 
+        public nodoTablaSimbolos clonarNodo()
+        {
+            nodoTablaSimbolos nuevoNodo = new nodoTablaSimbolos(this.nombreFuncion);
+            Simbolo temp;
+            Simbolo nuevo;
+            for (int i = 0; i < this.variablesAmbito.Count; i++)
+            {
+                temp = variablesAmbito.ElementAt(i);
+                nuevo = temp.clonar();
+                if (nuevo != null)
+                    nuevoNodo.insertarSimbolo(nuevo);
+            }
+            return nuevoNodo;
+
+        }
+
+
+        public void cambiarAmbito(string nuevoAmbito)
+        {
+            Simbolo simb;
+            for (int i = 0; i < variablesAmbito.Count; i++)
+            {
+                simb = variablesAmbito.ElementAt(i);
+                simb.ambito = nuevoAmbito;
+                if (simb is Objeto)
+                {
+                    Objeto c = (Objeto)simb;
+                    c.variablesObjeto.cambiarAmbito(nuevoAmbito);
+                    simb = c;
+                }
+                
+            }
+
+        }
+
+
+
     }
 }
