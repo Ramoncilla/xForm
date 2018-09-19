@@ -36,17 +36,19 @@ namespace xForms.Ejecucion
             this.variablesObjeto.crearNuevoAmbito(this.nombre);
         }
 
-        public override void asignarValor(Valor v, ParseTreeNode nodo)
+        public override Boolean asignarValor(Valor v, ParseTreeNode nodo)
         {
             if ((v.tipo.ToLower().Equals(this.tipo.ToLower())) || v.tipo.Equals(Constantes.NULO))
             {
                 this.valor = v;
                 this.usada = true;
+                return true;
             }
             else
             {
                 Constantes.erroresEjecucion.errorSemantico(nodo, "No es posible asignar la variable " + this.nombre + ", con el tipo " + v.tipo);
             }
+            return false;
 
         }
 

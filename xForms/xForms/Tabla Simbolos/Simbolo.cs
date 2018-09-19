@@ -30,10 +30,10 @@ namespace xForms.Tabla_Simbolos
             return new Simbolo();
         }
 
-        public virtual void asignarValor(Valor v, ParseTreeNode nodo)
+        public virtual Boolean asignarValor(Valor v, ParseTreeNode nodo)
         {
-           
 
+            return false;
         }
 
 
