@@ -38,6 +38,9 @@ namespace xForms.Analizar
             #endregion
 
             #region Declaracion de No terminales
+            NonTerminal GRUPO = new NonTerminal(Constantes.GRUPO);
+            NonTerminal FORMULARIO = new NonTerminal(Constantes.FORMULARIO);
+            NonTerminal PREGUNTA = new NonTerminal(Constantes.PREGUNTA);
             NonTerminal NEGATIVO = new NonTerminal(Constantes.NEGATIVO);
             NonTerminal NOT = new NonTerminal(Constantes.NOT2);
             NonTerminal PAR_CORCHETES = new NonTerminal(Constantes.PAR_CORCHETES);
@@ -155,33 +158,153 @@ namespace xForms.Analizar
             NonTerminal FUN_AUDIO = new NonTerminal(Constantes.FUN_AUDIO);
             NonTerminal FUN_MENSAJE = new NonTerminal(Constantes.FUN_MENSAJE);
             NonTerminal FUN_NATICA = new NonTerminal("FUN_NATIVA");
+            NonTerminal ELEMENTO_ARCHIVO = new NonTerminal("ELEMENTO_ARCHIVO");
+            NonTerminal NUEVO_FORM = new NonTerminal(Constantes.NUEVO_FORM);
+            NonTerminal FUN_RESPUESTA = new NonTerminal("FUN_RESPUESTA");
+            NonTerminal LLAMADA_PREGUNTA = new NonTerminal(Constantes.LLAMADA_PREGUNTA);
 
+            NonTerminal LLA_CADENA = new NonTerminal(Constantes.LLA_CADENA);
+        NonTerminal LLA_ENTERO = new NonTerminal(Constantes.LLA_ENTERO);
+        NonTerminal LLA_DECIMAL = new NonTerminal(Constantes.LLA_DECIMAL);
+        NonTerminal LLA_CONDICION = new NonTerminal(Constantes.LLA_CONDICION);
+        NonTerminal LLA_NOTA = new NonTerminal(Constantes.LLA_NOTA);
+        NonTerminal LLA_RANGO = new NonTerminal(Constantes.LLA_RANGO);
+        NonTerminal LLA_FECHA = new NonTerminal(Constantes.LLA_FECHA);
+        NonTerminal LLA_HORA = new NonTerminal(Constantes.LLA_HORA);
+        NonTerminal LLA_FECHAHORA = new NonTerminal(Constantes.LLA_FECHAHORA);
+        NonTerminal LLA_SELECCIONA_1 = new NonTerminal(Constantes.LLA_SELECCIONA_1);
+        NonTerminal LLA_SELECCIONA_MULTIPLES = new NonTerminal(Constantes.LLA_SELECCIONA_MULTIPLES);
+        NonTerminal LLA_FICHERO = new NonTerminal(Constantes.LLA_FICHERO);
+        NonTerminal ES_TIPO = new NonTerminal("esTipo");
+        NonTerminal ACCESO_PREGUNTA = new NonTerminal("ACCESO_PREGUNTA");
+        NonTerminal INSTANCIA_OPCIONES = new NonTerminal(Constantes.INSTANCIA_OPCIONES);
+        NonTerminal BUSCAR = new NonTerminal(Constantes.BUSCAR);
+        NonTerminal OBTENER = new NonTerminal(Constantes.OBTENER);
+        NonTerminal LLA_CALCULAR = new NonTerminal(Constantes.LLA_CALCULAR);
+        NonTerminal GUARDARFORM = new NonTerminal(Constantes.GUARDARINFO);
 
+            var t_cadena = ToTerm(Constantes.CADENA);
+            var t_entero = ToTerm(Constantes.ENTERO);
+            var t_decimal= ToTerm(Constantes.DECIMAL);
+            var t_condicion = ToTerm(Constantes.CONDICION);
+            var t_nota= ToTerm(Constantes.NOTA);
+            var t_rango = ToTerm(Constantes.RANGO);
+            var t_fecha= ToTerm(Constantes.FECHA);
+            var t_hora = ToTerm(Constantes.HORA);
+            var t_fechahora= ToTerm(Constantes.FECHA_HORA);
+            var t_seleccionar1= ToTerm(Constantes.SELECCIONAR_1);
+            var t_selecciona= ToTerm(Constantes.SELECCIONA);
+            var t_fichero = ToTerm(Constantes.FICHERO);
+            var abrePar = ToTerm("(");
+            var cierraPar = ToTerm(")");
+            var punto = ToTerm(".");
+            var coma = ToTerm(",");
+            var t_res= ToTerm("resp");
+            var esEntero= ToTerm("esentero");
+            var esDecimal = ToTerm("esdecimal");
+            var esCadena = ToTerm("esCadena");
+            var esBooleano = ToTerm("esBooleano");
+            var esFecha = ToTerm("esFecha");
+            var esHora = ToTerm("esHora");
+            var esFechaHora = ToTerm("esFechaHora");
+            var respuesta = ToTerm(Constantes.RESPUESTA);
+            var abreCor = ToTerm("[");
+            var cierraCor = ToTerm("]");
             #endregion
 
             #region Gramatica
 
+            GUARDARFORM.Rule = ToTerm(Constantes.GUARDARINFO) + abrePar + cierraPar + ToTerm(";");
+
+            BUSCAR.Rule = ToTerm(Constantes.BUSCAR) + abrePar + EXPRESION + cierraPar + abreCor + EXPRESION + cierraCor;
+            OBTENER.Rule = ToTerm(Constantes.OBTENER) + abrePar + EXPRESION + cierraPar + abreCor + EXPRESION + cierraCor;
+
+            INSTANCIA_OPCIONES.Rule = ToTerm(Constantes.NUEVO) + ToTerm(Constantes.OPCIONES) + ToTerm("(") + ToTerm(")");
+
+           
+            ES_TIPO.Rule = esDecimal
+                | esCadena
+                | esEntero
+                | esBooleano
+                | esFecha
+                | esHora
+                | esFechaHora;
+
+            ACCESO_PREGUNTA.Rule = LLA_CADENA
+                | LLA_ENTERO
+                | LLA_DECIMAL
+                | LLA_CONDICION
+                | LLA_NOTA
+                | LLA_RANGO
+                | LLA_FECHA
+                | LLA_HORA
+                | LLA_FECHAHORA
+                | LLA_SELECCIONA_1
+                | LLA_SELECCIONA_MULTIPLES
+                | LLA_FICHERO;
+
+
+            LLA_CALCULAR.Rule = identificador + abrePar + cierraPar + punto + ToTerm(Constantes.LLA_CALCULAR) + abrePar + cierraPar;
+           
+            LLA_CADENA.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_cadena + abrePar + EXPRESION + coma + EXPRESION + coma + EXPRESION + cierraPar;
+               // | identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_cadena + abrePar + cierraPar;
+
+            LLA_ENTERO.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_entero + abrePar + cierraPar;
+
+            LLA_DECIMAL.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_decimal + abrePar + cierraPar;
+
+            LLA_CONDICION.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_condicion + abrePar + EXPRESION + coma + EXPRESION + cierraPar;
+
+            LLA_NOTA.Rule = identificador + abrePar + cierraPar + punto + t_nota + abrePar + cierraPar;
+
+            LLA_RANGO.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_rango + abrePar + EXPRESION + coma + EXPRESION + cierraPar;
+
+            LLA_FECHA.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_fecha + abrePar + cierraPar;
+
+            LLA_HORA.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_hora+ abrePar + cierraPar;
+
+            LLA_FECHAHORA.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_fechahora + abrePar + cierraPar;
+
+            LLA_SELECCIONA_1.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_seleccionar1 + abrePar + identificador + cierraPar;
+
+            LLA_SELECCIONA_MULTIPLES.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_selecciona+ abrePar + identificador + cierraPar;
+
+            LLA_FICHERO.Rule = identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_fichero + abrePar + LISTA_EXPRESIONES + cierraPar
+                | identificador + abrePar + cierraPar + punto + respuesta + abrePar + t_res + punto + ES_TIPO + cierraPar + punto + t_fichero + abrePar + cierraPar;
+
+            
             //falta la produccion de estilo
+            NUEVO_FORM.Rule = ToTerm(Constantes.NUEVO) + ACCESO + ToTerm(";");
 
             ARCHIVO.Rule = IMPORTACIONES + LISTA_CLASES
                 | LISTA_CLASES;
 
             LISTA_CLASES.Rule = MakePlusRule(LISTA_CLASES, CLASE);
 
-            CLASE.Rule = ToTerm(Constantes.CLASE) + identificador + VISIBILIDAD + CUERPO_CLASE
-                | ToTerm(Constantes.CLASE) + identificador + VISIBILIDAD + ToTerm(Constantes.PADRE) + identificador + CUERPO_CLASE;
+            ELEMENTO_ARCHIVO.Rule = PREGUNTA
+               | FORMULARIO
+               | GRUPO
+               | CLASE;
+
 
             CUERPO_CLASE.Rule = ToTerm(Constantes.ABRE_LLAVE) + Constantes.CIERRA_LLAVE
                 | ToTerm(Constantes.ABRE_LLAVE) + LISTA_ELEMENTOS_CLASE + Constantes.CIERRA_LLAVE;
-           
 
             LISTA_ELEMENTOS_CLASE.Rule = MakePlusRule(LISTA_ELEMENTOS_CLASE, ELEMENTO_CLASE);
+           
+
+            CLASE.Rule = ToTerm(Constantes.CLASE) + identificador + VISIBILIDAD + CUERPO_CLASE
+                | ToTerm(Constantes.CLASE) + identificador + VISIBILIDAD + ToTerm(Constantes.PADRE) + identificador + CUERPO_CLASE;
+
+            PREGUNTA.Rule = ToTerm(Constantes.PREGUNTA) + identificador + PARAMETROS + CUERPO_CLASE;
 
 
-            ELEMENTO_CLASE.Rule = DECLA_ATRIBUTO
-                | PRINCIPAL
+            ELEMENTO_CLASE.Rule = //FUN_RESPUESTA
+                 PRINCIPAL
                 | CONSTRUCTOR
-                | FUNCION;
+                | FUNCION
+                | DECLA_ATRIBUTO
+                | PREGUNTA;
 
 
             LISTA_ESTILO.Rule = MakePlusRule(LISTA_ESTILO, ToTerm(Constantes.COMA), ESTILO);
@@ -201,7 +324,7 @@ namespace xForms.Analizar
                 | ToTerm(Constantes.FECHA)
                 | ToTerm(Constantes.HORA)
                 | ToTerm(Constantes.FECHA_HORA)
-                | ToTerm(Constantes.RESPUESTA)
+                //| ToTerm(Constantes.RESPUESTA)
                 | identificador;
 
             VISIBILIDAD.Rule = ToTerm(Constantes.PUBLICO)
@@ -282,8 +405,13 @@ namespace xForms.Analizar
 
                 PRINCIPAL.Rule= ToTerm(Constantes.PRINCIPAL)+ ToTerm(Constantes.ABRE_PAR)+ ToTerm(Constantes.CIERRA_PAR)+ CUERPO_FUNCION;
 
-                CONSTRUCTOR.Rule= identificador+ PARAMETROS +CUERPO_FUNCION
-	                |ToTerm(Constantes.PUBLICO)+  identificador+ PARAMETROS +CUERPO_FUNCION;
+                CONSTRUCTOR.Rule = identificador + PARAMETROS + CUERPO_FUNCION
+                    | ToTerm(Constantes.PUBLICO) + identificador + PARAMETROS + CUERPO_FUNCION
+                    | ToTerm(Constantes.PUBLICO) + ToTerm(Constantes.RESPUESTA) + PARAMETROS + CUERPO_FUNCION
+                | ToTerm(Constantes.FORMULARIO) + identificador + PARAMETROS + CUERPO_FUNCION
+                | ToTerm(Constantes.GRUPO) + identificador +PARAMETROS+ CUERPO_FUNCION;
+
+                //FUN_RESPUESTA.Rule = ToTerm(Constantes.PUBLICO) + ToTerm(Constantes.RESPUESTA) + PARAMETROS + CUERPO_FUNCION;
 	
                 S_SI.Rule= ToTerm(Constantes.SI)+  ToTerm(Constantes.ABRE_PAR)+ EXPRESION +ToTerm(Constantes.CIERRA_PAR) +CUERPO_FUNCION;
                 SINO.Rule= ToTerm(Constantes.SINO)+CUERPO_FUNCION;
@@ -348,13 +476,17 @@ namespace xForms.Analizar
                     | ROMPER
                     | SI
                     | RETORNO
-                    | ASIGNACION+ ToTerm(Constantes.PUNTO_COMA)
+                    | ASIGNACION + ToTerm(Constantes.PUNTO_COMA)
                     | DECLA_ARREGLO
                     | DECLA_VARIABLE + ToTerm(Constantes.PUNTO_COMA)
                     | SUPER
                     | ACCESO + ToTerm(Constantes.PUNTO_COMA)
-                    | ASIGNA_UNARIO + ToTerm(Constantes.PUNTO_COMA);
+                    | ASIGNA_UNARIO + ToTerm(Constantes.PUNTO_COMA)
+                    | NUEVO_FORM
+                    | LLAMADA_PREGUNTA
+                    | GUARDARFORM;
 
+                LLAMADA_PREGUNTA.Rule = ToTerm(Constantes.PREG) + ACCESO_PREGUNTA + ToTerm(Constantes.PUNTO_COMA);
 
                 SENTENCIAS.Rule = MakePlusRule(SENTENCIAS, SENTENCIA);
 
@@ -437,7 +569,9 @@ namespace xForms.Analizar
 
             ELEMENTO_ACCESO.Rule = LLAMADA
                 | ID
-                | POS_ARREGLO;
+                | POS_ARREGLO
+                | BUSCAR
+                | OBTENER;
 
             ACCESO.Rule = MakePlusRule(ACCESO, ToTerm(Constantes.PUNTO), ELEMENTO_ACCESO);
             UNARIO.Rule = identificador + ToTerm(Constantes.MAS_MAS)
@@ -552,11 +686,11 @@ namespace xForms.Analizar
 
             MarkPunctuation("[","]","(",")",",","{","}", Constantes.IMPRIMIR, ";",":", Constantes.SI, Constantes.PADRE, Constantes.CLASE, Constantes.SINO, Constantes.IGUAL,
                 Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS, Constantes.HACER, Constantes.PARA, Constantes.RETORNO, Constantes.CASO, Constantes.DE,
-                Constantes.DOS_PUNTOS, Constantes.DEFECTO, Constantes.REPETIR, Constantes.HASTA);
+                Constantes.DOS_PUNTOS, Constantes.PREG, Constantes.DEFECTO, Constantes.REPETIR, Constantes.HASTA, Constantes.PREGUNTA, Constantes.GRUPO, Constantes.FORMULARIO);
 
 
 
-            MarkTransient(CUERPO_CASO,FUN_NATICA,TERMINO, OP_ARITMETICO,OP_LOGICO,OP_RELACIONAL, ELEMENTO_ACCESO, EXPRESION, SENTENCIA, ELEMENTO_CLASE, PARAMETROS, OPCION_VALOR);
+            MarkTransient(ACCESO_PREGUNTA,ELEMENTO_ARCHIVO, CUERPO_CASO,FUN_NATICA,TERMINO, OP_ARITMETICO,OP_LOGICO,OP_RELACIONAL, ELEMENTO_ACCESO, EXPRESION, SENTENCIA, ELEMENTO_CLASE, PARAMETROS, OPCION_VALOR);
 
 
         }

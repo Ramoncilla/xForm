@@ -23,10 +23,22 @@ namespace xForms.Errores
 
         public void errorSemantico(ParseTreeNode nodo, String descripcion)
         {
-            int fila = nodo.FindToken().Location.Line;
-            int col = nodo.FindToken().Location.Column;
-            Error nuevo = new Error(col, fila, Constantes.ERROR_SEMANTICO, descripcion);
-            this.lErrores.Add(nuevo);
+            if (nodo != null)
+            {
+                int fila = nodo.FindToken().Location.Line;
+                int col = nodo.FindToken().Location.Column;
+                Error nuevo = new Error(col, fila, Constantes.ERROR_SEMANTICO, descripcion);
+                this.lErrores.Add(nuevo);
+            }
+            else
+            {
+                int fila = 0;
+                int col = 0;
+                Error nuevo = new Error(col, fila, Constantes.ERROR_SEMANTICO, descripcion);
+                this.lErrores.Add(nuevo);
+
+            }
+            
         }
 
         public void errorSemantico(String descripcion)

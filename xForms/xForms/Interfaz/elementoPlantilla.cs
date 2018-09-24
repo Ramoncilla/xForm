@@ -14,7 +14,21 @@ namespace xForms.Interfaz
         public string rutaCarpeta;
         public string tituloPestanha;
         public FastColoredTextBox cajaTexto;
-        
+        string codigoRespuesta = "clase Respuesta publico{" +
+"Cadena esCadena;" +
+"entero esEntero;" +
+"decimal esDecimal;" +
+"fecha esFecha;" +
+"hora esHora;" +
+"fechahora esFechaHora;" +
+"booleano esBooleano;" +
+
+"respuesta(){" +
+
+"}" +
+
+
+"}";
 
 
         public elementoPlantilla()
@@ -29,7 +43,7 @@ namespace xForms.Interfaz
         {
             Constantes.erroresEjecucion = new Errores.ListaErrores();
             Arbol analizador = new Arbol(rutaCarpeta, tituloPestanha);
-            string v = analizador.parse(cajaTexto.Text);
+            string v = analizador.parse(cajaTexto.Text+ codigoRespuesta);
             return v;
 
         }

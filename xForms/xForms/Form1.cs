@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using xForms.Analizar;
+using xForms.Ejecucion;
 using xForms.Errores;
 using xForms.Interfaz;
 
@@ -198,26 +199,32 @@ namespace xForms
 
         private void button3_Click(object sender, EventArgs e)
         {
-
-
-            DateTime f = new DateTime(1992, 5, 25, 0, 0, 0);
-            DateTime f2 = new DateTime(1992, 5, 25, 23, 0, 0);
-            DateTime f3 = new DateTime(1992, 5, 25, 0, 0, 0);
-
-            if (f >f2)
+            /*
+            List<Opcion> listaValores = new List<Opcion>();
+            listaValores.Add(new Opcion("nom", "hola1", "‪C:\\Users\\Ramonella\\Downloads\\Videos Engraçados Public Group.mp4"));
+            listaValores.Add(new Opcion("nom2", "hola2", "/var/var"));
+           
+            if (listaValores != null)
             {
-                Console.WriteLine("holis");
+
+                BindingSource bSource = new BindingSource();
+                bSource.DataSource = listaValores;
+                checkedListBox1.DataBindings = bSource.DataSource;
+                checkBoxList1.DataSource = bSource.DataSource;
+                comboBox1.DisplayMember = "etiqueta";
+                comboBox1.ValueMember = "nombre";
             }
-            string cadena = "hola Mundo";
-            char c;
-            int val=0;
-            for (int i = 0; i < cadena.Count(); i++)
+            */
+
+
+
+            /*
+            for (int i = 0; i < checkedListBox1.Items.Count; i++)
             {
-                c = Convert.ToChar(cadena.ElementAt(i));
-                Console.WriteLine(c);
-                val = Convert.ToInt32(c);
-                Console.WriteLine(val);
-            }
+                randomClass obj = (randomClass)checkedListBox1.Items[i];
+                checkedListBox1.SetItemChecked(i, obj.IsChecked);
+            }*/
+           
         }
 
         private void nuevaPestanhaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -251,6 +258,38 @@ namespace xForms
                MessageBox.Show("Han ocurrido errores al analizar el archivo, favor de revisar");
            }
 
+        }
+
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+           /*checkedListBox1.Items.Add("Si");
+            checkedListBox1.Items.Add("No");*/
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            /*for (int i = 0; i < checkedListBox1.Items.Count; i++)
+            {
+              
+            }
+            Console.WriteLine(checkedListBox1.SelectedItem);*/
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
+
+        }
+
+        private void checkedListBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+          
         }
     }
 }

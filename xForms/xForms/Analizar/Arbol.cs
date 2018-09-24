@@ -70,9 +70,9 @@ namespace xForms.Analizar
                 foreach (var item in s_tree.ParserMessages)
                 {   //SI EXISTEN ERRORES LOS IMPRIME van errores <--------- 
                     Console.WriteLine("en Fil: {0}, Col: {1}, Pos: {2}, Tipo: {3}", item.Location.Line + 1, item.Location.Column + 1, item.Location.Position, item.Message);
+                    Error nuevo = new Error(item.Location.Column, item.Location.Line, "Sintactico", item.Message);
+                    Constantes.erroresEjecucion.lErrores.Add(nuevo);
                 }
-
-
             if (s_tree.Root != null)
             {
                 Console.WriteLine("========ACCIONES AL EVVALUAR EL ARBOL=============");

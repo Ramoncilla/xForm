@@ -10,11 +10,15 @@ using Irony.Interpreter;
 using Irony.Parsing;
 using xForms.Fechas;
 using System.IO;
+using xForms.Formularios;
+using System.Windows.Forms;
 
 namespace xForms.Analizar
 {
     class Accion
-    {   
+    {
+
+        public string cadenaRespuestas;
         public ListaClases claseArchivo;
         public List<Importar> importaciones;
         string variableInstancia = "";
@@ -24,9 +28,11 @@ namespace xForms.Analizar
         public string rutaCarpeta;
         public string nombreArchivoPrincipal;
         tablaSimbolos temporalParametros;
+        int contadorF = 0;
 
         public Accion(string ruta, string nombreA)
         {
+            this.cadenaRespuestas = "";
             this.cadenaImprimir = "";
             nombreArchivoPrincipal = nombreA;
             this.rutaCarpeta = ruta;
@@ -41,12 +47,36 @@ namespace xForms.Analizar
             ListaArchivos archivos = new ListaArchivos(rutaCarpeta);
             archivos.insertarArchivo(nombreArchivoPrincipal, nodoRaiz);
             this.claseArchivo = archivos.crearLista();
+            this.claseArchivo.agregarPreguntas();
+            //claseArchivo.llenarListaFormularios();
         }
 
 
         public void instanciarAtributosClase(){
             this.claseArchivo.iniciarAtributos();
         }
+
+        private void instanciarPreguntas(Contexto ambiente, tablaSimbolos tabla, string nombreClase, string nombreMetodo)
+        {
+            List<Clase> preguntas = claseArchivo.obtenerPreguntas();
+
+            Clase temp;
+            for (int i = 0; i < preguntas.Count; i++)
+            {
+                temp = preguntas.ElementAt(i);
+                try
+                {
+                    declaraObjeto(temp.nombreClase, temp.nombreClase, null, ambiente, nombreClase, nombreMetodo, tabla);
+                }
+                catch (Exception e)
+                {
+                    Constantes.erroresEjecucion.errorSemantico("No se ha podido instanciar la pregunta " + temp.nombreClase);
+                }
+                
+            }
+
+        }
+
 
         public string ejecutarArchivo()
         {
@@ -63,7 +93,7 @@ namespace xForms.Analizar
                     ParseTreeNode sentencia;
                     contexto.addAmbito(Constantes.PRINCIPAL);
                     tabla.crearNuevoAmbito(Constantes.PRINCIPAL);
-                  
+                    instanciarPreguntas(contexto, tabla, temp.nombreClase, Constantes.PRINCIPAL);
                     for (int j = 0; j < principal.cuerpoFuncion.ChildNodes[0].ChildNodes.Count; j++)
                     {
                         sentencia = principal.cuerpoFuncion.ChildNodes[0].ChildNodes[j];
@@ -86,6 +116,56 @@ namespace xForms.Analizar
         {
             switch (nodo.Term.Name)
             {
+
+
+                case Constantes.GUARDARINFO:
+                    {
+
+                        string message = "Deseas guardar el formulario?";
+                        string title = "Guardar";
+                        MessageBoxButtons buttons = MessageBoxButtons.YesNo;
+                        DialogResult result = MessageBox.Show(message, title, buttons);
+                        if (result == DialogResult.Yes)
+                        {
+                            String arbolDerivacion = rutaCarpeta + "\\Formulario" + contadorF + ".txt";
+                            System.IO.File.WriteAllText(arbolDerivacion, cadenaRespuestas);
+                        }
+                        else
+                        {
+                            // Do something  
+                        }
+                      
+                        return ret;
+                    }
+
+                case Constantes.FUN_MENSAJE:
+                    {
+                        ParseTreeNode nodoExpresionMensaje = nodo.ChildNodes[1];
+                        Valor v = resolverExpresion(nodoExpresionMensaje, ambiente, nombreClase, nombreMetodo, tabla).val;
+                        String msj = v.valor.ToString();
+                        MessageBox.Show( msj, "Mensaje");
+                        return ret;
+                    }
+
+                #region Formularios
+                case Constantes.NUEVO_FORM:
+                    {
+                        ret = this.llamadaFuncion(nodo.ChildNodes[0].ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla, ret);
+                        return ret;
+                    }
+
+                case Constantes.LLAMADA_PREGUNTA:
+                    {
+
+                        ret = this.resolverLlamadaPregunta(nodo, ambiente, nombreClase, nombreMetodo, tabla, ret);
+
+                        return ret;
+                    }
+                #endregion
+
+
+
+
                 #region imprimir
                 case Constantes.IMPRIMIR:
                     {
@@ -255,13 +335,6 @@ namespace xForms.Analizar
                             elementoRetorno var = resolverExpresion(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
                             Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
                             asignarSimbolo("retorno", nodo, var.val, simb, ambiente, nombreClase, nombreMetodo, tabla);
-
-
-                            /*
-                            if (simb != null)
-                            {
-                                simb.asignarValor(var.val, nodo.ChildNodes[0]);
-                            }*/
                         }
                         
                         return ret;
@@ -290,6 +363,1368 @@ namespace xForms.Analizar
 
        
         #endregion
+
+
+
+        #region llamadaPregunta
+
+        private void ejecutarNota(Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla){
+            string id = simb.nombre;
+            string valNota = "";
+            Simbolo etiqueta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            if (etiqueta != null)
+            {
+                if (etiqueta.nodoExpresionValor != null)
+                {
+                    Valor v = resolverExpresion(etiqueta.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla).val;
+                    if (esCadena(v) || esNulo(v))
+                    {
+                        valNota = v.valor.ToString();
+                        modeloPregunta nota = new modeloPregunta("", false, id, valNota);
+                        DialogResult resultado = new DialogResult();
+                        Form2 frmPregunta = new Form2();
+                        frmPregunta.Text = " - Nota - ";
+                        nota.Visible = true;
+                        frmPregunta.setValor(nota);
+                        resultado = frmPregunta.ShowDialog();
+                        if (resultado == DialogResult.OK)
+                        {
+                            Valor ingresoUsuario = new Valor(Constantes.CADENA, "Siguiente");
+                            responder(id, "Siguiente");
+                            Console.WriteLine("Respuesta del usuario   " + Form2.respuestaCadena);
+                        }
+
+                    }
+                }
+
+            }
+            
+        }
+
+        private Valor ObtenerValorAtri(Simbolo simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            if (simb != null)
+            {
+                if (simb.nodoExpresionValor != null)
+                {
+                    return resolverExpresion(simb.nodoExpresionValor, ambiente, nombreClase, nombreMetodo, tabla).val;
+                }
+            }
+            return new Valor();
+        }
+
+
+
+        private void responder(string idPregunta, Object valor)
+        {
+            cadenaRespuestas += "< " + idPregunta + " , " + valor.ToString() + ">\n";
+        }
+
+        private Valor ejecutarCadena( ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla) {
+                string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+                string idPregunta = simb.nombre;
+                Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+                Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es",""));
+                Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+                Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+                Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+                Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+                Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+                Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+                Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+                Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+                Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+                Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+                string sugerirC = "";
+                string msgRequeridoC = "";
+                bool requeridoC = false;
+                bool lecturaC = false;
+                string cadenaC = "";
+                string defecto = "";
+                if (esCadena(sugerirV))
+                {
+                    sugerirC = sugerirV.valor.ToString();
+                }
+                if (esCadena(requeridoMsnV))
+                {
+                    msgRequeridoC = requeridoMsnV.valor.ToString();
+                }
+                if (esBooleano(requeridoV))
+                {
+                    requeridoC = (getBooleanoNumero(requeridoV) == 1);
+                }
+                if (esBooleano(lecturaV))
+                {
+                    lecturaC = (getBooleanoNumero(lecturaV) == 1);
+                }
+                if (esCadena(etiqueta))
+                {
+                    cadenaC = etiqueta.valor.ToString();
+
+                }
+
+                if (esCadena(porDefecto))
+                {
+                    defecto = porDefecto.valor.ToString();
+                }
+
+                //Resolviendo los valores de los parametros
+                ParseTreeNode exp1 = nodo.ChildNodes[5];
+                ParseTreeNode exp2 = nodo.ChildNodes[6];
+                ParseTreeNode exp3 = nodo.ChildNodes[7];
+                Valor max, min, fil;
+                max = new Valor(Constantes.ENTERO, -1);
+                min = new Valor(Constantes.ENTERO, -1);
+                fil = new Valor(Constantes.ENTERO, -1);
+                if (!esNada(exp1))
+                {
+                    min = resolverExpresion(exp1, ambiente, nombreClase, nombreMetodo, tabla).val;
+                }
+                if (!esNada(exp2))
+                {
+                    max = resolverExpresion(exp2, ambiente, nombreClase, nombreMetodo, tabla).val;
+                }
+                if (!esNada(exp3))
+                {
+                    fil = resolverExpresion(exp3, ambiente, nombreClase, nombreMetodo, tabla).val;
+                }
+                if (!esEntero(min))
+                {
+                    min = new Valor(Constantes.ENTERO, -1);
+                }
+                if (!esEntero(max))
+                {
+                    max = new Valor(Constantes.ENTERO, -1);
+                }
+                if (!esEntero(fil))
+                {
+                    fil = new Valor(Constantes.ENTERO, -1);
+                }
+                //public modeloPregunta(string sugerir, bool lectura, string idP, int max, int min, int fil, string val)
+                modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, getEntero(max), getEntero(min), getEntero(fil), defecto, cadenaC);
+                preguntaCadena.requerido = requeridoC;
+                preguntaCadena.msgRequerido = msgRequeridoC;
+                DialogResult resultado = new DialogResult();
+                Form2 frmPregunta = new Form2();
+                preguntaCadena.Visible = true;
+                frmPregunta.setValor(preguntaCadena);
+                resultado = frmPregunta.ShowDialog();
+                if (resultado == DialogResult.OK)
+                {
+                    Valor ingresoUsuario = castear(esTipo, Form2.respuestaCadena);
+
+                    String result = Form2.respuestaCadena;
+                    responder(idPregunta, Form2.respuestaCadena);
+                    Console.WriteLine("Respuesta del usuario   " + Form2.respuestaCadena);
+                    tabla.insertarSimbolo(respuestas);
+                    respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                    tabla.sacarSimbolo();
+                    return ingresoUsuario;
+                }
+            return new Valor();
+        }
+
+
+        #region casteos y esNada
+        private Valor castear(string tipo, Object valor)
+        {
+            if (tipo.Equals("esFecha", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Fecha f = new Fecha(null, valor.ToString());
+                return f.validarFecha();
+            }
+            if (tipo.Equals("esCadena", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return new Valor(Constantes.CADENA, valor.ToString());
+            }
+            if (tipo.Equals("esEntero", StringComparison.CurrentCultureIgnoreCase))
+            {
+                try
+                {
+                    int v = int.Parse(valor.ToString());
+                    return new Valor(Constantes.ENTERO, v);
+                }
+                catch (Exception e)
+                {
+                    Constantes.erroresEjecucion.errorSemantico("La respuesta ingresada por el usuario no se pudo castear a entero  "+ valor);
+                }
+            }
+
+            if (tipo.Equals("esDecimal", StringComparison.CurrentCultureIgnoreCase))
+            {
+                try
+                {
+                    double v = double.Parse(valor.ToString());
+                    return new Valor(Constantes.DECIMAL, v);
+                }
+                catch (Exception e)
+                {
+                    Constantes.erroresEjecucion.errorSemantico("La respuesta ingresada por el usuario no se pudo castear a decimal  " + valor);
+                }
+
+            }
+
+            if (tipo.Equals("esBooleano", StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (valor.ToString().Equals(Constantes.VERDADERO, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return new Valor(Constantes.BOOLEANO, Constantes.VERDADERO);
+                }
+                return new Valor(Constantes.BOOLEANO, Constantes.FALSO);
+
+            }
+
+            if (tipo.Equals("esHora", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Hora h = new Hora(null, valor.ToString());
+                return h.validarHora();
+            }
+
+            if (tipo.Equals("esFechaHora", StringComparison.CurrentCultureIgnoreCase))
+            {
+                FechaHora f = new FechaHora(null, valor.ToString());
+                return f.validarFechaHora();
+            }
+            return new Valor();
+        }
+
+
+        private bool esNada(ParseTreeNode nodo)
+        {
+            if (nodo.Term.Name.Equals(Constantes.ACCESO, StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (nodo.ChildNodes[0].Term.Name.Equals(Constantes.ID, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (nodo.ChildNodes[0].ChildNodes[0].Token.ValueString.Equals("nada", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+
+            }
+            return false;
+        }
+
+        #endregion
+
+
+        private Valor ejecutarEntero(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            int defecto = 0;
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+
+            if (esEntero(porDefecto))
+            {
+                defecto = int.Parse(porDefecto.valor.ToString());
+            }
+            //public modeloPregunta(string sugerir, bool lectura, string idP, int val)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, defecto, cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaEntero);
+                String result = Form2.respuestaCadena;
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaEntero);
+               // tabla.insertarSimbolo(simb);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+               // tabla.sacarSimbolo();
+                tabla.sacarSimbolo();
+                responder(idPregunta, Form2.respuestaEntero);
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+
+        private Valor ejecutarDecimal(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            double defecto = 0;
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+
+            if (esDecimal(porDefecto))
+            {
+                defecto = int.Parse(porDefecto.valor.ToString());
+            }
+            //public modeloPregunta(string sugerir, bool lectura, string idP, double val, string cadenaPr)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, defecto, cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaDecimal);
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaDecimal);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                responder(idPregunta, Form2.respuestaDecimal);
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+        private Valor ejecutarCondicion(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            object defecto = null;
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+
+            if (esBooleano(porDefecto))
+            {
+                defecto = getBooleanoLetra(porDefecto);
+            }
+
+            //Resolviendo los valores de los parametros
+            ParseTreeNode exp1 = nodo.ChildNodes[5];
+            ParseTreeNode exp2 = nodo.ChildNodes[6];
+            Valor v1 = resolverExpresion(exp1, ambiente, nombreClase, nombreMetodo, tabla).val;
+            Valor v2 = resolverExpresion(exp2, ambiente, nombreClase, nombreMetodo, tabla).val;
+            string cadT = "Verdadero";
+            string cadF = "Falso";
+            if (esCadena(v1) && esCadena(v2))
+            {
+                cadT = v1.valor.ToString();
+                cadF = v2.valor.ToString();
+            }
+
+            //public modeloPregunta(string sugerir, bool lectura, string idP, string cadt, string cadf, bool val)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, cadT, cadF,defecto,cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaCondicion);
+                String result = Form2.respuestaCondicion;
+                responder(idPregunta, Form2.respuestaCondicion);
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaCondicion);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                return ingresoUsuario;
+            }
+            return new Valor();
+
+        }
+
+        private Valor ejecutarRango(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            int defecto = 0;
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+
+            if (esEntero(porDefecto))
+            {
+                defecto = int.Parse(porDefecto.valor.ToString());
+            }
+
+            //Resolviendo los valores de los parametros
+            ParseTreeNode exp1 = nodo.ChildNodes[5];
+            ParseTreeNode exp2 = nodo.ChildNodes[6];
+            Valor max, min;
+            max = new Valor(Constantes.ENTERO, 10);
+            min = new Valor(Constantes.ENTERO, 0);
+            min = resolverExpresion(exp1, ambiente, nombreClase, nombreMetodo, tabla).val;
+            max = resolverExpresion(exp2, ambiente, nombreClase, nombreMetodo, tabla).val;
+            if (!esEntero(min))
+            {
+                min = new Valor(Constantes.ENTERO, 0);
+            }
+            if (!esEntero(max))
+            {
+                max = new Valor(Constantes.ENTERO, 10);
+            }
+
+            // public modeloPregunta(string sugerir, bool lectura, string nombreP, int Linf, int sup, int val, string cadE)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, getEntero(min), getEntero(max), defecto, cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaEntero);
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaEntero);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                responder(idPregunta, Form2.respuestaEntero);
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+        private Valor ejecutarFecha(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            Fecha defecto = null;
+
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+            if (esFecha(porDefecto))
+            {
+                Fecha f = (Fecha)porDefecto.valor;
+                defecto = f;
+            }
+            //public modeloPregunta(string sugerir, bool lectura, string nombreP, DateTime val, int tipo, string cadPreg)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, defecto, 7,cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaFecha);
+                responder(idPregunta, Form2.respuestaFecha);
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaFecha);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+
+        private Valor ejecutarHora(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            Hora defecto = null;
+
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+            if (esHora(porDefecto))
+            {
+                Hora f = (Hora)porDefecto.valor;
+                defecto = f;
+            }
+            //public modeloPregunta(string sugerir, bool lectura, string nombreP, DateTime val, int tipo, string cadPreg)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, defecto, 8, cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaHora);
+                responder(idPregunta, Form2.respuestaHora);
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaHora);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+        private Valor ejecutarFechaHora(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            FechaHora defecto = null;
+
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+            if (esFechaHora(porDefecto))
+            {
+                FechaHora f = (FechaHora)porDefecto.valor;
+                defecto = f;
+            }
+            //public modeloPregunta(string sugerir, bool lectura, string nombreP, DateTime val, int tipo, string cadPreg)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, defecto, 9, cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaFechaHora);
+                responder(idPregunta, Form2.respuestaFechaHora);
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaFechaHora);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+        private Valor ejecutarSeleccionaUno(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, List<Opcion> opciones)
+        {
+
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor sumaD = sumar(porDefecto , new Valor(Constantes.CADENA , ""));
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            string defecto = "";
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+
+            if (esCadena(sumaD))
+            {
+                defecto = porDefecto.valor.ToString();
+            }
+
+            // modeloPregunta(string sugerir, bool lectura, string nombreP, List<Opcion> listaValores, string val, int tipo, string cadC)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, opciones, defecto,10, cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaSeleccionar1);
+                String result = Form2.respuestaSeleccionar1;
+                responder(idPregunta, Form2.respuestaSeleccionar1);
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaSeleccionar1);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+
+        private Valor ejecutarSeleccionaMuchos(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, List<Opcion> opciones)
+        {
+
+            string esTipo = nodo.ChildNodes[3].ChildNodes[0].Token.ValueString;
+            string idPregunta = simb.nombre;
+            Simbolo etiquetaPregunta = simb.variablesObjeto.obtenerPregunta("etiqueta", Constantes.CADENA);
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Simbolo sugerir = simb.variablesObjeto.obtenerPregunta("sugerir", Constantes.CADENA);
+            Simbolo requerido = simb.variablesObjeto.obtenerPregunta("requerido", Constantes.BOOLEANO);
+            Simbolo requeridoMsn = simb.variablesObjeto.obtenerPregunta("requeridoMsn", Constantes.CADENA);
+            Simbolo lectura = simb.variablesObjeto.obtenerPregunta("lectura", Constantes.BOOLEANO);
+            Valor sugerirV = ObtenerValorAtri(sugerir, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoV = ObtenerValorAtri(requerido, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor requeridoMsnV = ObtenerValorAtri(requeridoMsn, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor lecturaV = ObtenerValorAtri(lectura, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor etiqueta = ObtenerValorAtri(etiquetaPregunta, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+            Valor sumaD = sumar(porDefecto, new Valor(Constantes.CADENA, ""));
+            string sugerirC = "";
+            string msgRequeridoC = "";
+            bool requeridoC = false;
+            bool lecturaC = false;
+            string cadenaC = "";
+            string defecto = "";
+            if (esCadena(sugerirV))
+            {
+                sugerirC = sugerirV.valor.ToString();
+            }
+            if (esCadena(requeridoMsnV))
+            {
+                msgRequeridoC = requeridoMsnV.valor.ToString();
+            }
+            if (esBooleano(requeridoV))
+            {
+                requeridoC = (getBooleanoNumero(requeridoV) == 1);
+            }
+            if (esBooleano(lecturaV))
+            {
+                lecturaC = (getBooleanoNumero(lecturaV) == 1);
+            }
+            if (esCadena(etiqueta))
+            {
+                cadenaC = etiqueta.valor.ToString();
+
+            }
+
+            if (esCadena(sumaD))
+            {
+                defecto = porDefecto.valor.ToString();
+            }
+            // modeloPregunta(string sugerir, bool lectura, string nombreP, List<Opcion> listaValores, string val, int tipo, string cadC)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, opciones, defecto, 11, cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaSeleccionarMuchos.ElementAt(0));
+                responder(idPregunta, Form2.respuestaSeleccionarMuchos);
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaSeleccionarMuchos.ElementAt(0));
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+        private Valor ejecutarFichero(Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
+        {
+
+            return new Valor();
+        }
+
+        /*
+        private Valor ejecutarCalcular(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, List<Opcion> opciones)
+        {
+
+            string idPregunta = simb.nombre;
+
+            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
+            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+
+            //public modeloPregunta(string sugerir, bool lectura, string idP, int val)
+            modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, defecto, cadenaC);
+            preguntaCadena.requerido = requeridoC;
+            preguntaCadena.msgRequerido = msgRequeridoC;
+            DialogResult resultado = new DialogResult();
+            Form2 frmPregunta = new Form2();
+            preguntaCadena.Visible = true;
+            frmPregunta.setValor(preguntaCadena);
+            resultado = frmPregunta.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                Valor ingresoUsuario = castear(esTipo, Form2.respuestaEntero);
+                String result = Form2.respuestaCadena;
+                Console.WriteLine("Respuesta del usuario   " + Form2.respuestaEntero);
+                tabla.insertarSimbolo(respuestas);
+                respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                tabla.sacarSimbolo();
+                responder(idPregunta, Form2.respuestaEntero);
+                return ingresoUsuario;
+            }
+            return new Valor();
+        }
+
+        */
+
+        private elementoRetorno resolverLlamadaPregunta(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            string tipoPregunta = nodo.ChildNodes[0].Term.Name;
+            ParseTreeNode nodoPregunta = nodo.ChildNodes[0];
+            switch (tipoPregunta)
+            {
+                case Constantes.LLA_CALCULAR:
+                    {
+                        // LLA_CALCULAR.Rule = identificador + abrePar + cierraPar + punto + ToTerm(Constantes.LLA_CALCULAR) + abrePar + cierraPar;
+
+                        break;
+                    }
+                case Constantes.LLA_NOTA:
+                    {
+                        #region EjecutarNota
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    this.ejecutarNota(r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                this.ejecutarNota(r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+                            
+                        }
+
+                        break;
+                        #endregion
+                    }
+
+                case Constantes.LLA_CADENA:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarCadena(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto )
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarCadena(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+                case Constantes.LLA_ENTERO:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarEntero(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+
+                                ret.val = this.ejecutarEntero(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+
+                case Constantes.LLA_DECIMAL:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarDecimal(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarDecimal(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+
+                case Constantes.LLA_CONDICION:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarCondicion(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarCondicion(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+
+                case Constantes.LLA_RANGO:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarRango(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarRango(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+
+                case Constantes.LLA_FECHA:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarFecha(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarFecha(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+
+                case Constantes.LLA_FECHAHORA:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarFechaHora(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarFechaHora(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+                case Constantes.LLA_HORA:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarHora(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarHora(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+                case Constantes.LLA_SELECCIONA_1:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        string nombreLista = nodoPregunta.ChildNodes[5].Token.ValueString;
+                        Simbolo s2 = tabla.buscarSimbolo(nombreLista, ambiente);
+                        if (s2 == null) 
+                        {
+                            s2 = temporalParametros.buscarSimbolo(nombreLista, ambiente);
+                        }
+                        List<Opcion> opciones = new List<Opcion>();
+                        if (s2 != null)
+                        {
+                            if (s2 is ListaOpciones)
+                            {
+                                ListaOpciones op = (ListaOpciones)s2;
+                                opciones = op.matriz.obtenerOpciones();
+                            }
+                        }
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarSeleccionaUno(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros, opciones);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarSeleccionaUno(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla, opciones);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+
+                case Constantes.LLA_SELECCIONA_MULTIPLES:
+                    {
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        string nombreLista = nodoPregunta.ChildNodes[5].Token.ValueString;
+                        Simbolo s2 = tabla.buscarSimbolo(nombreLista, ambiente);
+                        if (s2 == null)
+                        {
+                            s2 = temporalParametros.buscarSimbolo(nombreLista, ambiente);
+                        }
+                        List<Opcion> opciones = new List<Opcion>();
+                        if (s2 != null)
+                        {
+                            if (s2 is ListaOpciones)
+                            {
+                                ListaOpciones op = (ListaOpciones)s2;
+                                opciones = op.matriz.obtenerOpciones();
+                            }
+                        }
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarSeleccionaMuchos(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros, opciones);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
+                                ret.val = this.ejecutarSeleccionaMuchos(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla, opciones);
+                            }
+
+                        }
+                        break;
+                        #endregion
+                    }
+                case Constantes.LLA_FICHERO:
+                    {
+                        #region EjecutarCadena
+
+                        break;
+                        #endregion
+                    }
+
+            }
+
+            return ret;
+        }
+
+        #endregion
+
 
 
         /*--------------------- DEclaraciones locales y ASignaciones ----------------------------------------------*/
@@ -379,19 +1814,36 @@ namespace xForms.Analizar
             string tipo = nodo.ChildNodes[0].ChildNodes[0].Token.ValueString;
             string nombre = nodo.ChildNodes[1].Token.ValueString;
             bool esObj = this.esObjecto(tipo);
+            bool esLista = this.esLista(tipo);
             int no = nodo.ChildNodes.Count;
             elementoRetorno v;
             if (no == 3)
             {
                 if (!esObj)
                 {
-                    this.esAtriAsigna = false;
-                    temporalParametros = tabla;
-                    v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
-                    Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
-                    varNueva.usada = true;
-                    tabla.insertarSimbolo(varNueva, nodo);
-                    asignarSimbolo(nombre, nodo, v.val, varNueva, ambiente, nombreClase, nombreMetodo, tabla);
+                    if (esLista)
+                    {
+                        v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                        ListaOpciones nuevaLista = new ListaOpciones(nombre, tipo, rutaAcceso, false);
+                        nuevaLista.usada = true;
+                        tabla.insertarSimbolo(nuevaLista, nodo);
+                        asignarSimbolo(nombre, nodo, v.val, nuevaLista, ambiente, nombreClase, nombreMetodo, tabla);
+
+
+                    }
+                    else
+                    {
+                        this.esAtriAsigna = false;
+                        temporalParametros = tabla;
+                        v = resolverExpresion(nodo.ChildNodes[2], ambiente, nombreClase, nombreMetodo, tabla);
+                        Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
+                        varNueva.usada = true;
+                        tabla.insertarSimbolo(varNueva, nodo);
+                        asignarSimbolo(nombre, nodo, v.val, varNueva, ambiente, nombreClase, nombreMetodo, tabla);
+
+                    }
+
+                    
                 }
                 else
                 {
@@ -427,8 +1879,17 @@ namespace xForms.Analizar
                 this.esAtriAsigna = false;
                 if (!esObj)
                 {
-                    Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
-                    tabla.insertarSimbolo(varNueva, nodo);
+                    if (esLista)
+                    {
+                        ListaOpciones nueva = new ListaOpciones(nombre, tipo, rutaAcceso, false);
+                        tabla.insertarSimbolo(nueva);
+                    }
+                    else
+                    {
+                        Variable varNueva = new Variable(nombre, tipo, rutaAcceso, false);
+                        tabla.insertarSimbolo(varNueva, nodo);
+                    }
+                    
                 }
                 else
                 {
@@ -479,6 +1940,48 @@ namespace xForms.Analizar
             return ret;
         }
 
+
+        private elementoRetorno insertarLista(ListaOpciones lista, ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            ParseTreeNode nodoParametros = nodo.ChildNodes[1];
+            List<Valor> valoresParametros = resolviendoParametros(nodoParametros, ambiente, nombreClase, nombreMetodo, temporalParametros);
+            lista.insertar(valoresParametros);
+            return ret;
+        }
+
+        private elementoRetorno buscar(ListaOpciones lista, ParseTreeNode expresionABuscar, ParseTreeNode indiceBusqueda )
+        {
+            return null;
+
+        }
+
+        private elementoRetorno obtener(ListaOpciones lista, ParseTreeNode nodoFilaLista, ParseTreeNode indiceEnFila, Contexto ambiente, string nombreclase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            Valor v1 = resolverExpresion(nodoFilaLista, ambiente, nombreclase, nombreMetodo, temporalParametros).val;
+            Valor v2 = resolverExpresion(indiceEnFila, ambiente, nombreclase, nombreMetodo, temporalParametros).val;
+            if (!esNulo(v1) && !esNulo(v2))
+            {
+                if (esEntero(v1) && esEntero(v2))
+                {
+                    int v11 = getEntero(v1);
+                    int v22= getEntero(v2);
+                    ret.val = lista.Obtener(v11, v22);
+                    return ret;
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodoFilaLista, "Los valores deben de ser enteros, tanto el indice como la posicion a obtener en la fila y son " + v1.tipo + " y " + v2.tipo);
+                    ret.val = new Valor();
+                    return ret;
+                }
+            }
+            else
+            {
+                ret.val = new Valor();
+                return ret;
+            }
+        }
+
         private elementoRetorno resolverAccesoVar(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
             int noValores = nodo.ChildNodes.Count;
@@ -487,10 +1990,11 @@ namespace xForms.Analizar
             string nombreElemento = "";
             bool banderaSeguir = true;
             int i=0;
-            Simbolo simbActual;
+            Simbolo simbActual= new Simbolo();
             tipoObj = nombreClase;
             tablaSimbolos tabla2 = new tablaSimbolos();
             int cont = 0;
+            bool banderaLista = false;
             string nombreClase2 = nombreClase;
             do
             {
@@ -515,12 +2019,18 @@ namespace xForms.Analizar
                             Objeto g = (Objeto)simbActual;
                             tabla2 = g.variablesObjeto;
                         }
+                        if (simbActual is ListaOpciones)
+                        {
+                            banderaLista = true;
+                        }
+
                         ret.val = new Valor(simbActual.tipo, simbActual);
                         ambiente.addAmbito(simbActual.nombre);
                         cont++;
                     }
                     else
                     {
+                       
                         banderaSeguir = false;
                         ret.val = new Valor(Constantes.NULO, Constantes.NULO);
                         Constantes.erroresEjecucion.errorSemantico(elementoAcceso, "No existe el elemento " + nombreElemento + ", en el ambito actual");
@@ -532,13 +2042,49 @@ namespace xForms.Analizar
                     if (claseTemporal != null)
                     {
                         temporalParametros = tabla;
-                        ret = this.llamadaFuncion(elementoAcceso, ambiente, nombreClase2, nombreMetodo, tabla2, ret);
+                        ParseTreeNode nodoId = elementoAcceso.ChildNodes[0];
+                        string nombreFuncion = nodoId.Token.ValueString;
+                        if (nombreFuncion.Equals("insertar", StringComparison.CurrentCultureIgnoreCase) && banderaLista)
+                        {
+                            if (simbActual is ListaOpciones)
+                            {
+                                ListaOpciones op = (ListaOpciones)simbActual;
+                                ret.val= this.insertarLista(op,elementoAcceso,ambiente, nombreClase, nombreMetodo, tabla2, ret).val;
+                                banderaLista = false;
+                                banderaSeguir= false;
+                            }
+                            else
+                            {
+                                Constantes.erroresEjecucion.errorSemantico(elementoAcceso, "El Simbolo no es una lista, no se puede realizar el metodo insertar");
+                            }
+                        }
+                        else
+                        {
+                            if (cont == 0)
+                            {
+                                ret = this.llamadaFuncion(elementoAcceso, ambiente, nombreClase2, nombreMetodo, tabla, ret);
+                            }
+                            else
+                            {
+                                ret = this.llamadaFuncion(elementoAcceso, ambiente, nombreClase2, nombreMetodo, tabla2, ret);
+                            }
+                            
+                        }
                         if (ret.val.valor is Objeto)
                         {
                             Objeto c = (Objeto) ret.val.valor;
                             tabla2 = c.variablesObjeto;
                             tabla2.cambiarAmbito(ambiente.getAmbito());
                             nombreClase2 = c.tipo;
+                        }
+                        else if (ret.val.valor is ListaOpciones)
+                        {
+                            simbActual = (Simbolo)ret.val.valor;
+                            banderaLista = true;
+                        }
+                        else if (ret.val.valor is Matriz)
+                        {
+                            banderaLista = true;
                         }
                     }
                     else
@@ -548,8 +2094,49 @@ namespace xForms.Analizar
                         Constantes.erroresEjecucion.errorSemantico(elementoAcceso, "No existe el elemento " + tipoObj+ ", en las clases actuales");
                     }
                 }
-                else
+                else if(elementoAcceso.Term.Name.Equals(Constantes.OBTENER, StringComparison.CurrentCultureIgnoreCase)){
+                    ParseTreeNode noFila = elementoAcceso.ChildNodes[1];
+                    ParseTreeNode noPos = elementoAcceso.ChildNodes[2];
+                    if (banderaLista)
+                    {
+                        if (simbActual is ListaOpciones)
+                        {
+                            ListaOpciones op = (ListaOpciones)simbActual;
+                            ret.val = this.obtener(op, noFila, noPos, ambiente, nombreClase, nombreMetodo, tabla2, ret).val;
+                            banderaLista = false;
+                            banderaSeguir = false;
+                        }
+                        else
+                        {
+                            Constantes.erroresEjecucion.errorSemantico(elementoAcceso, "El Simbolo no es una lista, no se puede realizar el metodo obtener");
+                        }
+                    }
+                    else
+                    {
+                        Constantes.erroresEjecucion.errorSemantico(elementoAcceso, "El Simbolo no es una lista, no se puede realizar el metodo obtener");
+                    }
+
+                }else if(elementoAcceso.Term.Name.Equals(Constantes.BUSCAR, StringComparison.CurrentCultureIgnoreCase)){
+
+                     if (banderaLista)
+                        {
+                            if (simbActual is ListaOpciones)
+                            {
+                                ListaOpciones op = (ListaOpciones)simbActual;
+                               // ret.val = this.buscar(op,).val;
+                                banderaLista = false;
+                            }
+                            else
+                            {
+                                Constantes.erroresEjecucion.errorSemantico(elementoAcceso, "El Simbolo no es una lista, no se puede realizar el metodo insertar");
+                            }
+                            
+                        }
+                      
+
+                }else
                 {
+                    //mrreglos
 
                 }
                 i++;
@@ -617,6 +2204,32 @@ namespace xForms.Analizar
                         c.variablesObjeto = s.variablesObjeto.clonarTabla();
                         c.variablesObjeto.cambiarAmbito(c.ambito);
                         simb = c;
+                    }
+
+                }else if(v.valor is ListaOpciones){
+                    ListaOpciones s = (ListaOpciones)v.valor;
+                    if (simb is ListaOpciones)
+                    {
+                        ListaOpciones dos = (ListaOpciones)simb;
+                        dos.matriz = s.matriz;
+                    }
+                    else
+                    {
+                        Constantes.erroresEjecucion.errorSemantico(nodo, "No se pudo realizar asignacion a lista de opciones, valores no compatibles con " + nombreAsignar);
+                    }
+
+                }
+                else if (v.valor is Matriz)
+                {
+                    Matriz s = (Matriz)v.valor;
+                    if (simb is ListaOpciones)
+                    {
+                        ListaOpciones dos = (ListaOpciones)simb;
+                        dos.matriz = s;
+                    }
+                    else
+                    {
+                        Constantes.erroresEjecucion.errorSemantico(nodo, "No se pudo realizar asignacion a lista de opciones, valores no compatibles con " + nombreAsignar);
                     }
 
                 }
@@ -1121,6 +2734,14 @@ namespace xForms.Analizar
                         return resolverExpresion(nodo.ChildNodes[0], ambiente, nombreClase, nombreMetodo, tabla);
                     }
 
+
+                case Constantes.INSTANCIA_OPCIONES:
+                    {
+                        Matriz nuevaMatriz = new Matriz();
+                        elementoRetorno r = new elementoRetorno();
+                        r.val = new Valor(Constantes.OPCIONES, nuevaMatriz);
+                        return r;
+                    }
 
                 case Constantes.UNARIO:
                     {
@@ -1754,12 +3375,29 @@ namespace xForms.Analizar
                     nomParTemp = nombresParametros.ElementAt(k);
                     temporalVal = valoresParametros.ElementAt(k);
                     simbTemp = tabla.buscarSimbolo(nomParTemp, ambiente);
-                    asignarSimbolo(nomParTemp, nodoParametros.ChildNodes[0].ChildNodes[k], temporalVal, simbTemp, ambiente, nombreClase, nombreMetodo, tabla);
+                    if (nodoParametros != null)
+                    {
+                        asignarSimbolo(nomParTemp, nodoParametros.ChildNodes[0].ChildNodes[k], temporalVal, simbTemp, ambiente, nombreClase, nombreMetodo, tabla);
+                    }
+                    else
+                    {
+                        asignarSimbolo(nomParTemp, null, temporalVal, simbTemp, ambiente, nombreClase, nombreMetodo, tabla);
+                    }
+                    
                 }
             }
             else
             {
-                Constantes.erroresEjecucion.errorSemantico(nodo, "No se puede realizar la llamada, no encajan los numero de parametros ");
+                if (nodo != null)
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodo, "No se puede realizar la llamada, no encajan los numero de parametros ");
+
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico("No se puede realizar la llamada, no encajan los numero de parametros ");
+                }
+               
             }
 
         }
@@ -4442,7 +6080,8 @@ namespace xForms.Analizar
                 tipo.ToLower().Equals(Constantes.DECIMAL.ToLower()) ||
                 tipo.ToLower().Equals(Constantes.FECHA.ToLower()) ||
                 tipo.ToLower().Equals(Constantes.FECHA_HORA.ToLower()) ||
-                tipo.ToLower().Equals(Constantes.HORA.ToLower()))
+                tipo.ToLower().Equals(Constantes.HORA.ToLower())|| 
+                tipo.ToLower().Equals(Constantes.OPCIONES.ToLower()))
             {
                 return false;
             }
@@ -4492,6 +6131,129 @@ namespace xForms.Analizar
             }
 
             return simbs;
+        }
+
+        private bool esLista(String tipo)
+        {
+            if (tipo.ToLower().Equals(Constantes.OPCIONES.ToLower()))
+            {
+                return true;
+            }
+            return false;
+        }
+
+
+
+        private void respondeUsuario( tablaSimbolos tabla, Valor respuestaUsuario, string nombreFuncion, string nombreClase, Contexto ambiente)
+        {
+
+            Clase c = claseArchivo.obtenerClase(nombreClase);
+            elementoRetorno ret = new elementoRetorno();
+            if (c != null)
+            {
+                Funcion fbusC = c.obtenerFuncion(nombreFuncion, respuestaUsuario.tipo);
+                if (fbusC != null)
+                {
+                    List<Valor> valoresParametros = new List<Valor>();
+                    valoresParametros.Add(respuestaUsuario);
+                    tabla.crearNuevoAmbito(nombreFuncion);
+                    ambiente.addAmbito(nombreFuncion);
+                    ParseTreeNode nodoParametrosDecla = fbusC.obtenerNodoParametros();
+                    declararAsignarParametrosLlamada(valoresParametros, null, nodoParametrosDecla, null, ambiente, nombreClase, nombreFuncion, tabla);
+                    ret = evaluarArbol(fbusC.cuerpoFuncion, ambiente, nombreClase, nombreFuncion, tabla, ret);
+                    ambiente.salirAmbito();
+                    tabla.salirAmbiente();
+                }
+            }
+
+        }
+
+
+        //buscar la funcion respuesta de una pregunta   
+        private void responderPregunta(ParseTreeNode nodo, Contexto ambiente, string nombreClase, String nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
+        {
+            ParseTreeNode nodoId = nodo.ChildNodes[0];
+            ParseTreeNode nodoParametros = nodo.ChildNodes[1];
+            string nombreFuncion = nodoId.Token.ValueString;
+            int noParametros = nodoParametros.ChildNodes[0].ChildNodes.Count;
+            List<Valor> valoresParametros = resolviendoParametros(nodoParametros, ambiente, nombreClase, nombreMetodo, temporalParametros);
+            string cadParametros = "";
+            Valor x;
+            for (int i = 0; i < valoresParametros.Count; i++)
+            {
+                x = valoresParametros.ElementAt(i);
+                cadParametros += x.tipo;
+            }
+
+            Funcion funBuscada = this.claseArchivo.obtenerFuncion(nombreClase, nombreFuncion, cadParametros);
+            if (funBuscada != null)
+            {
+                tabla.crearNuevoAmbito(nombreFuncion);
+                ambiente.addAmbito(nombreFuncion);
+
+                //ingresando el return
+                if (funBuscada.tipo.Equals(Constantes.VACIO, StringComparison.CurrentCultureIgnoreCase))
+                {
+
+                }
+                else
+                {
+                    if (esObjecto(funBuscada.tipo))
+                    {
+                        declaraRetornoObjeto("retorno", funBuscada.tipo, nodo, ambiente, nombreClase, nombreMetodo, tabla);
+                        // Objeto nuevoObj = new Objeto("retorno", funBuscada.tipo, ambiente.getAmbito(), false);
+
+                        // tabla.insertarSimbolo(nuevoObj);
+                    }
+                    else
+                    {
+                        Variable nuevaVar = new Variable("retorno", funBuscada.tipo, ambiente.getAmbito(), false);
+                        tabla.insertarSimbolo(nuevaVar);
+
+                    }
+                }
+
+
+                ParseTreeNode nodoParametrosDecla = funBuscada.obtenerNodoParametros();
+                declararAsignarParametrosLlamada(valoresParametros, nodo, nodoParametrosDecla, nodoParametros, ambiente, nombreClase, nombreMetodo, tabla);
+
+                ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, nombreClase, nombreMetodo, tabla, ret);
+                Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
+
+                if (simb != null)
+                {
+                    if (simb is Objeto)
+                    {
+                        ret.val = new Valor(simb.tipo, simb);
+
+                    }
+                    else if (simb is Variable)
+                    {
+                        ret.val = simb.valor;
+
+                    }
+                    else if (simb is Arreglo)
+                    {
+
+                    }
+                    else
+                    {
+                        ret.val = simb.valor;
+
+                    }
+
+
+                }
+                ambiente.salirAmbito();
+                tabla.salirAmbiente();
+
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La funcion " + nombreFuncion + ", no existe en la clase actual " + nombreClase);
+                tabla.mostrarSimbolos();
+            }
+            
         }
 
 

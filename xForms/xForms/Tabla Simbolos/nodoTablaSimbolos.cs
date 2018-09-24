@@ -210,5 +210,21 @@ namespace xForms.Tabla_Simbolos
 
 
 
+        public Simbolo obtenerNodoPregunta(string nombre, string tipo)
+        {
+            Simbolo temp;
+            for (int i = 0; i < this.variablesAmbito.Count; i++)
+            {
+                temp = variablesAmbito.ElementAt(i);
+                if (temp.nombre.Equals(nombre, StringComparison.CurrentCultureIgnoreCase) &&
+                    temp.tipo.Equals(tipo, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return temp;
+                }
+            }
+            return null;
+        }
+
+
     }
 }

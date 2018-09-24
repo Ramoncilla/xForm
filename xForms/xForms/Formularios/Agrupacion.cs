@@ -7,23 +7,19 @@ using Irony.Ast;
 using Irony.Interpreter;
 using Irony.Parsing;
 
-
 namespace xForms.Formularios
 {
-    class Formulario
+    class Agrupacion
     {
-
         public string nombre;
-        public ParseTreeNode parametros;
         public ParseTreeNode cuerpo;
 
-        public Formulario(string nombre, ParseTreeNode parametros, ParseTreeNode cuerpo)
-        {
-            this.nombre = nombre;
-            this.parametros = parametros;
-            this.cuerpo = cuerpo;
-        }
 
+        public Agrupacion(string nom, ParseTreeNode n)
+        {
+            this.nombre = nom;
+            this.cuerpo = n;
+        }
 
 
     }

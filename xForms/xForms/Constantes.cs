@@ -13,8 +13,39 @@ namespace xForms
 
 
         //PALABRAS RESERVADAS 
+        public const string GUARDARINFO = "GUARDARFORM";
+        public const string LLA_CALCULAR = "CALCULAR";
+        public const string BUSCAR = "BUSCAR";
+        public const string OBTENER = "OBTENER";
+        public const string OPCIONES = "OPCIONES";
+        public const string INSTANCIA_OPCIONES = "INSTANCIA_OPCIONES";
+        public const string LLA_CADENA = "LLA_CADENA";
+        public const string LLA_ENTERO = "LLA_ENTERO";
+        public const string LLA_DECIMAL = "LLA_DECIMAL";
+        public const string LLA_CONDICION = "LLA_CONDICION";
+        public const string LLA_NOTA = "LLA_NOTA";
+        public const string LLA_RANGO = "LLA_RANGO";
+        public const string LLA_FECHA = "LLA_FECHA";
+        public const string LLA_HORA = "LLA_HORA";
+        public const string LLA_FECHAHORA = "LLA_FECHAHORA";
+        public const string LLA_SELECCIONA_1 = "LLA_SELECCIONA1";
+        public const string LLA_SELECCIONA_MULTIPLES = "LLA_SELECCIONA_MULTIPLES";
+        public const string LLA_FICHERO = "LLA_FICHERO";
+
+        public const string CONDICION = "CONDICION";
+        public const string NOTA = "NOTA";
+        public const string RANGO = "RANGO";
+        public const string SELECCIONAR_1 = "SELECCIONAR_1";
+        public const string SELECCIONA = "SELECCIONA";
+        public const string FICHERO = "FICHERO";
+
+
+        public const string LLAMADA_PREGUNTA = "LLAMADA_PREGUNTA";
+        public const string PREG = "PREG";
+        public const string NUEVO_FORM = "NUEVO_FORM";
         public const string PREGUNTA = "PREGUNTA";
         public const string FORMULARIO = "FORMULARIO";
+        public const string GRUPO = "GRUPO";
         public const string INSTANCIA_ARREGLO = "INSTANCIA_ARREGLO";
         public const string LISTA_ELEMENTOS_CLASEE = "LISTA_ELEMENTOS_CLASE";
         public const string CUERPO_CLASE = "CUERPO_CLASE";

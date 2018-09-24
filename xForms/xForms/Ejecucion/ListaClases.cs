@@ -9,6 +9,7 @@ using Irony.Interpreter;
 using Irony.Parsing;
 using System.IO;
 using xForms.Analizar;
+using xForms.Formularios;
 
 namespace xForms.Ejecucion
 {
@@ -18,7 +19,7 @@ namespace xForms.Ejecucion
        public  String rutaArchivo;
        public string rutaCarpeta;
        public List<ListaClases> archivosImportados;
-
+       public ElementosFormulario fomrs;
 
        public Clase get(int i)
        {
@@ -31,6 +32,7 @@ namespace xForms.Ejecucion
             this.lClases = new List<Clase>();
             this.rutaArchivo = rutaA;
             rutaCarpeta = rutaC;
+            this.fomrs = new ElementosFormulario();
           //  importaciones = new List<string>();
         }
 
@@ -364,7 +366,7 @@ namespace xForms.Ejecucion
                 for (int j = 0; j < sizeAtributos; j++)
                 {
                     atributoTemporal = claseTemporal.atributosClase.lAtributos.ElementAt(j);
-                    if (esObjecto(atributoTemporal.tipo))
+                    if ((esObjecto(atributoTemporal.tipo) && !(esLista(atributoTemporal.tipo))))
                     {
                         Objeto objTemp = (Objeto)atributoTemporal;
                         ambitos.addAmbito(atributoTemporal.nombre);
@@ -396,7 +398,7 @@ namespace xForms.Ejecucion
                         atributoTemp.rutaAcc = ambiente.getAmbito();
                         atributoTemp.ambito = nomClase;
                         tabla.insertarSimbolo(atributoTemp);
-                        if (esObjecto(atributoTemp.tipo))
+                        if( (esObjecto(atributoTemp.tipo) && !(esLista(atributoTemp.tipo))))
                         {
                             Objeto obj = (Objeto)atributoTemp;
                             ambiente.addAmbito(obj.nombre);
@@ -411,8 +413,86 @@ namespace xForms.Ejecucion
 
         }
 
-      
 
+        public void agregarPreguntas()
+        {
+            Clase temp;
+            List<Clase> preguntasTemporals = new List<Clase>();
+            for (int i = 0; i < lClases.Count; i++)
+            {
+                temp = lClases.ElementAt(i);
+                for (int j = 0; j < temp.preguntas.Count; j++)
+                {
+                    preguntasTemporals.Add(temp.preguntas.ElementAt(j));
+                }
+            }
+
+            for (int i = 0; i < preguntasTemporals.Count; i++)
+            {
+                this.lClases.Add(preguntasTemporals.ElementAt(i));
+            }
+
+        }
+
+        public void llenarListaFormularios()
+        {
+            Clase temp;
+            Formulario fomrTemp;
+            Pregunta pregTemp;
+            Agrupacion grupTemp;
+            for (int i = 0; i < lClases.Count; i++)
+            {
+                temp = lClases.ElementAt(i);
+                //para forms
+                for (int j = 0; j < temp.objetosForm.formularios.Count; j++)
+                {
+                    fomrTemp= temp.objetosForm.formularios.ElementAt(j);
+                    this.fomrs.formularios.Add(fomrTemp);
+                }
+                //para los grupos
+                for (int j = 0; j < temp.objetosForm.grupos.Count; j++)
+                {
+                    grupTemp = temp.objetosForm.grupos.ElementAt(j);
+                    this.fomrs.grupos.Add(grupTemp);
+                }
+
+                //para las preguntas
+                for (int j = 0; j < temp.objetosForm.preguntas.Count; j++)
+                {
+                    pregTemp = temp.objetosForm.preguntas.ElementAt(j);
+                    this.fomrs.preguntas.Add(pregTemp);
+                }
+            }
+        }
+
+
+        public List<Clase> obtenerPreguntas()
+        {
+            List<Clase> clases = new List<Clase>();
+            Clase temp;
+            for (int i = 0; i < lClases.Count; i++)
+            {
+                temp = lClases.ElementAt(i);
+                if (temp.esPregunta)
+                {
+                    clases.Add(temp);
+                }
+                
+            }
+            return clases;
+        }
+
+
+        public Formulario buscarFormulario(string nombre)
+        {
+            return this.fomrs.buscarForm(nombre);
+        }
+
+
+        public bool esLista(String tipo)
+        {
+            return (tipo.Equals(Constantes.OPCIONES, StringComparison.CurrentCultureIgnoreCase));
+        }
 
     }
 }

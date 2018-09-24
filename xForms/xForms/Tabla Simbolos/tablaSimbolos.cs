@@ -61,18 +61,31 @@ namespace xForms.Tabla_Simbolos
         public bool insertarSimbolo(Simbolo simb)
         {
             nodoTablaSimbolos temp = this.listaSimbolos.Peek();
-            bool a=  temp.insertarSimbolo(simb);
-            if (!a)
+            if (simb != null)
             {
-                Constantes.erroresEjecucion.errorSemantico("La variable, ya existe en el ambito actual");
+                bool a = temp.insertarSimbolo(simb);
+                if (!a)
+                {
+                    Constantes.erroresEjecucion.errorSemantico("La variable, ya existe en el ambito actual");
+                }
+                else
+                {
+                    Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y Ambiente " + simb.ambito + "  Ruta " + simb.rutaAcc);
+
+                }
+                return a;
+
             }
-            else
-            {
-                Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y Ambiente " + simb.ambito + "  Ruta " + simb.rutaAcc);
-   
-            }
-            return a;
+            return false;
+           
             
+        }
+
+
+        public void  sacarSimbolo()
+        {
+            nodoTablaSimbolos temp = listaSimbolos.Peek();
+            temp.variablesAmbito.Pop();
         }
 
         public bool insertarSimboloAmbienteGlobal(Simbolo simb)
@@ -182,6 +195,24 @@ namespace xForms.Tabla_Simbolos
                 temp = listaSimbolos.ElementAt(i);
                 temp.cambiarAmbito(nuevoAmbito);
             }
+        }
+
+        public Simbolo obtenerPregunta(string nombre, string tipo)
+        {
+            nodoTablaSimbolos temp;
+            Simbolo simb;
+            for (int i = 0; i < this.listaSimbolos.Count; i++)
+            {
+                temp = listaSimbolos.ElementAt(i);
+                simb = temp.obtenerNodoPregunta(nombre, tipo);
+                if (simb != null)
+                {
+                    return simb;
+                }
+
+            }
+            return null;
+            
         }
 
 

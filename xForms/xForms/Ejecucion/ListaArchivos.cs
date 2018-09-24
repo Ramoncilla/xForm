@@ -7,6 +7,7 @@ using Irony.Ast;
 using Irony.Interpreter;
 using Irony.Parsing;
 using System.IO;
+using xForms.Formularios;
 
 namespace xForms.Ejecucion
 {
@@ -15,11 +16,13 @@ namespace xForms.Ejecucion
 
          List<ListaClases> lArchivos;
          string rutaCarpeta;
+        
 
         public ListaArchivos(string carpeta)
         {
             this.lArchivos = new List<ListaClases>();
             this.rutaCarpeta = carpeta;
+            
         }
 
 
@@ -30,7 +33,7 @@ namespace xForms.Ejecucion
                 ListaClases nueva = new ListaClases(ruta,rutaCarpeta);
                 nueva.generarClases(nodoRaiz);
                 guardarNuevoArchivo(nueva);
-                Console.WriteLine("holaaa");
+
             }
             else
             {
@@ -106,6 +109,10 @@ namespace xForms.Ejecucion
 
             return nueva;
         }
+
+
+
+          
 
     }
 }

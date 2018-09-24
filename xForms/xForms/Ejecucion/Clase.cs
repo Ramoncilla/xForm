@@ -7,12 +7,13 @@ using Irony.Ast;
 using Irony.Interpreter;
 using Irony.Parsing;
 using xForms.Tabla_Simbolos;
+using xForms.Formularios;
 
 namespace xForms.Ejecucion
 {
     class Clase
     {
-
+        public List<Clase> preguntas;
         public string nombreClase;
         public string herencia;
         public string visibilidad;
@@ -21,10 +22,14 @@ namespace xForms.Ejecucion
         public ListaAtributos atributosClase;
         public Funcion principal;
         public bool perteneceArchivoPrincipal;
+        public ElementosFormulario objetosForm = new ElementosFormulario();
+        public ParseTreeNode nodoParametrosPregunta = null;
+        public bool esPregunta;
  
 
         public Clase(String nombreC, String herencia, string visi, ParseTreeNode nodo)
         {
+            this.preguntas = new List<Clase>();
             this.principal = null;
             this.nombreClase = nombreC;
             this.herencia = herencia;
@@ -34,6 +39,7 @@ namespace xForms.Ejecucion
             this.atributosClase = new ListaAtributos();
             crearElementosClasee();
             perteneceArchivoPrincipal = false;
+            this.esPregunta = false;
         }
 
 
@@ -106,11 +112,25 @@ namespace xForms.Ejecucion
                         break;
                     }
 
+                case Constantes.PREGUNTA:
+                    {
+                        //PREGUNTA.Rule = ToTerm(Constantes.PREGUNTA) + identificador + PARAMETROS + CUERPO_CLASE;
+                        string nombre = nodo.ChildNodes[0].Token.ValueString;
+                        ParseTreeNode parametros = nodo.ChildNodes[1];
+                        ParseTreeNode cuerpo = nodo.ChildNodes[2];
+                        Clase c = new Clase(nombre, "", visibilidad, cuerpo);
+                        c.esPregunta = true;
+                        c.nodoParametrosPregunta = parametros;
+                        preguntas.Add(c);
+                        break;
+                    }
+
                 case Constantes.DECLA_ATRIBUTO:
                     {
                         string tipo = nodo.ChildNodes[0].ChildNodes[0].Token.ValueString;
                         int noHijos = nodo.ChildNodes.Count;
                         bool esObj = this.esObjecto(tipo);
+                        bool esLista = this.esLista(tipo);
                         string nombre;
                         if (noHijos == 2)
                         {
@@ -125,9 +145,19 @@ namespace xForms.Ejecucion
                             }
                             else
                             {
-                                Objeto nuevo = new Objeto(nombre, tipo, Constantes.PUBLICO, null);
-                                nuevo.ambito= nombreClase;;
-                                this.atributosClase.insertarAtributo(nuevo, nodo);
+                                if (esLista)
+                                {
+                                    ListaOpciones nuevo = new ListaOpciones(nombre, tipo, Constantes.PUBLICO, null, nombreClase);
+                                    this.atributosClase.insertarAtributo(nuevo, nodo);
+
+                                }
+                                else
+                                {
+                                    Objeto nuevo = new Objeto(nombre, tipo, Constantes.PUBLICO, null);
+                                    nuevo.ambito = nombreClase; 
+                                    this.atributosClase.insertarAtributo(nuevo, nodo);
+                                }
+                                
 
                             }
                             
@@ -152,9 +182,19 @@ namespace xForms.Ejecucion
                                 }
                                 else
                                 {
-                                    Objeto nuevo = new Objeto(nombre, tipo, visibilidad, null);
-                                    nuevo.ambito= nombreClase;;
-                                    this.atributosClase.insertarAtributo(nuevo, nodo);
+
+                                    if (esLista)
+                                    {
+                                        ListaOpciones nuevo = new ListaOpciones(nombre, tipo, visibilidad, null, nombreClase);
+                                        this.atributosClase.insertarAtributo(nuevo,nodo);
+                                    }
+                                    else
+                                    {
+                                        Objeto nuevo = new Objeto(nombre, tipo, visibilidad, null);
+                                        nuevo.ambito = nombreClase; ;
+                                        this.atributosClase.insertarAtributo(nuevo, nodo);
+                                    }
+                                    
 
                                 }
                             }
@@ -179,9 +219,20 @@ namespace xForms.Ejecucion
                                 }
                                 else
                                 {
-                                    Objeto nuevo = new Objeto(nombre, tipo, Constantes.PUBLICO, expr);
-                                    nuevo.ambito= nombreClase;;
-                                    this.atributosClase.insertarAtributo(nuevo, nodo);
+                                    if (esLista)
+                                    {
+                                        ListaOpciones nuevo = new ListaOpciones(nombre, tipo, Constantes.PUBLICO, expr, nombreClase);
+                                        this.atributosClase.insertarAtributo(nuevo, nodo);
+
+                                    }
+                                    else
+                                    {
+                                        Objeto nuevo = new Objeto(nombre, tipo, Constantes.PUBLICO, expr);
+                                        nuevo.ambito = nombreClase; ;
+                                        this.atributosClase.insertarAtributo(nuevo, nodo);
+
+                                    }
+                                   
 
                                 }
                             }
@@ -218,9 +269,20 @@ namespace xForms.Ejecucion
                                     }
                                     else
                                     {
-                                        Objeto nuevo = new Objeto(nombre, tipo, visibilidad, nodoExp);
-                                        nuevo.ambito= nombreClase;;
-                                        this.atributosClase.insertarAtributo(nuevo, nodo);
+                                        if (esLista)
+                                        {
+                                            ListaOpciones nuevo = new ListaOpciones(nombre, tipo, visibilidad, nodoExp, nombreClase);
+                                            this.atributosClase.insertarAtributo(nuevo, nodo);
+
+                                        }
+                                        else
+                                        {
+                                            Objeto nuevo = new Objeto(nombre, tipo, visibilidad, nodoExp);
+                                            nuevo.ambito = nombreClase; ;
+                                            this.atributosClase.insertarAtributo(nuevo, nodo);
+
+                                        }
+                                        
                                     }
                                 }
 
@@ -259,6 +321,15 @@ namespace xForms.Ejecucion
 
 
 
+        private bool esLista(String tipo)
+        {
+            if (tipo.ToLower().Equals(Constantes.OPCIONES.ToLower()))
+            {
+                return true;
+            }
+            return false;
+        }
+
         private bool esObjecto(String tipo)
         {
             tipo = tipo.ToLower();
@@ -269,7 +340,8 @@ namespace xForms.Ejecucion
                 tipo.ToLower().Equals(Constantes.DECIMAL.ToLower()) ||
                 tipo.ToLower().Equals(Constantes.FECHA.ToLower())||
                 tipo.ToLower().Equals(Constantes.FECHA_HORA.ToLower())||
-                tipo.ToLower().Equals(Constantes.HORA.ToLower())){
+                tipo.ToLower().Equals(Constantes.HORA.ToLower())||
+                tipo.ToLower().Equals(Constantes.OPCIONES)){
                 return false;
             }
             return true;
