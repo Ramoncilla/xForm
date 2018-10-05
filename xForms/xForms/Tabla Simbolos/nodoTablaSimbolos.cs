@@ -114,6 +114,24 @@ namespace xForms.Tabla_Simbolos
             return null;
         }
 
+        //obtenerSimboloRes
+        public Simbolo obtenerSimboloRes(String nombre)
+        {
+            Simbolo temp;
+                for (int j = 0; j < this.variablesAmbito.Count; j++)
+                {
+                    temp = this.variablesAmbito.ElementAt(j);
+                    if (temp.nombre.Equals(nombre, StringComparison.CurrentCultureIgnoreCase) )
+                    {
+                        return temp;
+                    }
+
+                }
+            return null;
+        }
+
+
+
         public Simbolo obtenerSimboloRuta(String nombre, Contexto ruta)
         {
             Simbolo temp;

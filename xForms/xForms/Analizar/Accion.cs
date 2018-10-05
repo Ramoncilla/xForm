@@ -1298,15 +1298,34 @@ namespace xForms.Analizar
             return new Valor();
         }
 
-        /*
-        private Valor ejecutarCalcular(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, List<Opcion> opciones)
+
+        private Valor ejecutarCalcular(ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
         {
 
             string idPregunta = simb.nombre;
 
-            Simbolo respuestas = simb.variablesObjeto.obtenerPregunta("respuestas", esTipo.Replace("es", ""));
-            Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
-
+            Simbolo respuestas = simb.variablesObjeto.buscarSimboloRes("respuestas");
+            if (respuestas != null)
+            {
+                Valor porDefecto = ObtenerValorAtri(respuestas, ambiente, nombreClase, nombreMetodo, tabla);
+                if (!esNulo(porDefecto))
+                {
+                    respuestas.tipo = porDefecto.tipo;
+                    respuestas.asignarValor(porDefecto,nodo);
+                }
+                else
+                {
+                    respuestas.tipo = Constantes.DECIMAL;
+                    respuestas.asignarValor(porDefecto, nodo);
+                }
+                
+            }
+            else
+            {
+                Constantes.erroresEjecucion.errorSemantico(nodo, "La variable respuestas no fue encontrada en la pregunta " + idPregunta);
+            }
+           
+/*
             //public modeloPregunta(string sugerir, bool lectura, string idP, int val)
             modeloPregunta preguntaCadena = new modeloPregunta(sugerirC, lecturaC, idPregunta, defecto, cadenaC);
             preguntaCadena.requerido = requeridoC;
@@ -1323,14 +1342,15 @@ namespace xForms.Analizar
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaEntero);
                 tabla.insertarSimbolo(respuestas);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
+                
                 tabla.sacarSimbolo();
                 responder(idPregunta, Form2.respuestaEntero);
                 return ingresoUsuario;
-            }
+            }*/
             return new Valor();
         }
 
-        */
+        
 
         private elementoRetorno resolverLlamadaPregunta(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
@@ -1341,8 +1361,33 @@ namespace xForms.Analizar
                 case Constantes.LLA_CALCULAR:
                     {
                         // LLA_CALCULAR.Rule = identificador + abrePar + cierraPar + punto + ToTerm(Constantes.LLA_CALCULAR) + abrePar + cierraPar;
+                        #region EjecutarCadena
+                        string nombre = nodoPregunta.ChildNodes[0].Token.ValueString;
+                        Simbolo s = tabla.obtenerPregunta(nombre, nombre);
+                        if (s == null)
+                        {
+                            s = temporalParametros.obtenerPregunta(nombre, nombre);
+                            if (s != null)
+                            {
+                                if (s is Objeto)
+                                {
+                                    Objeto r = (Objeto)s;
+                                    ret.val = this.ejecutarCalcular(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, temporalParametros);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (s is Objeto)
+                            {
+                                Objeto r = (Objeto)s;
 
+                                ret.val = this.ejecutarCalcular(nodo.ChildNodes[0], r, ambiente, nombreClase, nombreMetodo, tabla);
+                            }
+
+                        }
                         break;
+                        #endregion
                     }
                 case Constantes.LLA_NOTA:
                     {
@@ -3490,6 +3535,7 @@ namespace xForms.Analizar
                 declararAsignarParametrosLlamada(valoresParametros, nodo, nodoParametrosDecla, nodoParametros, ambiente, nombreClase, nombreMetodo, tabla);
 
                 ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, nombreClase, nombreMetodo, tabla, ret);
+               
                 Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
                
                 if (simb != null)

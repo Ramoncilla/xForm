@@ -146,6 +146,25 @@ namespace xForms.Tabla_Simbolos
         }
 
 
+        public Simbolo buscarSimboloRes(string nombre)
+        {
+            nodoTablaSimbolos temp;
+            Simbolo simb;
+            for (int i = 0; i < this.listaSimbolos.Count; i++)
+            {
+                temp = listaSimbolos.ElementAt(i);
+                simb = temp.obtenerSimboloRes(nombre);
+                if (simb != null)
+                {
+                    return simb;
+                }
+
+            }
+            return null;
+
+        }
+
+
 
         public Simbolo buscarSimboloRutaAcceso(string nombre, Contexto ambiente)
         {

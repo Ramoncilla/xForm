@@ -217,17 +217,26 @@ namespace xForms.Ejecucion
         private string obtenerContenidoArchivo(string ruta)
         {
             string contenido = "";
-            StreamReader objReader = new StreamReader(ruta);
-            string sLine = "";
-            while (sLine != null)
-            {
-                sLine = objReader.ReadLine();
-                if (sLine != null)
-                    contenido += sLine + "\n";
-            }
-            objReader.Close();
+            try {
+                StreamReader objReader = new StreamReader(ruta);
+                string sLine = "";
+                while (sLine != null)
+                {
+                    sLine = objReader.ReadLine();
+                    if (sLine != null)
+                        contenido += sLine + "\n";
+                }
+                objReader.Close();
 
-            return contenido;
+                return contenido;
+
+            }
+            catch (Exception e)
+            {
+                Constantes.erroresEjecucion.errorSemantico("No existe el archivo " + ruta);
+                return "";
+            }
+            
         }
     
         private bool esObjecto(String tipo)

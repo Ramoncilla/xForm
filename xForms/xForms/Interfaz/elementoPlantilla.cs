@@ -11,6 +11,7 @@ namespace xForms.Interfaz
 {
     class elementoPlantilla
     {
+        public TabPage tab;
         public string rutaCarpeta;
         public string tituloPestanha;
         public FastColoredTextBox cajaTexto;
@@ -33,6 +34,7 @@ namespace xForms.Interfaz
 
         public elementoPlantilla()
         {
+            this.tab = new TabPage();
             this.cajaTexto = new FastColoredTextBox();
             cajaTexto.Dock = DockStyle.Fill;
             this.rutaCarpeta = "";

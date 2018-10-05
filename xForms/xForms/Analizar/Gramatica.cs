@@ -241,7 +241,8 @@ namespace xForms.Analizar
                 | LLA_FECHAHORA
                 | LLA_SELECCIONA_1
                 | LLA_SELECCIONA_MULTIPLES
-                | LLA_FICHERO;
+                | LLA_FICHERO
+                | LLA_CALCULAR;
 
 
             LLA_CALCULAR.Rule = identificador + abrePar + cierraPar + punto + ToTerm(Constantes.LLA_CALCULAR) + abrePar + cierraPar;

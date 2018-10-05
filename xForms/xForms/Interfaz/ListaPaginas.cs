@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace xForms.Interfaz
 {
@@ -21,6 +22,31 @@ namespace xForms.Interfaz
         {
             this.paginas.Add(pagina);
         }
+
+
+        public void eliminarPlantilla(TabPage tab)
+        {
+            elementoPlantilla temp;
+            int k = -1;
+            for (int i = 0; i < paginas.Count; i++)
+            {
+                temp = paginas.ElementAt(i);
+                if (temp.tab.Equals(tab))
+                {
+                    k = i;
+                    break;
+                }
+            }
+            
+            if (k != -1)
+            {
+                paginas.RemoveAt(k);
+
+            }
+
+
+        }
+
 
         public void escribirTexto(int indice, string texto, string nombre, string ruta)
         {

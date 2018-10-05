@@ -37,12 +37,78 @@ namespace xForms
             elementoPlantilla nuevaPagina = new elementoPlantilla();
             paginas.insertarPagina(nuevaPagina);
             TabPage nuevoTab= new TabPage("Nueva "+ contador);
+            nuevaPagina.tab = nuevoTab;
             nuevoTab.Controls.Add(nuevaPagina.cajaTexto);
             tabControl1.TabPages.Add(nuevoTab);
             tabControl1.SelectedTab = nuevoTab;
             contador++;
 
         }
+
+
+        private void cerrarPestanha()
+        {
+            TabPage actual = tabControl1.SelectedTab;
+            tabControl1.TabPages.Remove(actual);
+            paginas.eliminarPlantilla(actual);
+            contador--;
+        }
+
+
+        public void guarda()
+        {
+            if (tabControl1.TabCount == 0) return;
+            TabPage tab = tabControl1.SelectedTab;
+            foreach (Control ctrl in tab.Controls)
+            {
+                if (ctrl is FastColoredTextBox)
+                {
+                    FastColoredTextBox tempTxt = (FastColoredTextBox)ctrl;
+                    if (tab.Tag != null)
+                    {
+                        File.WriteAllText((string)tab.Tag, tempTxt.Text);
+                        MessageBox.Show("Guardado con exito");
+                    }
+                    else
+                        guardarComo();
+                }
+            }
+
+
+
+
+
+
+
+
+        }
+
+
+
+        public void guardarComo()
+        {
+            if (saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                TabPage temp = null;
+                int seleccion = tabControl1.SelectedIndex;
+
+                temp = tabControl1.TabPages[seleccion];
+                foreach (Control ctrl in temp.Controls)
+                {
+                    if (ctrl is FastColoredTextBox)
+                    {
+                        FastColoredTextBox tempTxt = (FastColoredTextBox)ctrl;
+                        tabControl1.TabPages[seleccion].Tag = saveFileDialog1.FileName;
+                        temp.Text = saveFileDialog1.FileName ;
+                        File.WriteAllText(saveFileDialog1.FileName, tempTxt.Text);
+                    }
+                }
+
+            }
+        }
+
+
+
 
         private string[] cargarArchivo()
         {
@@ -249,35 +315,29 @@ namespace xForms
 
         private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-           int no = tabControl1.SelectedIndex;
-           string impresion= paginas.ejecutar(no);
-           txtImpresion.Text = impresion;
-           Constantes.erroresEjecucion.moostrarErrores();
-           if (Constantes.erroresEjecucion.lErrores.Count > 0)
-           {
-               MessageBox.Show("Han ocurrido errores al analizar el archivo, favor de revisar");
-           }
+          
 
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)
         {
-
+            int no = tabControl1.SelectedIndex;
+            string impresion = paginas.ejecutar(no);
+            txtImpresion.Text = impresion;
+            Constantes.erroresEjecucion.moostrarErrores();
+            if (Constantes.erroresEjecucion.lErrores.Count > 0)
+            {
+                MessageBox.Show("Han ocurrido errores al analizar el archivo, favor de revisar");
+            }
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-           /*checkedListBox1.Items.Add("Si");
-            checkedListBox1.Items.Add("No");*/
+
         }
 
         private void button5_Click(object sender, EventArgs e)
         {
-            /*for (int i = 0; i < checkedListBox1.Items.Count; i++)
-            {
-              
-            }
-            Console.WriteLine(checkedListBox1.SelectedItem);*/
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -290,6 +350,61 @@ namespace xForms
         {
 
           
+        }
+
+        private void técnicoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process proc = new System.Diagnostics.Process();
+            proc.StartInfo.FileName = @"C:\Users\Ramonella\Desktop\Manuales\Manual Tecnico.pdf";
+            
+            proc.Start();
+            proc.Close();
+        }
+
+        private void usuarioToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process proc = new System.Diagnostics.Process();
+            proc.StartInfo.FileName = @"C:\Users\Ramonella\Desktop\Manuales\Manual de Usuario.pdf";
+            proc.Start();
+            proc.Close();
+        }
+
+        private void gramaticaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process proc = new System.Diagnostics.Process();
+            proc.StartInfo.FileName = @"C:\Users\Ramonella\Desktop\Manuales\Gramaticas.pdf";
+            proc.Start();
+            proc.Close();
+        }
+
+        private void cerrarPestanhaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            cerrarPestanha();
+        }
+
+        private void guardarToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            guarda();
+        }
+
+        private void guardarComoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            guardarComo();
+        }
+
+        private void toolStripButton2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void toolStripButton4_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

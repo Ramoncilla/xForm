@@ -16,3 +16,4 @@ C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.P
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.csproj.GenerateResource.Cache
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.exe
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.pdb
+C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.csprojResolveAssemblyReference.cache
