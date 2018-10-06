@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -405,6 +406,22 @@ namespace xForms
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void toolStripButton2_Click_1(object sender, EventArgs e)
+        {
+            Constantes.erroresEjecucion.moostrarErrores();
+        try 
+			{
+                Process.Start("C:/errores.html");
+				/*Process process = Runtime.getRuntime().exec(new String[] { "cmd.exe","/c","start","\"\"",'"'
+				+ "C:\\Users\\Ramonella\\Documents\\erroresXLSX.html" + '"' });*/
+        	}																												
+        	catch (IOException i) 
+        	{ 
+        		
+        	}
+                 
         }
     }
 }

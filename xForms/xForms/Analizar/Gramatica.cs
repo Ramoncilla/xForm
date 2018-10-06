@@ -390,6 +390,12 @@ namespace xForms.Analizar
             INSTANCIA.Rule= ToTerm(Constantes.NUEVO)+ TIPO_DATOS+ PARAMETROS_LLAMADA;
 
             INSTANCIA_ARREGLO.Rule=  ToTerm(Constantes.NUEVO) +TIPO_DATOS +L_CORCHETES_EXPRESION;
+
+            CONSTRUCTOR.Rule = identificador + PARAMETROS + CUERPO_FUNCION
+                    | ToTerm(Constantes.PUBLICO) + identificador + PARAMETROS + CUERPO_FUNCION
+                    | ToTerm(Constantes.PUBLICO) + ToTerm(Constantes.RESPUESTA) + PARAMETROS + CUERPO_FUNCION
+                | ToTerm(Constantes.FORMULARIO) + identificador + PARAMETROS + CUERPO_FUNCION
+                | ToTerm(Constantes.GRUPO) + identificador + PARAMETROS + CUERPO_FUNCION;
 	
             FUNCION.Rule= VISIBILIDAD +TIPO_DATOS+ identificador+ PARAMETROS+ CUERPO_FUNCION
 	            |VISIBILIDAD +ToTerm(Constantes.VACIO) +identificador+ PARAMETROS+ CUERPO_FUNCION 
@@ -406,11 +412,7 @@ namespace xForms.Analizar
 
                 PRINCIPAL.Rule= ToTerm(Constantes.PRINCIPAL)+ ToTerm(Constantes.ABRE_PAR)+ ToTerm(Constantes.CIERRA_PAR)+ CUERPO_FUNCION;
 
-                CONSTRUCTOR.Rule = identificador + PARAMETROS + CUERPO_FUNCION
-                    | ToTerm(Constantes.PUBLICO) + identificador + PARAMETROS + CUERPO_FUNCION
-                    | ToTerm(Constantes.PUBLICO) + ToTerm(Constantes.RESPUESTA) + PARAMETROS + CUERPO_FUNCION
-                | ToTerm(Constantes.FORMULARIO) + identificador + PARAMETROS + CUERPO_FUNCION
-                | ToTerm(Constantes.GRUPO) + identificador +PARAMETROS+ CUERPO_FUNCION;
+                
 
                 //FUN_RESPUESTA.Rule = ToTerm(Constantes.PUBLICO) + ToTerm(Constantes.RESPUESTA) + PARAMETROS + CUERPO_FUNCION;
 	
@@ -687,7 +689,7 @@ namespace xForms.Analizar
 
             MarkPunctuation("[","]","(",")",",","{","}", Constantes.IMPRIMIR, ";",":", Constantes.SI, Constantes.PADRE, Constantes.CLASE, Constantes.SINO, Constantes.IGUAL,
                 Constantes.IMPORTAR, ".", "xform", Constantes.PRINCIPAL, Constantes.NUEVO, Constantes.MIENTRAS, Constantes.HACER, Constantes.PARA, Constantes.RETORNO, Constantes.CASO, Constantes.DE,
-                Constantes.DOS_PUNTOS, Constantes.PREG, Constantes.DEFECTO, Constantes.REPETIR, Constantes.HASTA, Constantes.PREGUNTA, Constantes.GRUPO, Constantes.FORMULARIO);
+                Constantes.DOS_PUNTOS, Constantes.PREG, Constantes.DEFECTO, Constantes.REPETIR, Constantes.HASTA, Constantes.PREGUNTA, Constantes.GRUPO);
 
 
 

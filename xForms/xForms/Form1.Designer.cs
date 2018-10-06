@@ -47,6 +47,7 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -125,14 +126,14 @@
             // nuevaPestanhaToolStripMenuItem
             // 
             this.nuevaPestanhaToolStripMenuItem.Name = "nuevaPestanhaToolStripMenuItem";
-            this.nuevaPestanhaToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.nuevaPestanhaToolStripMenuItem.Size = new System.Drawing.Size(180, 26);
             this.nuevaPestanhaToolStripMenuItem.Text = "Nueva Pestaña";
             this.nuevaPestanhaToolStripMenuItem.Click += new System.EventHandler(this.nuevaPestanhaToolStripMenuItem_Click);
             // 
             // cerrarPestanhaToolStripMenuItem
             // 
             this.cerrarPestanhaToolStripMenuItem.Name = "cerrarPestanhaToolStripMenuItem";
-            this.cerrarPestanhaToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.cerrarPestanhaToolStripMenuItem.Size = new System.Drawing.Size(180, 26);
             this.cerrarPestanhaToolStripMenuItem.Text = "Cerrar Pestaña";
             this.cerrarPestanhaToolStripMenuItem.Click += new System.EventHandler(this.cerrarPestanhaToolStripMenuItem_Click);
             // 
@@ -149,21 +150,21 @@
             // técnicoToolStripMenuItem
             // 
             this.técnicoToolStripMenuItem.Name = "técnicoToolStripMenuItem";
-            this.técnicoToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.técnicoToolStripMenuItem.Size = new System.Drawing.Size(152, 26);
             this.técnicoToolStripMenuItem.Text = "Técnico";
             this.técnicoToolStripMenuItem.Click += new System.EventHandler(this.técnicoToolStripMenuItem_Click);
             // 
             // usuarioToolStripMenuItem
             // 
             this.usuarioToolStripMenuItem.Name = "usuarioToolStripMenuItem";
-            this.usuarioToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.usuarioToolStripMenuItem.Size = new System.Drawing.Size(152, 26);
             this.usuarioToolStripMenuItem.Text = "Usuario";
             this.usuarioToolStripMenuItem.Click += new System.EventHandler(this.usuarioToolStripMenuItem_Click);
             // 
             // gramaticaToolStripMenuItem
             // 
             this.gramaticaToolStripMenuItem.Name = "gramaticaToolStripMenuItem";
-            this.gramaticaToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.gramaticaToolStripMenuItem.Size = new System.Drawing.Size(152, 26);
             this.gramaticaToolStripMenuItem.Text = "Gramatica";
             this.gramaticaToolStripMenuItem.Click += new System.EventHandler(this.gramaticaToolStripMenuItem_Click);
             // 
@@ -181,7 +182,8 @@
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton1});
+            this.toolStripButton1,
+            this.toolStripButton2});
             this.toolStrip1.Location = new System.Drawing.Point(0, 28);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1536, 27);
@@ -196,8 +198,18 @@
             this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton1.Name = "toolStripButton1";
             this.toolStripButton1.Size = new System.Drawing.Size(24, 24);
-            this.toolStripButton1.Text = "toolStripButton1";
+            this.toolStripButton1.Text = "Ejecutar";
             this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
+            // 
+            // toolStripButton2
+            // 
+            this.toolStripButton2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButton2.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton2.Image")));
+            this.toolStripButton2.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton2.Name = "toolStripButton2";
+            this.toolStripButton2.Size = new System.Drawing.Size(24, 24);
+            this.toolStripButton2.Text = "Errores";
+            this.toolStripButton2.Click += new System.EventHandler(this.toolStripButton2_Click_1);
             // 
             // Form1
             // 
@@ -240,6 +252,7 @@
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton toolStripButton1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.ToolStripButton toolStripButton2;
     }
 }
 

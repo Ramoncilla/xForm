@@ -117,36 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="menuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
-  <metadata name="toolStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>152, 17</value>
-  </metadata>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="toolStripButton1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAB1SURBVEhLYyAFTLY92gDCUC51Adhwu6P/wZjaltQz/Gea
-        bHdkNdwCmlhiv59l1BKiwaglJAGCloA4lOJJtkdbgPgzVktQBKmNQZZglaAWBlsA9SYlGG8QUQpompJG
-        DccKRg3HCuhSZYIMpJnhMAC2hCTDGRgALZbS+imyGUYAAAAASUVORK5CYII=
-</value>
-  </data>
-  <data name="toolStripButton2.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAECSURBVEhLY5hsd/QhEF+gEX4IsuACA40A2OzhacFkqyNS
-        vRbHhKBcsgFWCybaHTWcbHv0EBDvm2R/VAMqTBbAakE9w3+mSbZHHky2PXIZKsQwye7oGpA6fHiS7dFj
-        QF9zQrWAAUgcwwIQmOJ4VB6EoVyyAU4LqAUGzoIJTsfF++33C0C5ZAOsFkyxP2Iw2e7I3kl2R3bQJBWt
-        Cl3FDEw1j4Ap6RpUiPqpCORySl0PAjgtoBYYOAu6XXdy12tdYYNyyQZYLZhif0wFGMEzgZE2idLcjNWC
-        mS5n+IFJ9CVQ/N5M4zNcIDGqpyJgPvCbbHPUB8olG+C0gFpg+FhAw2bL0YcAYpxqvyVFPQoAAAAASUVO
-        RK5CYII=
-</value>
-  </data>
-  <metadata name="saveFileDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>276, 17</value>
-  </metadata>
-  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>25</value>
-  </metadata>
 </root>

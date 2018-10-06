@@ -2041,6 +2041,10 @@ namespace xForms.Analizar
             int cont = 0;
             bool banderaLista = false;
             string nombreClase2 = nombreClase;
+            if (noValores == 4)
+            {
+                Console.WriteLine("aqui");
+            }
             do
             {
                 elementoAcceso = nodo.ChildNodes[i];
@@ -3535,18 +3539,26 @@ namespace xForms.Analizar
                 declararAsignarParametrosLlamada(valoresParametros, nodo, nodoParametrosDecla, nodoParametros, ambiente, nombreClase, nombreMetodo, tabla);
 
                 ret = evaluarArbol(funBuscada.cuerpoFuncion, ambiente, nombreClase, nombreMetodo, tabla, ret);
-               
+
+                if (funBuscada.esFormulario)
+                {
+                    guardarRes();
+
+                }
+
                 Simbolo simb = tabla.buscarSimbolo("retorno", ambiente);
                
                 if (simb != null)
                 {
                     if (simb is Objeto)
                     {
+                        ret.banderaRetorno = false;
                         ret.val = new Valor(simb.tipo, simb);
 
                     }
                     else if (simb is Variable)
                     {
+                        ret.banderaRetorno = false;
                         ret.val = simb.valor;
 
                     }
@@ -3556,6 +3568,7 @@ namespace xForms.Analizar
                     }
                     else
                     {
+                        ret.banderaRetorno = false;
                         ret.val = simb.valor;
 
                     }
@@ -3576,6 +3589,26 @@ namespace xForms.Analizar
 
         #endregion
 
+
+        private void guardarRes()
+        {
+
+            DialogResult resultado = new DialogResult();
+            FormResultados f = new FormResultados();
+            resultado = f.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                String result = FormResultados.nombreF;
+                String arbolDerivacion = rutaCarpeta + "\\" + result + ".txt";
+                System.IO.File.WriteAllText(arbolDerivacion, cadenaRespuestas);
+            }
+            else if (resultado == DialogResult.Cancel)
+            {
+                String arbolDerivacion = rutaCarpeta + "\\Formulario" + contadorF + ".txt";
+                contadorF++;
+                System.IO.File.WriteAllText(arbolDerivacion, cadenaRespuestas);
+            }
+        }
 
         private void declaraRetornoObjeto(string nombre, string tipo, ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
         {

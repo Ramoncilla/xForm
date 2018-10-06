@@ -36,7 +36,7 @@ namespace xForms
         public const string NOTA = "NOTA";
         public const string RANGO = "RANGO";
         public const string SELECCIONAR_1 = "SELECCIONAR_1";
-        public const string SELECCIONA = "SELECCIONA";
+        public const string SELECCIONA = "SELECCIONAR";
         public const string FICHERO = "FICHERO";
 
 

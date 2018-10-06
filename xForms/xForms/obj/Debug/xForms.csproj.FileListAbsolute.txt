@@ -11,9 +11,10 @@ C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\AxIntero
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.csproj.ResolveComReference.cache
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.Form1.resources
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.Form2.resources
+C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.FormResultados.resources
+C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.guardarForm.resources
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.modeloPregunta.resources
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.Properties.Resources.resources
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.csproj.GenerateResource.Cache
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.exe
 C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.pdb
-C:\Users\Ramonella\Documents\Repositorios\xForm\xForms\xForms\obj\Debug\xForms.csprojResolveAssemblyReference.cache

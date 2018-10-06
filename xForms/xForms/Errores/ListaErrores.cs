@@ -21,6 +21,8 @@ namespace xForms.Errores
         }
 
 
+
+
         public void errorSemantico(ParseTreeNode nodo, String descripcion)
         {
             if (nodo != null)
@@ -39,6 +41,15 @@ namespace xForms.Errores
 
             }
             
+        }
+
+
+        public void errorSintactico(String descripcion)
+        {
+            int fila = 0;
+            int col = 0;
+            Error nuevo = new Error(col, fila, Constantes.ERROR_SINTACTICO, descripcion);
+            this.lErrores.Add(nuevo);
         }
 
         public void errorSemantico(String descripcion)

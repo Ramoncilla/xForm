@@ -21,6 +21,8 @@ namespace xForms.Tabla_Simbolos
         public string contexto;
         public bool esConstructor;
         public bool esPrincipal;
+        public bool esFormulario=false;
+
 
 
 

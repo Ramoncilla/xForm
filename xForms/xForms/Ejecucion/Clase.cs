@@ -95,6 +95,8 @@ namespace xForms.Ejecucion
                 case Constantes.FUNCION:
                     {
                         Funcion nueva = new Funcion(nodo, this.nombreClase,1);
+                        int n = nodo.ChildNodes.Count;
+                     
                         this.funcionesClase.insertarFuncion(nueva, nodo);
                         break;
                     }
@@ -102,7 +104,24 @@ namespace xForms.Ejecucion
                 case Constantes.CONSTRUCTOR:
                     {
                         Funcion nueva = new Funcion(nodo, this.nombreClase,2);
-                        nueva.esConstructor = true;
+                        int n = nodo.ChildNodes.Count;
+                        if (n == 4)
+                        {
+                            string v1 = nodo.ChildNodes[0].Token.ValueString;
+                            if (v1.Equals(Constantes.FORMULARIO, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                nueva.esFormulario = true;
+                            }
+                            else
+                            {
+                                nueva.esConstructor = true;
+                            }
+                        }
+                        else
+                        {
+                            nueva.esConstructor = true;
+                        }
+                        
                         this.funcionesClase.insertarFuncion(nueva, nodo);
                         break;
                     }

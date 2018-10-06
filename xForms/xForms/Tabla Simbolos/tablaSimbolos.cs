@@ -54,7 +54,7 @@ namespace xForms.Tabla_Simbolos
             }
             else
             {
-                Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y Ambiente " + simb.ambito+ "  Ruta "+ simb.rutaAcc);
+                Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y Ambiente " + simb.ambito+ "  Ruta "+ simb.rutaAcc +" jjojoj");
             }
         }
 
@@ -70,7 +70,7 @@ namespace xForms.Tabla_Simbolos
                 }
                 else
                 {
-                    Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y Ambiente " + simb.ambito + "  Ruta " + simb.rutaAcc);
+                    Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y Ambiente " + simb.ambito + "  Ruta " + simb.rutaAcc+" uuuuuu");
 
                 }
                 return a;

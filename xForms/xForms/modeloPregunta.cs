@@ -173,7 +173,8 @@ namespace xForms
                 case 1:
                     {
                         #region validaciones Cadena
-                        gbCadena.Visible = true;
+                        txtRespuesta.Visible = true;
+                       // gbCadena.Visible = true;
                         if(lectura)
                         { txtRespuesta.Enabled = false; }
                         
@@ -195,7 +196,8 @@ namespace xForms
 
                 case 2:
                     {
-                        gbNumeros.Visible = true;
+                        respuestaNumerica.Visible = true;
+                        //gbNumeros.Visible = true;
                         if (predeterminado != null)
                         {
                             try
@@ -217,7 +219,9 @@ namespace xForms
 
                 case 3:
                     {
-                        gbDecimales.Visible = true;
+                        respuestaDecimal.Visible = true;
+
+                        //gbDecimales.Visible = true;
                         if (predeterminado != null)
                         {
                             try
@@ -263,14 +267,16 @@ namespace xForms
 
                 case 5:
                     {
-                       
-                        gbNota.Visible = true;
+
+                        lblNota.Visible = true;
+                        //gbNota.Visible = true;
                         lblNota.Text = contenidoNota;
                         break;
                     }
                 case 6:
                     {
-                        gbNumeros.Visible = true;
+                       // gbNumeros.Visible = true;
+                        respuestaNumerica.Visible = true;
                         respuestaNumerica.Minimum = Linf;
                         respuestaNumerica.Maximum = Lsup;
                         if (predeterminado != null)
@@ -304,7 +310,8 @@ namespace xForms
 
                 case 7://fecha
                     {
-                        gbFecha.Visible = true;
+                        fecha.Visible = true;
+                       // gbFecha.Visible = true;
                         if (predeterminado != null)
                         {
                             try
@@ -327,7 +334,8 @@ namespace xForms
 
                 case 8://hora
                     {
-                        gbHora.Visible = true;
+                        hora.Visible = true;
+                       // gbHora.Visible = true;
                         if (predeterminado != null)
                         {
                             try
@@ -355,8 +363,8 @@ namespace xForms
 
                 case 9://fechahora
                     {
-                        gbHora.Visible = true;
-                        gbFecha.Visible = true;
+                        hora.Visible = true;
+                        fecha.Visible = true;
                         if (predeterminado != null)
                         {
                             try
@@ -389,7 +397,8 @@ namespace xForms
                     }
                 case 10:
                     {
-                        gbComboBox.Visible = true;
+                        comboOpciones.Visible = true;
+                       // gbComboBox.Visible = true;
                         if (listaValores != null)
                         {
                             BindingSource bSource = new BindingSource();
@@ -408,7 +417,8 @@ namespace xForms
 
                 case 11:
                     {
-                        gbCheques.Visible = true;
+                        listaCheques.Visible = true;
+                        //gbCheques.Visible = true;
                         if (listaValores != null)
                         {
                             ((ListBox)listaCheques).DataSource = listaValores;
