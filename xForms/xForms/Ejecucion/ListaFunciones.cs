@@ -19,6 +19,21 @@ namespace xForms.Ejecucion
             this.lFunciones = new List<Funcion>();
         }
 
+        public Funcion obtenerFuncionNo(string nombreFuncion, int noParametros)
+        {
+            Funcion temp;
+            for (int i = 0; i < this.lFunciones.Count; i++)
+            {
+                temp = this.lFunciones.ElementAt(i);
+                if (temp.nombreFuncion.ToLower().Equals(nombreFuncion.ToLower()) &&
+                    temp.obtenerTamanioParametros()==noParametros)
+                {
+                    return temp;
+                }
+            }
+
+            return null;
+        }
 
 
         public Funcion obtenerFuncion(string nombreFuncion, string cadenaParametros)

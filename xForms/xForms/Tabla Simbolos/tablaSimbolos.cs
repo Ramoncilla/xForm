@@ -58,7 +58,7 @@ namespace xForms.Tabla_Simbolos
             }
         }
 
-        public bool insertarSimbolo(Simbolo simb)
+        public bool insertarSimbolo(Simbolo simb, int n)
         {
             nodoTablaSimbolos temp = this.listaSimbolos.Peek();
             if (simb != null)
@@ -70,7 +70,7 @@ namespace xForms.Tabla_Simbolos
                 }
                 else
                 {
-                    Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y Ambiente " + simb.ambito + "  Ruta " + simb.rutaAcc+" uuuuuu");
+                    Console.WriteLine("Se ha insertado la variable " + simb.nombre + ", de tipo " + simb.tipo + " y Ambiente " + simb.ambito + "  Ruta " + simb.rutaAcc+" uuuuuu "+n);
 
                 }
                 return a;

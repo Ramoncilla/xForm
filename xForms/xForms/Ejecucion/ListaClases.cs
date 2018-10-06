@@ -95,7 +95,7 @@ namespace xForms.Ejecucion
         }
 
 
-        public Funcion obtenerFuncion(string nombreClase, string nombreFuncion, string cadParametros)
+        public Funcion obtenerFuncion(string nombreClase, string nombreFuncion, string cadParametros, int noParametros)
         {
             Clase temp;
             for (int i = 0; i < this.lClases.Count; i++)
@@ -103,7 +103,23 @@ namespace xForms.Ejecucion
                 temp = this.lClases.ElementAt(i);
                 if (temp.nombreClase.ToLower().Equals(nombreClase.ToLower()))
                 {
-                    return temp.obtenerFuncion(nombreFuncion, cadParametros);
+                    Funcion f= temp.obtenerFuncion(nombreFuncion, cadParametros);
+                    if (f != null)
+                    {
+                        return f;
+                    }
+                }
+            }
+            bool v = cadParametros.ToLower().Contains("nulo");
+            if (v)
+            {
+                for (int i = 0; i < this.lClases.Count; i++)
+                {
+                    temp = this.lClases.ElementAt(i);
+                    if (temp.nombreClase.ToLower().Equals(nombreClase.ToLower()))
+                    {
+                        return temp.obtenerFuncionNo(nombreFuncion, noParametros);
+                    }
                 }
             }
             return null;
@@ -377,10 +393,21 @@ namespace xForms.Ejecucion
                     atributoTemporal = claseTemporal.atributosClase.lAtributos.ElementAt(j);
                     if ((esObjecto(atributoTemporal.tipo) && !(esLista(atributoTemporal.tipo))))
                     {
-                        Objeto objTemp = (Objeto)atributoTemporal;
-                        ambitos.addAmbito(atributoTemporal.nombre);
-                        agregarAtributosTabla(objTemp.tipo, objTemp.variablesObjeto, ambitos, objTemp.nombre);
-                        ambitos.salirAmbito();
+
+                        if (atributoTemporal.tipo.Equals(claseTemporal.nombreClase, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Objeto objTemp = (Objeto)atributoTemporal;
+                            objTemp.valor = new Valor();
+                        }
+                        else
+                        {
+                            Objeto objTemp = (Objeto)atributoTemporal;
+                            ambitos.addAmbito(atributoTemporal.nombre);
+                            agregarAtributosTabla(objTemp.tipo, objTemp.variablesObjeto, ambitos, objTemp.nombre);
+                            ambitos.salirAmbito();
+
+                        }
+                        
                     }
                 }
                 
@@ -406,7 +433,7 @@ namespace xForms.Ejecucion
                     {
                         atributoTemp.rutaAcc = ambiente.getAmbito();
                         atributoTemp.ambito = nomClase;
-                        tabla.insertarSimbolo(atributoTemp);
+                        tabla.insertarSimbolo(atributoTemp,2);
                         if( (esObjecto(atributoTemp.tipo) && !(esLista(atributoTemp.tipo))))
                         {
                             Objeto obj = (Objeto)atributoTemp;

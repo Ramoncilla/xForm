@@ -423,5 +423,54 @@ namespace xForms
         	}
                  
         }
+
+        private void toolStripButton3_Click_1(object sender, EventArgs e)
+        {
+
+
+            string[] archivos = System.IO.Directory.GetFiles(@"C:\Reportes\");
+            int i = 0;
+            String c = "";
+            c = "<html><body><center>";
+            foreach (var a in archivos)
+            {
+                i++;
+
+                c += "<a href=" + a + ">Formulario no. " + i + "</a><br>";
+                Console.WriteLine(a);
+            }
+            c += "</center></body></html>";
+
+            try
+            {
+
+                //Pass the filepath and filename to the StreamWriter Constructor
+                StreamWriter sw = new StreamWriter(@"C:\Users\Ramonella\Desktop\Reportes\reportesCalificacion.html");
+
+                //Write a line of text
+                sw.WriteLine(c);
+
+                //Close the file
+                sw.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.Message);
+            }
+            finally
+            {
+                Console.WriteLine("Executing finally block.");
+            }
+
+
+            try
+            {
+                Process.Start(@"C:\Users\Ramonella\Desktop\Reportes\reportesCalificacion.html");
+            }
+            catch (IOException ipl)
+            {
+
+            }
+        }
     }
 }

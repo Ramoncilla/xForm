@@ -245,6 +245,8 @@ namespace xForms
                 case 4:
                     {
                         gbCondicion.Visible = true;
+                        opVerdadero.Text = cadT;
+                        opFalso.Text = cadF;
                         if (lectura)
                         {
                             opVerdadero.Enabled = false;

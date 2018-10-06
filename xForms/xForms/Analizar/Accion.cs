@@ -29,6 +29,44 @@ namespace xForms.Analizar
         public string nombreArchivoPrincipal;
         tablaSimbolos temporalParametros;
         int contadorF = 0;
+        String rutaReportes = @"‪C:\Reportes\";
+        int contP = 0;
+        string cadenaRespuestasHtml="<!DOCTYPE html>\n" +
+"<html>\n" +
+"<head>\n" +
+"<style>\n" +
+"#customers {\n" +
+"    font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;\n" +
+"    border-collapse: collapse;\n" +
+"    width: 100%;\n" +
+"}\n" +
+"\n" +
+"#customers td, #customers th {\n" +
+"    border: 1px solid #ddd;\n" +
+"    padding: 8px;\n" +
+"}\n" +
+"\n" +
+"#customers tr:nth-child(even){background-color: #f2f2f2;}\n" +
+"\n" +
+"#customers tr:hover {background-color: #ddd;}\n" +
+"\n" +
+"#customers th {\n" +
+"    padding-top: 12px;\n" +
+"    padding-bottom: 12px;\n" +
+"    text-align: left;\n" +
+"    background-color: #4CAF50;\n" +
+"    color: white;\n" +
+"}\n" +
+"</style>\n" +
+"</head>\n" +
+"<body><br><br><center> Respuesta Formulario</center>\n" +
+"\n" +
+"<table id=\"customers\">"+
+            "<tr>\n" +
+                "<td>No.</td>\n" +
+                "<td>Id Pregunta</td>\n" +
+                "<td>Respuesta</td>\n" +
+                "</tr>\n";
 
         public Accion(string ruta, string nombreA)
         {
@@ -418,6 +456,12 @@ namespace xForms.Analizar
         private void responder(string idPregunta, Object valor)
         {
             cadenaRespuestas += "< " + idPregunta + " , " + valor.ToString() + ">\n";
+            cadenaRespuestasHtml += "<tr>\n" +
+                "<td>" + contP + "</td>\n" +
+                "<td>" + (idPregunta + 1) + "</td>\n" +
+                "<td>" + (valor) + "</td>\n" +
+                "</tr>\n";
+            contP++;
         }
 
         private Valor ejecutarCadena( ParseTreeNode nodo, Objeto simb, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla) {
@@ -516,7 +560,7 @@ namespace xForms.Analizar
                     String result = Form2.respuestaCadena;
                     responder(idPregunta, Form2.respuestaCadena);
                     Console.WriteLine("Respuesta del usuario   " + Form2.respuestaCadena);
-                    tabla.insertarSimbolo(respuestas);
+                    tabla.insertarSimbolo(respuestas,1);
                     respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                     tabla.sacarSimbolo();
                     return ingresoUsuario;
@@ -672,7 +716,7 @@ namespace xForms.Analizar
                 String result = Form2.respuestaCadena;
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaEntero);
                // tabla.insertarSimbolo(simb);
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,3);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                // tabla.sacarSimbolo();
                 tabla.sacarSimbolo();
@@ -745,7 +789,7 @@ namespace xForms.Analizar
             {
                 Valor ingresoUsuario = castear(esTipo, Form2.respuestaDecimal);
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaDecimal);
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,4);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                 tabla.sacarSimbolo();
                 responder(idPregunta, Form2.respuestaDecimal);
@@ -831,7 +875,7 @@ namespace xForms.Analizar
                 String result = Form2.respuestaCondicion;
                 responder(idPregunta, Form2.respuestaCondicion);
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaCondicion);
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,5);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                 tabla.sacarSimbolo();
                 return ingresoUsuario;
@@ -920,7 +964,7 @@ namespace xForms.Analizar
             {
                 Valor ingresoUsuario = castear(esTipo, Form2.respuestaEntero);
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaEntero);
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,9);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                 tabla.sacarSimbolo();
                 responder(idPregunta, Form2.respuestaEntero);
@@ -993,7 +1037,7 @@ namespace xForms.Analizar
                 Valor ingresoUsuario = castear(esTipo, Form2.respuestaFecha);
                 responder(idPregunta, Form2.respuestaFecha);
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaFecha);
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,6);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                 tabla.sacarSimbolo();
                 return ingresoUsuario;
@@ -1065,7 +1109,7 @@ namespace xForms.Analizar
                 Valor ingresoUsuario = castear(esTipo, Form2.respuestaHora);
                 responder(idPregunta, Form2.respuestaHora);
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaHora);
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,10);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                 tabla.sacarSimbolo();
                 return ingresoUsuario;
@@ -1137,7 +1181,7 @@ namespace xForms.Analizar
                 Valor ingresoUsuario = castear(esTipo, Form2.respuestaFechaHora);
                 responder(idPregunta, Form2.respuestaFechaHora);
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaFechaHora);
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,12);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                 tabla.sacarSimbolo();
                 return ingresoUsuario;
@@ -1211,7 +1255,7 @@ namespace xForms.Analizar
                 String result = Form2.respuestaSeleccionar1;
                 responder(idPregunta, Form2.respuestaSeleccionar1);
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaSeleccionar1);
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,7);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                 tabla.sacarSimbolo();
                 return ingresoUsuario;
@@ -1284,7 +1328,7 @@ namespace xForms.Analizar
                 Valor ingresoUsuario = castear(esTipo, Form2.respuestaSeleccionarMuchos.ElementAt(0));
                 responder(idPregunta, Form2.respuestaSeleccionarMuchos);
                 Console.WriteLine("Respuesta del usuario   " + Form2.respuestaSeleccionarMuchos.ElementAt(0));
-                tabla.insertarSimbolo(respuestas);
+                tabla.insertarSimbolo(respuestas,13);
                 respondeUsuario(tabla, ingresoUsuario, Constantes.RESPUESTA, idPregunta, ambiente);
                 tabla.sacarSimbolo();
                 return ingresoUsuario;
@@ -1812,7 +1856,7 @@ namespace xForms.Analizar
                     atriTemp.rutaAcc = rutaTemp;
                     string ambitoTemporal = ambiente.getAmbito();// +"/" + nombre; ;
                     atriTemp.ambito = ambitoTemporal; //
-                    nuevo.variablesObjeto.insertarSimbolo(atriTemp);
+                    nuevo.variablesObjeto.insertarSimbolo(atriTemp,11);
                     nuevo.rutaAcc = ambitoTemporal;
                     /*---- buscando nuevamente el simbolo para poderlo asignar a la tabla*/
                     Contexto c = new Contexto();
@@ -1927,7 +1971,7 @@ namespace xForms.Analizar
                     if (esLista)
                     {
                         ListaOpciones nueva = new ListaOpciones(nombre, tipo, rutaAcceso, false);
-                        tabla.insertarSimbolo(nueva);
+                        tabla.insertarSimbolo(nueva,15);
                     }
                     else
                     {
@@ -1994,9 +2038,31 @@ namespace xForms.Analizar
             return ret;
         }
 
-        private elementoRetorno buscar(ListaOpciones lista, ParseTreeNode expresionABuscar, ParseTreeNode indiceBusqueda )
+        private elementoRetorno buscar(ListaOpciones lista, ParseTreeNode nodoFilaLista, ParseTreeNode indiceEnFila, Contexto ambiente, string nombreclase, string nombreMetodo, tablaSimbolos tabla, elementoRetorno ret)
         {
-            return null;
+
+            Valor v1 = resolverExpresion(nodoFilaLista, ambiente, nombreclase, nombreMetodo, temporalParametros).val;
+            Valor v2 = resolverExpresion(indiceEnFila, ambiente, nombreclase, nombreMetodo, temporalParametros).val;
+            if (!esNulo(v1) && !esNulo(v2))
+            {
+                if (esEntero(v2))
+                {
+                    int v22 = getEntero(v2);
+                    ret.val = lista.buscar(v1, v22);
+                    return ret;
+                }
+                else
+                {
+                    Constantes.erroresEjecucion.errorSemantico(nodoFilaLista, "Funcion Buscar, lista de opciones. El segundo  valor debe de ser entero, y es "  + v2.tipo);
+                    ret.val = new Valor();
+                    return ret;
+                }
+            }
+            else
+            {
+                ret.val = new Valor();
+                return ret;
+            }
 
         }
 
@@ -2015,7 +2081,7 @@ namespace xForms.Analizar
                 }
                 else
                 {
-                    Constantes.erroresEjecucion.errorSemantico(nodoFilaLista, "Los valores deben de ser enteros, tanto el indice como la posicion a obtener en la fila y son " + v1.tipo + " y " + v2.tipo);
+                    Constantes.erroresEjecucion.errorSemantico(nodoFilaLista, "Funcion Obtener, lista de opciones, los valores deben de ser enteros, tanto el indice como la posicion a obtener en la fila y son " + v1.tipo + " y " + v2.tipo);
                     ret.val = new Valor();
                     return ret;
                 }
@@ -2041,7 +2107,7 @@ namespace xForms.Analizar
             int cont = 0;
             bool banderaLista = false;
             string nombreClase2 = nombreClase;
-            if (noValores == 4)
+            if (noValores == 2)
             {
                 Console.WriteLine("aqui");
             }
@@ -2053,11 +2119,19 @@ namespace xForms.Analizar
                    nombreElemento= elementoAcceso.ChildNodes[0].Token.ValueString;
                    if (i == 0)
                    {
-                       simbActual = tabla.buscarSimbolo(nombreElemento, ambiente);  
+                       simbActual = tabla.buscarSimbolo(nombreElemento, ambiente);
+                       if (simbActual == null)
+                       {
+                           simbActual = temporalParametros.buscarSimbolo(nombreElemento, ambiente);
+                       }
                    }
                    else
                    {
-                       simbActual = tabla2.buscarSimbolo(nombreElemento, ambiente);  
+                       simbActual = tabla2.buscarSimbolo(nombreElemento, ambiente);
+                       if (simbActual == null)
+                       {
+                           simbActual = temporalParametros.buscarSimbolo(nombreElemento, ambiente);
+                       }
 
                    }
                                    
@@ -2072,10 +2146,20 @@ namespace xForms.Analizar
                         {
                             banderaLista = true;
                         }
+                       /* if (simbActual is Objeto && esNulo(simbActual.valor))
+                        {
+                            ret.val = new Valor();
+                            ambiente.addAmbito(simbActual.nombre);
+                            cont++;
+                        }
+                        else
+                        {*/
+                            ret.val = new Valor(simbActual.tipo, simbActual);
+                            ambiente.addAmbito(simbActual.nombre);
+                            cont++;
+                      //  }
 
-                        ret.val = new Valor(simbActual.tipo, simbActual);
-                        ambiente.addAmbito(simbActual.nombre);
-                        cont++;
+                        
                     }
                     else
                     {
@@ -2166,13 +2250,14 @@ namespace xForms.Analizar
                     }
 
                 }else if(elementoAcceso.Term.Name.Equals(Constantes.BUSCAR, StringComparison.CurrentCultureIgnoreCase)){
-
+                    ParseTreeNode noFila = elementoAcceso.ChildNodes[1];
+                    ParseTreeNode noPos = elementoAcceso.ChildNodes[2];
                      if (banderaLista)
                         {
                             if (simbActual is ListaOpciones)
                             {
                                 ListaOpciones op = (ListaOpciones)simbActual;
-                               // ret.val = this.buscar(op,).val;
+                                ret.val = this.buscar(op, noFila, noPos, ambiente, nombreClase, nombreMetodo, tabla2, ret).val;
                                 banderaLista = false;
                             }
                             else
@@ -3468,7 +3553,7 @@ namespace xForms.Analizar
                 claseTemporal = claseArchivo.get(i);
                 if (claseTemporal.nombreClase.Equals(tipoInstancia, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    Funcion funBuscada = this.claseArchivo.obtenerFuncion(tipoInstancia, tipoInstancia, cadParametros);
+                    Funcion funBuscada = this.claseArchivo.obtenerFuncion(tipoInstancia, tipoInstancia, cadParametros, valoresParametros.Count);
                     if (funBuscada != null)
                     {
                         ambiente.addAmbito(tipoInstancia);
@@ -3506,7 +3591,7 @@ namespace xForms.Analizar
                 cadParametros += x.tipo;
             }
 
-            Funcion funBuscada = this.claseArchivo.obtenerFuncion(nombreClase, nombreFuncion, cadParametros);
+            Funcion funBuscada = this.claseArchivo.obtenerFuncion(nombreClase, nombreFuncion, cadParametros, valoresParametros.Count);
             if (funBuscada != null)
             {
                 tabla.crearNuevoAmbito(nombreFuncion);
@@ -3529,7 +3614,7 @@ namespace xForms.Analizar
                     else
                     {
                         Variable nuevaVar = new Variable("retorno", funBuscada.tipo, ambiente.getAmbito(), false);
-                        tabla.insertarSimbolo(nuevaVar);
+                        tabla.insertarSimbolo(nuevaVar,14);
 
                     }
                 }
@@ -3598,15 +3683,29 @@ namespace xForms.Analizar
             resultado = f.ShowDialog();
             if (resultado == DialogResult.OK)
             {
-                String result = FormResultados.nombreF;
+                String result = FormResultados.nombreF+"";
                 String arbolDerivacion = rutaCarpeta + "\\" + result + ".txt";
                 System.IO.File.WriteAllText(arbolDerivacion, cadenaRespuestas);
+
+                string path = @"c:\Reportes\"+result+".html";
+                if (!File.Exists(path))
+                {
+                    string createText = cadenaRespuestasHtml;
+                    File.WriteAllText(path, createText);
+                }
             }
             else if (resultado == DialogResult.Cancel)
             {
                 String arbolDerivacion = rutaCarpeta + "\\Formulario" + contadorF + ".txt";
                 contadorF++;
                 System.IO.File.WriteAllText(arbolDerivacion, cadenaRespuestas);
+                string path = @"c:\Reportes\Formulario" + contadorF + ".html";
+                if (!File.Exists(path))
+                {
+                    string createText = cadenaRespuestasHtml;
+                    File.WriteAllText(path, createText);
+                }
+               
             }
         }
 
@@ -3645,7 +3744,7 @@ namespace xForms.Analizar
                     atriTemp.rutaAcc = rutaTemp;
                     string ambitoTemporal = ambiente.getAmbito();// +"/" + nombre; ;
                     atriTemp.ambito = ambitoTemporal; //
-                    nuevo.variablesObjeto.insertarSimbolo(atriTemp);
+                    nuevo.variablesObjeto.insertarSimbolo(atriTemp,16);
                     nuevo.rutaAcc = ambitoTemporal;
                     /*---- buscando nuevamente el simbolo para poderlo asignar a la tabla*/
                     Contexto c = new Contexto();
@@ -3952,8 +4051,38 @@ namespace xForms.Analizar
         }
         private Valor funcionTam(ParseTreeNode nodo, Contexto ambiente, string nombreClase, string nombreMetodo, tablaSimbolos tabla)
         {
+            Valor v1 = resolverExpresion(nodo.ChildNodes[1], ambiente, nombreClase, nombreMetodo, tabla).val;
             Valor ret = new Valor();
-
+            if (esCadena(v1))
+            {
+                string cadena = v1.valor.ToString();
+                ret = new Valor(Constantes.ENTERO, cadena.Length);
+            }
+            else if (esEntero(v1))
+            {
+                ret = new Valor(Constantes.ENTERO, v1.valor);
+            }
+            else if (esDecimal(v1))
+            {
+                double d = double.Parse(v1.valor.ToString());
+                d = Math.Round(d);
+                ret = new Valor(Constantes.ENTERO, d);
+            }
+            else if (esBool(v1))
+            {
+                int v = getBooleanoNumero(v1);
+                ret = new Valor(Constantes.ENTERO, 1);
+            }
+            else if (esObjecto(v1.tipo))
+            {
+                Objeto obj = (Objeto)v1.valor;
+                int n = obj.variablesObjeto.listaSimbolos.Peek().variablesAmbito.Count;
+                ret = new Valor(Constantes.ENTERO, n);
+            }
+            else
+            {
+                ret = new Valor();
+            }
             return ret;
         }
 
@@ -5215,6 +5344,19 @@ namespace xForms.Analizar
                 return resp;
 
             }
+            else if (esNulo(v1) && !esNulo(v2))
+            {
+                return resp;
+            }
+            else if (esNulo(v1) && esNulo(v2))
+            {
+                resp.valor = Constantes.VERDADERO;
+                return resp;
+            }
+            else if (!esNulo(v1) && esNulo(v2))
+            {
+                return resp;
+            }
             /*si se tuvieran que incluir los demas tipos*/
             return new Valor(Constantes.NULO, Constantes.NULO);
         }
@@ -5376,6 +5518,20 @@ namespace xForms.Analizar
                 {
                     resp.valor = Constantes.VERDADERO;
                 }
+                return resp;
+            }
+            else if (esNulo(v1) && !esNulo(v2))
+            {
+                resp.valor = Constantes.VERDADERO;
+                return resp;
+            }
+            else if (esNulo(v1) && esNulo(v2))
+            {
+                return resp;
+            }
+            else if (!esNulo(v1) && esNulo(v2))
+            {
+                resp.valor = Constantes.VERDADERO;
                 return resp;
             }
             /*si se tuvieran que incluir los demas tipos*/
@@ -6160,7 +6316,8 @@ namespace xForms.Analizar
                 tipo.ToLower().Equals(Constantes.FECHA.ToLower()) ||
                 tipo.ToLower().Equals(Constantes.FECHA_HORA.ToLower()) ||
                 tipo.ToLower().Equals(Constantes.HORA.ToLower())|| 
-                tipo.ToLower().Equals(Constantes.OPCIONES.ToLower()))
+                tipo.ToLower().Equals(Constantes.OPCIONES.ToLower())||
+                tipo.ToLower().Equals(Constantes.NULO.ToLower()))
             {
                 return false;
             }
@@ -6169,7 +6326,15 @@ namespace xForms.Analizar
 
         private bool esNulo(Valor v)
         {
-            return v.tipo.ToLower().Equals(Constantes.NULO.ToLower());
+            if(esObjecto(v.tipo)){
+                Objeto v2 = (Objeto)v.valor;
+                return v2.valor.tipo.ToLower().Equals(Constantes.NULO.ToLower());
+            }
+            else
+            {
+                return v.tipo.ToLower().Equals(Constantes.NULO.ToLower());
+            }
+            
         }
 
 
@@ -6264,7 +6429,7 @@ namespace xForms.Analizar
                 cadParametros += x.tipo;
             }
 
-            Funcion funBuscada = this.claseArchivo.obtenerFuncion(nombreClase, nombreFuncion, cadParametros);
+            Funcion funBuscada = this.claseArchivo.obtenerFuncion(nombreClase, nombreFuncion, cadParametros, valoresParametros.Count);
             if (funBuscada != null)
             {
                 tabla.crearNuevoAmbito(nombreFuncion);
@@ -6287,7 +6452,7 @@ namespace xForms.Analizar
                     else
                     {
                         Variable nuevaVar = new Variable("retorno", funBuscada.tipo, ambiente.getAmbito(), false);
-                        tabla.insertarSimbolo(nuevaVar);
+                        tabla.insertarSimbolo(nuevaVar,17);
 
                     }
                 }

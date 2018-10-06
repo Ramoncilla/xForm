@@ -50,9 +50,12 @@ namespace xForms.Ejecucion
             }  
         }
 
-        public int buscar(Valor val1, int pos2)
+        public Valor buscar(Valor val1, int pos2)
         {
-
+            //if (pos2 < 0 || pos2 > (matriz.noFilas() - 1))
+            //{
+              //  return new Valor();
+            //}
             return this.matriz.buscar(val1, pos2);
         }
 

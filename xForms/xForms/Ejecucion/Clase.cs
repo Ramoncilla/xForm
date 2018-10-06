@@ -65,7 +65,10 @@ namespace xForms.Ejecucion
         {
             return this.funcionesClase.obtenerFuncion(nombreFuncion, cadenaParametros);
         }
-
+        public Funcion obtenerFuncionNo(String nombreFuncion, int noParametros)
+        {
+            return this.funcionesClase.obtenerFuncionNo(nombreFuncion, noParametros);
+        }
 
         public List<Simbolo> obtenerAtributosClase()
         {

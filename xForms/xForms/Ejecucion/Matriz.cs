@@ -45,10 +45,34 @@ namespace xForms.Ejecucion
             return new Valor();
         }
 
-        public int buscar(Valor val1, int pos2)
+        public Valor buscar(Valor val1, int pos2)
         {
+            ElementoLista temp;
+            Valor c;
+            for (int i = 0; i < this.matriz.Count; i++)
+            {
+                temp = matriz.ElementAt(i);
+                int n = temp.elementos.Count;
+                if (n > 0)
+                {
+                    c = temp.elementos.ElementAt(0);
+                    if (c.tipo.Equals(val1.tipo, StringComparison.CurrentCultureIgnoreCase) &&
+                        c.valor.Equals(val1.valor))
+                    {
+                        if ((n - 1) >= pos2)
+                        {
+                            Valor r = temp.elementos.ElementAt(pos2);
+                            return r;
+                        }
+                        else
+                        {
+                            return new Valor();
+                        }
+                    }
+                }
+            }
 
-            return 0;
+            return new Valor();
         }
 
         public Matriz clonar()
